@@ -22,5 +22,9 @@
 * on the first run the inbox on the remote machine is deleted?
   test with tpo2!
 
-* mailsync.c:392: warning: passing `const char *' as argument 3 of `die_with_fatal_parse_error3(Token *, char *, char *)' discards qualifiers
-  don't know what to do of this - had to use -fpermissive :-(
+* test and/or find better solution to the problem when we encounter a mailbox
+  that does not match our default mailbox delimiter
+
+* in mailsync.c::copy_message mail_append_full returns an int. c-client's
+  mail_append_full return's a long. What exactly is being returned? Check it
+  out and maybe replace "rv" by "success".

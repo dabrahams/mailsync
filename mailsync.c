@@ -421,43 +421,66 @@ string Store_mailbox(Store s, const string& box) {
   return fullbox;
 }
 
-static StringSet*   tdc_mail_list_dest;
-static Store*       tdc_mail_list_store;
+static StringSet*   matching_mailbox_names;
+static Store*       match_pattern_store;
 
-void tdc_mail_list(MAILSTREAM *stream, Store& store, StringSet& list) {
-  tdc_mail_list_store = &store;
-  tdc_mail_list_dest = &list;
+/*
+ * Fetch a list of mailbox-names from "stream" that match the pattern
+ * given by "store" and put them into "mailbox_names".
+ *
+ * "mailbox_names" is filled up through the callback function "mm_list"
+ * by c-client's mail_list function
+ *
+ * This function corresponds to c-client's mail_list
+ */
+void get_mail_list(MAILSTREAM *stream, Store& store, StringSet& mailbox_names) {
+  match_pattern_store = &store;
+  matching_mailbox_names = &mailbox_names;
   current_context_passwd = &(store.passwd);
   mail_list(stream, nccs(store.ref), nccs(store.pat));
-  tdc_mail_list_store = NULL;
-  tdc_mail_list_dest = NULL;
+  match_pattern_store = NULL;
+  matching_mailbox_names = NULL;
 }
 
 /*
- * Some print formats
+ * Print formats that are being used when showin, what mails are being
+ * transfered or killed:
+ *
+ * "  copied     <-  Mon Sep  9 Tomas Pospisek         test2
+ *                     <Pine.LNX.4.44.0209092123140.24399-100000@petertosh>"
+ * |--lead_format--|-------------from_format------------------|
+ *                     |--------------------msgid_format-------------------|
+ *
+ * 
+ *  "lead_format"  and
+ *  "from_format"  are only used/displayed with options -m and/or -M
+ *  "msgid_format" is only used/displayed with option -M
+ *
  */
-char lead_format[] = "  %-10s %s  ";
-char mid_format[] = "%-65s";
+char lead_format[] = "  %-10s %s  ";    /* arguments:  action, direction */
 char from_format[] = "%-61s";
+char msgid_format[] = "%-65s";            /* argument :  message-id */
 
+/*
+ * Some forward declarations
+ */
 void simplify_message_id(string& msgid);
-
 int read_lasttime(Channel channel,
                   StringSet& boxes, 
                   map<string, StringSet>& mids, 
                   StringSet& extra);
-
 int write_lasttime(Channel channel,
                    const StringSet& boxes, 
                    const StringSet& deleted_boxes,
                    map<string, StringSet>& lasttime);
-
 MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream, 
                                         const string& fullboxname, 
                                         long options);
-
 string summary(MAILSTREAM* stream, long msgno);
 
+/*
+ * Mailsync help
+ */
 void usage() {
   printf("mailsync %s\n\n", VERSION);
   printf("usage: mailsync [options] channel\n");
@@ -472,24 +495,31 @@ void usage() {
   return;
 }
 
+/*
+ * Determine the mailbox delimiter that "stream" is using.
+ */
 void get_delim(MAILSTREAM*& stream, Store& store_in) {
   Store store = store_in;
   store.prefix = "";
   store.pat = "INBOX";
   StringSet boxes;
-  tdc_mail_list(stream, store, boxes);
+  get_mail_list(stream, store, boxes);
   store_in.delim = store.delim;
   return;
 }
 
 /*
- * Find out what we've seen the last time we
+ * Find out what we've seen the last time we did a sync
+ *
+ * returns:
+ *              1 - success
+ *              0 - failure
  */
 int read_lasttime(Channel channel,
                   StringSet& boxes, 
                   map<string, StringSet>& mids, 
                   StringSet& extra) {
-  MAILSTREAM* stream;
+  MAILSTREAM* msinfo_stream;
   ENVELOPE* envelope;
   unsigned long j, k;
   string currentbox;
@@ -498,21 +528,22 @@ int read_lasttime(Channel channel,
 
   /* msinfo is the name of the mailbox that contains the sync info */
   current_context_passwd = &(channel.passwd);
-  stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
-                                       OP_READONLY);
-  if (!stream) {
-    fprintf(stderr,"Error: Couldn't open lasttime box %s\n", channel.msinfo.c_str());
+  msinfo_stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
+                                              OP_READONLY);
+  if (!msinfo_stream) {
+    fprintf(stderr,"Error: Couldn't open lasttime box %s\n",
+                   channel.msinfo.c_str());
     return 0;
   }
 
-  for (j=1; j<=stream->nmsgs; j++) {
-    envelope = mail_fetchenvelope(stream, j);
+  for (j=1; j<=msinfo_stream->nmsgs; j++) {
+    envelope = mail_fetchenvelope(msinfo_stream, j);
     /* The subject line contains the name of the channel */
     if (channel.tag == envelope->subject) {
       /* Found our lasttime */
       int instring;
 
-      text = mail_fetchtext_full(stream, j, &textlen, FT_INTERNAL);
+      text = mail_fetchtext_full(msinfo_stream, j, &textlen, FT_INTERNAL);
       if (text)
         text = strdup(text);
       else
@@ -568,7 +599,7 @@ int read_lasttime(Channel channel,
     printf("\n");
   }
 
-  mail_close(stream);
+  mail_close(msinfo_stream);
   return 1;
 }
 
@@ -610,7 +641,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     }
     if (isdup && show_from) {
       printf(from_format, summary(stream,j).c_str());
-      if (show_message_id) printf(mid_format, msgid.c_str());
+      if (show_message_id) printf(msgid_format, msgid.c_str());
       printf("\n");
     }
   }
@@ -677,7 +708,7 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   if (show_from) {
     printf(lead_format, rv ? "copied" : "copyfail", direction);
     printf(from_format, summary(storea_stream, msgno).c_str());
-    if (show_message_id) printf(mid_format, msgid.c_str());
+    if (show_message_id) printf(msgid_format, msgid.c_str());
     printf("\n");
   }
   return rv;
@@ -899,7 +930,7 @@ int main(int argc, char** argv) {
   /* Get list of all mailboxes from each server. */
   allboxes.clear();
   if (debug) printf(" Items in store \"%s\":\n", storea.tag.c_str());
-  tdc_mail_list(storea_stream, storea, allboxes);
+  get_mail_list(storea_stream, storea, allboxes);
   if (debug)
     if (storea.delim)
       printf(" Delimiter for store \"%s\" is '%c'.\n",
@@ -914,7 +945,7 @@ int main(int argc, char** argv) {
   }
   if (mode==mode_sync) {
     if (debug) printf(" Items in store \"%s\":\n", storeb.tag.c_str());
-    tdc_mail_list(storeb_stream, storeb, allboxes);
+    get_mail_list(storeb_stream, storeb, allboxes);
     if (debug)
     if (storeb.delim)
       printf(" Delimiter for store \"%s\" is '%c'.\n",
@@ -932,9 +963,9 @@ int main(int argc, char** argv) {
 
   /* Read the lasttime lists. */
   {
-    int rv;
-    rv = read_lasttime(channel, allboxes, lasttime, deleted_boxes);
-    if (!rv) 
+    int success;
+    success = read_lasttime(channel, allboxes, lasttime, deleted_boxes);
+    if (!success) 
       exit(1);
   }
 
@@ -1242,6 +1273,15 @@ MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream,
   return stream;
 }
 
+/*
+ * Callback function
+ *
+ * called by c-client's mail_list to give us a mailbox name that matches
+ * our search pattern together with it's attributes 
+ *
+ * mm_list will save the mailbox names in the "matching_mailbox_names"
+ * StringSet
+ */
 void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
 {
   const char* name = name_nc;
@@ -1258,14 +1298,14 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
     putchar ('\n');
   }
 
-  if (!tdc_mail_list_store) {
+  if (!match_pattern_store) {
     /* Internal error */
     abort();
   }
 
   /* Delimiter */
 
-  tdc_mail_list_store->delim = delimiter;
+  match_pattern_store->delim = delimiter;
 
   /* If the mailbox is "selectable", i.e. contains messages,
      store the name in the appropriate StringSet. */
@@ -1278,7 +1318,7 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
       name = skip+1;
 
     /* Remove prefix if it matches specified prefix */
-    skip = tdc_mail_list_store->prefix.c_str();
+    skip = match_pattern_store->prefix.c_str();
     while (*skip==*name) {
       skip++;
       name++;
@@ -1290,15 +1330,15 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
     if (delimiter != DEFAULT_DELIMITER) {
       for (int i = 0; name[i]; i++) {
         if (name_copy[i] == DEFAULT_DELIMITER) {
-          printf("?Name of mailbox %s contains standard delimiter '%c'\n",
+          printf("Error: Name of mailbox %s contains standard delimiter '%c'\n",
                  name, DEFAULT_DELIMITER);
-          printf(" So I can not synchronize this it!");
+          printf("       That means that I will not be able to synchronize it!");
           return;
         } else if (name_copy[i] == (char)delimiter)
           name_copy[i] = DEFAULT_DELIMITER;
       }
     }
-    tdc_mail_list_dest->insert(string(name_copy));
+    matching_mailbox_names->insert(string(name_copy));
   }
 }
 
