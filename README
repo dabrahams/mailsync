@@ -15,7 +15,8 @@ Mailsync-4
 6. More about the algorithm
 7. History
 8. Further reading
-9. Author, disclaimer, etc.
+9. Support and homepage
+10. Author, disclaimer, etc.
 
 
 
@@ -404,7 +405,21 @@ http://www.iana.org/assignments/imap4-capabilities
 
 
 
-9. Author, disclaimer, etc.
+9. Support, development, new versions and homepage
+--------------------------------------------------
+
+Mailsync's homepage is at http://sourceforge.net/projects/mailsync.
+There's also a CVS repository there in which mailsync development
+happens. Announcements about new versions are usually posted on
+http://freshmeat.net. If you need help or have a patch or
+suggestion to contribute then subscribe to the mailsync mailing
+list and post it there. Instructions on how to do so can be found
+on mailsyncs homepage. Tomas Pospisek will also provide commercial
+support if needed (see below).
+
+
+
+10. Author, disclaimer, etc.
 ---------------------------
 
 Mailsync's author is Tim Culver <fullcity@sourceforge.net>.  
