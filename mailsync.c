@@ -12,7 +12,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#define VERSION "4.4.3"
+#define VERSION "4.5"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -222,6 +222,7 @@ bool delete_empty_mailboxes = 0;
 bool debug = 0;
 bool report_braindammaged_msgids = 0;
 bool copy_deleted_messages = 0;
+bool simulate = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Mandatory options
@@ -268,14 +269,14 @@ char msgid_format[] = "%-65s";            // argument :  message-id
 //------------------------ Forward Declarations --------------------------
 
 void sanitize_message_id(string& msgid);
-int read_lasttime_seen(Channel channel,
+bool read_lasttime_seen(Channel channel,
                        StringSet& boxes, 
                        map<string, StringSet>& mids, 
                        StringSet& extra);
-int write_lasttime(Channel channel,
-                   const StringSet& boxes, 
-                   const StringSet& deleted_boxes,
-                   map<string, StringSet>& lasttime);
+bool write_lasttime_seen(Channel channel,
+                         const StringSet& boxes, 
+                         const StringSet& deleted_boxes,
+                         map<string, StringSet>& lasttime);
 MAILSTREAM* mailbox_open_create(MAILSTREAM* stream, 
                                 Store& store,
                                 const string& fullboxname, 
@@ -340,8 +341,8 @@ void usage() {
 //
 //////////////////////////////////////////////////////////////////////////
   printf("mailsync %s\n\n", VERSION);
-  printf("usage: mailsync [-cd] [-db] [-nDdmM] [-v[bwp]] [-f conf] channel\n");
-  printf("usage: mailsync               [-dmM] [-v[bwp]] [-f conf] store\n");
+  printf("usage: mailsync [-cd] [-db] [-nDdmMs] [-v[bwp]] [-f conf] channel\n");
+  printf("usage: mailsync               [-dmM]  [-v[bwp]] [-f conf] store\n");
   printf("\n");
   printf("synchronize two stores defined by \"channel\" or\n");
   printf("list mailboxes contained in \"store\"\n");
@@ -352,6 +353,7 @@ void usage() {
   printf("  -D       delete any empty mailboxes after synchronizing\n");
   printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
   printf("  -M       also show message-ids (turns on -m)\n");
+  printf("  -s       simulate\n");
   printf("  -d       show debug info\n");
   printf("  -v       show imap chatter\n");
   printf("  -vb      show warning about braindammaged message ids\n");
@@ -650,7 +652,7 @@ void get_delim(MAILSTREAM*& stream, Store& store_in) {
 
 //////////////////////////////////////////////////////////////////////////
 //
-int read_lasttime_seen(Channel channel,
+bool read_lasttime_seen(Channel channel,
                        StringSet& boxes, 
                        map<string, StringSet>& mids_per_box, 
                        StringSet& extra) {
@@ -882,7 +884,7 @@ bool fetch_message_ids(MAILSTREAM*& mailbox_stream, string store_tag,
       if (expunge_duplicates) {
         char seq[30];
         sprintf(seq,"%lu",msgno);
-        mail_setflag(mailbox_stream, seq, "\\Deleted");
+        if (!simulate) mail_setflag(mailbox_stream, seq, "\\Deleted");
       }
       nduplicates++;
       if (show_from) printf(lead_format,"duplicate", "");
@@ -913,7 +915,7 @@ bool fetch_message_ids(MAILSTREAM*& mailbox_stream, string store_tag,
 
 //////////////////////////////////////////////////////////////////////////
 //
-int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda, 
+bool copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda, 
                  unsigned long msgno, const string& msgid,
                  MAILSTREAM*& mailboxb_stream, Passwd& passwdb,
                  string fullboxbname, char * direction) {
@@ -940,6 +942,7 @@ int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
   char msgdate[MAILTMPLEN];
   ENVELOPE *envelope;
   MESSAGECACHE *elt;
+  bool success = 1;
 
   current_context_passwd = &passwda;
   envelope = mail_fetchenvelope(mailboxa_stream, msgno);
@@ -968,9 +971,9 @@ int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
   }
 
   elt = mail_elt(mailboxa_stream, msgno); // the c-client docu says not to do
-                                        // this :-/ ?
-  assert(elt->valid);                   // Should be valid because of
-                                        // fetchenvelope()
+                                          // this :-/ ?
+  assert(elt->valid);                     // Should be valid because of
+                                          // fetchenvelope()
 
   // we skip deleted messages unless copying deleted messages is explicitly
   // demanded
@@ -993,23 +996,24 @@ int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
   INIT (&CCstring, msg_string, (void*) &md, elt->rfc822_size);
   current_context_passwd = &passwdb;
 
-  int rv = mail_append_full(mailboxb_stream, nccs(fullboxbname),
-                            &flags[1], mail_date(msgdate,elt), 
-                            &CCstring);
+  if (!simulate) 
+    success = mail_append_full(mailboxb_stream, nccs(fullboxbname),
+                               &flags[1], mail_date(msgdate,elt), 
+                               &CCstring);
   if (show_from) {
-    printf(lead_format, rv ? "copied" : "copyfail", direction);
+    printf(lead_format, success ? "copied" : "copyfail", direction);
     printf(from_format, summary(mailboxa_stream, msgno).c_str());
     if (show_message_id) printf(msgid_format, msgid.c_str());
     printf("\n");
   }
 
   if (debug) printf(" Flags: \"%s\"\n", flags);
-  return rv;
+  return success;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-int remove_message(MAILSTREAM*& stream, Store& store, 
+bool remove_message(MAILSTREAM*& stream, Store& store, 
                    unsigned long msgno, const string& msgid,
                    char * place) {
 //
@@ -1018,7 +1022,7 @@ int remove_message(MAILSTREAM*& stream, Store& store,
 //////////////////////////////////////////////////////////////////////////
   string msgid_fetched;
   ENVELOPE *envelope;
-  int ok = 1;
+  bool success = 1;
   
   current_context_passwd = &(store.passwd);
   envelope = mail_fetchenvelope(stream, msgno);
@@ -1030,39 +1034,39 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   if (!(envelope->message_id)) {
     printf("Error: no message-id, so I won't delete the message.\n");
     // Possibly indicates concurrent access?
-    ok = 0;
+    success = 0;
   } else {
     msgid_fetched = envelope->message_id;
     sanitize_message_id(msgid_fetched);
     if (msgid_fetched != msgid) {
       printf("Error: message-ids %s and %s don't match, so I won't delete the message.\n",
              msgid_fetched.c_str(), msgid.c_str());
-      ok = 0;
+      success = 0;
     }
   }
   
-  if (ok) {
+  if (success) {
     char seq[30];
     sprintf(seq,"%lu",msgno);
-    mail_setflag(stream, seq, "\\Deleted");
+    if (!simulate) mail_setflag(stream, seq, "\\Deleted");
   }
   if (show_from) {
-    if (ok) {
+    if (success) {
       printf(lead_format, "deleted", place);
     } else
       printf(lead_format, "deletefail", "");
     printf(from_format, summary(stream,msgno).c_str());
     printf("\n");
   }
-  return ok;
+  return success;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-int write_lasttime(Channel channel,
-                   const StringSet& boxes, 
-                   const StringSet& deleted_boxes,
-                   map<string, StringSet>& lasttime) {
+bool write_lasttime_seen(Channel channel,
+                         const StringSet& boxes, 
+                         const StringSet& deleted_boxes,
+                         map<string, StringSet>& lasttime) {
 //
 // Save in channel.msinfo all the mail-"boxes" with all their corresponding
 // msgids (found in "lasttime").
@@ -1290,7 +1294,7 @@ int main(int argc, char** argv) {
   map<string, StringSet> lasttime, thistime;
   StringSet deleted_boxes;   // present lasttime, but not this time
   StringSet empty_mailboxes;
-  int ok;
+  int success;
 
 #include "linkage.c"
 
@@ -1315,6 +1319,11 @@ int main(int argc, char** argv) {
         show_from = 1;
         show_summary = 0;
         show_message_id = 1;
+        break;
+      case 's':
+        printf("Only simulating\n");
+        simulate = 1;
+        no_expunge = 1;
         break;
       case 'v':
         if (argv[optind][2] == 'b')
@@ -1525,7 +1534,7 @@ int main(int argc, char** argv) {
 
   // Process each mailbox.
   
-  ok = 1;
+  success = 1;
   for (StringSet::iterator box = allboxes.begin(); 
        box != allboxes.end(); box++) {
 
@@ -1625,7 +1634,7 @@ int main(int argc, char** argv) {
     switch (mode) {
     case mode_sync:
       {
-        int success;
+        bool success;
 
         // we're first removing messages
         // if we'd first copy and the remove, mailclient would add a "Status: 0" line to
@@ -1738,12 +1747,12 @@ int main(int argc, char** argv) {
       if (!storea.isremote)   // reopen the stream if it was closed before - needed for expunge
         storea_stream = mailbox_open_create(NIL, storea, *box, 0, NOCREATE);
       current_context_passwd = &(storea.passwd);
-      mail_expunge(storea_stream);
+      if (!simulate) mail_expunge(storea_stream);
       if (storeb_stream) {
         if (!storeb.isremote)   // reopen the stream in write mode it was closed before - needed for expunge
           storeb_stream = mailbox_open_create(NIL, storeb, *box, 0, NOCREATE);
         current_context_passwd = &(storeb.passwd);
-        mail_expunge(storeb_stream);
+        if (!simulate) mail_expunge(storeb_stream);
       }
       printf("Mails expunged\n");
     }
@@ -1764,7 +1773,7 @@ int main(int argc, char** argv) {
   if (storea.isremote) storea_stream = mail_close(storea_stream);
   if (storeb.isremote) storeb_stream = mail_close(storeb_stream);
 
-  if (!ok)
+  if (!success)
     return 1;
 
   if (delete_empty_mailboxes) {
@@ -1804,9 +1813,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (mode==mode_sync) {
-    write_lasttime(channel, allboxes, deleted_boxes, thistime);
-  }
+  if (mode==mode_sync)
+    if (!simulate)
+      write_lasttime_seen(channel, allboxes, deleted_boxes, thistime);
+
   return 0;
 }
          

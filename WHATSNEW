@@ -1,3 +1,8 @@
+New in 4.5:
+
+ * Simulate option
+ * fixed mapage
+
 New in 4.4.4:
 
  * Check every fetch operation for success
@@ -6,6 +11,8 @@ New in 4.4.4:
  * extended loging
  * reengineering - clearer naming of variables (I hope)
                  - int msgno -> unsigned long msgno (as in c-client)
+                 - functions and variables that return/contain only true/false
+                   are now booleans
 
 New in 4.4.3:
 

@@ -1,10 +1,24 @@
+mailsync (4.5-1) unstable; urgency=high
+
+  * new upstream
+  * new upstream features:
+    * simulate option
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 12 Nov 2002 14:16:32 +0100
+
+mailsync (4.4.4-2) unstable; urgency=high
+
+  * fixed build dependency (thanks lamont)                  closes: #168161
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Thu, 07 Nov 2002 18:34:21 +0100
+
 mailsync (4.4.4-1) unstable; urgency=high
 
   * new upstream
   * new upsteam features:
     * gentler failure
     * more log options
-  * closes: #167826
+  * closes: #167826 (thanks to Steve McIntyre's very good bug report!)
   
  -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 06 Nov 2002 12:00:25 +0100
 

@@ -18,10 +18,6 @@
 * test and/or find better solution to the problem when encountering a mailbox
   that does not match our default mailbox delimiter
 
-* in mailsync.c::copy_message mail_append_full returns an int. c-client's
-  mail_append_full return's a long. What exactly is being returned? Go over it
-  and maybe replace "rv" by "success".
-
 * mailsync can't handle mailboxes that contain messages _and_ submailboxes
 
 * why do some errors go to stderr and some to stdout?
@@ -34,10 +30,6 @@
 * I'm not sure whether extra mailboxes in read_lasttime_seen and delete_boxes
   in write_lasttime is consistent
 
-* make naming of read_lasttime_seen and of write_lasttime consistent
+* it'd be nice to know which driver c-client will use for accessing mail
 
-* it'd be nice which driver c-client will use for accessing mail
-
-* simulate option would be nice
-
-* sometimes msgno is unsigned long, sometimes int ... :-/
+* no_expunge runtime/compile option don't mix?
