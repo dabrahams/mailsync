@@ -31,7 +31,11 @@ struct longer
 {
   bool operator()(const string& s1, const string& s2) const
   {
-    return s1.length() > s2.length();
+    if (s1.length() == s2.length())
+      return s1 < s2; // if same length return arbitrary order
+                      // - in this case alphabetical
+    else
+      return s1.length() > s2.length();
   }
 };
 
