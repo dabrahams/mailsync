@@ -295,7 +295,7 @@ bool Channel::copy_message( unsigned long msgno,
   // we skip deleted messages unless copying deleted messages is explicitly
   // demanded
   if (elt->deleted & ! options.copy_deleted_messages) {
-    print_lead( "ign. del" , direction == a_to_b ? ">" : "<" );
+    print_lead( "ign. del" , direction == a_to_b ? " >" : "< " );
     print_from( store_from.stream, msgno );
     if ( options.show_message_id ) {
       print_msgid( msgid.c_str() );
