@@ -21,6 +21,10 @@ using std::vector;
 using std::make_pair;
 
 #include "c-client.h"
+// C-Client defines these and it messes up STL, since the
+// use it as well
+#undef max
+#undef min
 
 #include "configuration.h"     // configuration parsing and setup
 #include "options.h"           // options and default settings
@@ -491,6 +495,11 @@ int main(int argc, char** argv)
         }
 
         //////////////////////// expunging emails /////////////////////////
+        // this *needs* to be done *after* coying as the *last* step
+        // otherwise the order of the mails will get messed up since
+        // some random messages inbewteen have been deleted in the mean
+        // time and the message numbers we know don't correspond to
+        // messages in the mailbox/store any more
         
         if (debug) printf( " Expunging messages\n" );
 
@@ -502,11 +511,13 @@ int main(int argc, char** argv)
                                     , n_expunged_a == 1 ? "" : "s"
                                     , store_a.name.c_str() );
           if (n_expunged_b) printf( "Expunged %d mail%s in store %s\n"
-                                    , n_expunged_b,
-                                    , n_expunged_a == 1 ? "" : "s"
+                                    , n_expunged_b
+                                    , n_expunged_b == 1 ? "" : "s"
                                     , store_b.name.c_str() );
         }
 
+        //////////////////////// deleting empty mailboxes /////////////////////////
+        
         if (options.delete_empty_mailboxes) {
           if (now_n == 0) {
             // add empty mailbox to empty_mailboxes
