@@ -197,10 +197,15 @@ struct Token {
 /*
  * Fatal error while parsing the config file
  * Display error message and quit
+ *
+ * errorMessage       must contain an error message to be displayed
+ * insertIntoMessage  is optional. errorMessage can act as a sprintf format
+ *                    string in which case insertIntoMessage will be used
+ *                    as replacement for "%s" inside errorMessage
  */
-void die_with_fatal_parse_error(Token* t, char * errorMessage, const char * token = NULL) {
+void die_with_fatal_parse_error(Token* t, char * errorMessage, const char * insertIntoMessage = NULL) {
   fprintf(stderr, "Error: ");
-  fprintf(stderr, errorMessage, token ? token : "");
+  fprintf(stderr, errorMessage, insertIntoMessage ? insertIntoMessage : "");
   fprintf(stderr, "\n");
   if (t->eof) {
     fprintf(stderr, "       Unexpected EOF while parsing configuration file");
