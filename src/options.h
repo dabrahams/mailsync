@@ -1,7 +1,11 @@
 #ifndef __MAILSYNC_OPTIONS__
 
+using namespace std;
+
 // hierarchy delimiter for IMAP
 #define DEFAULT_DELIMITER '/'
+
+typedef enum { HEADER_MSGID, MD5_MSGID } msgid_t;
 
 //////////////////////////////////////////////////////////////////////////
 // Options, commandline parsing and default settings
@@ -20,6 +24,7 @@ typedef struct options_t {
   bool report_braindammaged_msgids;
   bool copy_deleted_messages;
   bool simulate;
+  msgid_t msgid_type;
 
   // the following options are mandatory
   bool expunge_duplicates;     // Should duplicates be deleted?
@@ -37,6 +42,7 @@ typedef struct options_t {
                report_braindammaged_msgids(0),
                copy_deleted_messages(0),
                simulate(0),
+               msgid_type(HEADER_MSGID),
                expunge_duplicates(1),
                log_error(1) {};
 };

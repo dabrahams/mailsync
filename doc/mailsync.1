@@ -92,6 +92,17 @@ Show help.
 .TP
 .B \-d
 Show debug info.
+.TP
+.B \-t mid
+Use mailsync with specified message-id algorithm. Currently you have the
+choice between \fBmd5\fP and \fBmsgid\fP (default). \fBmsgid\fP uses the
+Message-ID in the mail header to identify a message. \fBmd5\fP calculates
+a MD5 hash from the "From", "To", "Subject", "Date" and "Message-ID" headers
+and uses that as message identifier.
+
+If you use mailclients and servers that allow empty Message-IDs (f.ex. in mail
+drafts) then you should use the md5 algorithm.
+
 .SH SEE ALSO
 There is more documentation in
 .IR /usr/share/doc/mailsync

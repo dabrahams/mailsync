@@ -1,3 +1,8 @@
+New in 5.1.0:
+
+ * option to use md5 hashes of headers as msg ids and/or along with
+   the msgid in the message header (patch by Bob Lindell, adaptation me)
+
 New in 5.0.0:
 
  * completely reengineered:

@@ -20,11 +20,11 @@ void usage()
 //////////////////////////////////////////////////////////////////////////
 {
   printf(PACKAGE_STRING "\n\n");        // autoconf bizzarrerie
-  printf("mailsync [-cd] [-db] [-nDdmMs] [-v[bwp]] [-f conf] channel\n");
+  printf("mailsync [options] channel\n");
   printf("       synchronize two stores defined by \"channel\" or\n");
-  printf("mailsync               [-dmM]  [-v[bwp]] [-f conf] store\n");
+  printf("mailsync [options] store\n");
   printf("       list mailboxes contained in \"store\"\n");
-  printf("mailsync               [-dmM]  [-v[bwp]] [-f conf] channel store\n");
+  printf("mailsync [options] channel store\n");
   printf("       display changes from last seen messages in \"channel\" to\n");
   printf("       those contained in \"store\"\n");
   printf("\n");
@@ -42,6 +42,7 @@ void usage()
   printf("  -vw      show warnings\n");
   printf("  -vp      show RFC 822 parsing errors\n");
   printf("  -f conf  use alternate config file\n");
+  printf("  -t [msgid|md5] msg id type\n");
   printf("\n");
   return;
 }
@@ -108,6 +109,25 @@ bool read_commandline_options( const int argc,
         options.copy_deleted_messages = 1;
       else {
         usage();
+        return false;
+      }
+      break;
+    case 't':
+      if ( strcmp( argv[++optind], "md5") == 0 ) {
+#ifdef HAVE_MD5
+        options.msgid_type = MD5_MSGID;
+#else
+        usage();
+        printf("Error: mailsync was compiled without md5 support.\n");
+        printf("       you need c-client >= 2002 and recompile mailsync.\n");
+        return false;
+#endif // HAVE_MD5
+      }
+      else if ( strcmp( argv[optind], "msgid" ) == 0 )
+        options.msgid_type = HEADER_MSGID;
+      else {
+        usage();
+        printf("Error: unknown message id format\n");
         return false;
       }
       break;

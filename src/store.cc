@@ -191,7 +191,7 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
   }
 
   for (unsigned long msgno=1; msgno<=n; msgno++) {
-    string msgid;
+    MsgId msgid;
     ENVELOPE *envelope;
     bool isdup;
 
@@ -203,13 +203,13 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
       fprintf( stderr, "       Aborting!\n");
       return 0;
     }
-    if (! envelope->message_id ) {
+    msgid = MsgId(envelope);
+    if (msgid.length() == 0) {
+      print_lead("no msg-id", "");
       nabsent++;
       // Absent message-id.  Don't touch message.
       continue;
     }
-    msgid = string( envelope->message_id );
-    sanitize_message_id( msgid );
     isdup = mids.count( msgid );
     if (isdup) {
       if ( options.expunge_duplicates ) {
@@ -275,7 +275,7 @@ bool Store::list_contents()
   // loop and fetch all the message ids from a mailbox
   unsigned long n = this->stream->nmsgs;
   for (unsigned long msgno=1; msgno<=n; msgno++) {
-    string msgid;
+    MsgId msgid;
     ENVELOPE *envelope;
     bool isdup;
 
@@ -289,11 +289,11 @@ bool Store::list_contents()
                "       Aborting!\n");
       return 0;
     }
-    if (! envelope->message_id )
+    msgid = MsgId(envelope);
+    if (msgid.length() == 0)
       print_lead( "no msg-id", "");
     else
     {
-      msgid = string( envelope->message_id );
       isdup = mids.count( msgid );
       if (isdup)
         print_lead( "duplicate", "");
@@ -310,14 +310,14 @@ bool Store::list_contents()
 
 //////////////////////////////////////////////////////////////////////////
 //
-bool Store::remove_message( unsigned long msgno, const string& msgid,
+bool Store::remove_message( unsigned long msgno, const MsgId& msgid,
                             char * place)
 //
 // returns !0 on success
 //
 //////////////////////////////////////////////////////////////////////////
 {
-  string msgid_fetched;
+  MsgId msgid_fetched;
   ENVELOPE *envelope;
   bool success = 1;
   
@@ -329,15 +329,14 @@ bool Store::remove_message( unsigned long msgno, const string& msgid,
              msgno, this->stream->mailbox);
     return 0;
   }
-  if (! envelope->message_id ) {
+  msgid_fetched = MsgId(envelope);
+  if (msgid_fetched.length() == 0) {
     printf( "Error: no message-id, so I won't delete the message.\n" );
     // Possibly indicates concurrent access?
     success = 0;
   }
   else
   {
-    msgid_fetched = envelope->message_id;
-    sanitize_message_id( msgid_fetched );
     if( msgid_fetched != msgid )
     {
       printf( "Error: message-ids %s and %s don't match,"

@@ -24,11 +24,14 @@ void print_list_with_delimiter( const MsgIdSet& msgIds,
 // 
 //////////////////////////////////////////////////////////////////////////
 {
+    MsgId tmp_msgId;
+
     for ( MsgIdSet::iterator msgId = msgIds.begin() ;
           msgId != msgIds.end() ;
           msgId++ )
     {
-      fprintf(f, "%s%s", msgId->c_str(), delim.c_str());
+      tmp_msgId = *msgId;
+      fprintf(f, "%s%s", tmp_msgId.to_msinfo_format().c_str(), delim.c_str());
     }
 }
 
@@ -52,59 +55,6 @@ void print_list_with_delimiter( const MailboxMap& mailboxes,
 
 //--------------------------- Mail handling ------------------------------
 
-//////////////////////////////////////////////////////////////////////////
-//
-void sanitize_message_id(string& msgid)
-//
-// Some mail software goes out of its way to produce braindammaged
-// message-ids.
-//
-// This function attempts to bring it back to a sane form following RFC822
-// that is "<blabla@somedomain>". Spaces inside the Message-ID are forbidden
-// and are replaced by dots: ' '->'.'.
-//
-// Iif our msgid starts with '<' we find the corresponding '>' and throw
-// everything after that away (let's hope there is no braindead sw that has
-// significant msgid stuff _after_ the '>' or isn't using the '>' _inside_
-// the msgid). If we don't find the ending '>' we just put a ">" at the end
-// of the msgid.
-//
-//////////////////////////////////////////////////////////////////////////
-{
-  int removed_blanks = 0;
-  int added_brackets = 0;
-  unsigned i;
-  if (msgid[0] != '<') {
-    msgid = '<'+msgid;
-    added_brackets = 1;
-  }
-  for (i=0; (i < msgid.size()) && (msgid[i] != '>'); i++) {
-    if (isspace(msgid[i]) || iscntrl(msgid[i])) {
-      msgid[i] = '.';
-      removed_blanks = 1;
-    }
-  }
-
-  // Have we reached end of string?
-  if (i == msgid.size()) {
-  // if there's no '>' we need to attach
-    if(msgid[i-1] != '>') {
-      msgid = msgid+'>';
-      added_brackets = 1;
-    }
-  }
-  // we've found a '>', so let's cut the rubbish that follows
-  else
-    msgid = msgid.substr( 0, i+1);
-
-  if (options.report_braindammaged_msgids)
-    if (removed_blanks)
-      fprintf(stderr,"Warning: added brackets <> around message id %s\n",
-                     msgid.c_str());
-    else if (added_brackets)
-      fprintf(stderr,"Warning: replaced blanks with . in message id %s\n",
-                     msgid.c_str());
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Print formats that are being used when showin, what mails are being

@@ -4,8 +4,9 @@
 #include <string>
 #include <map>
 #include <set>
+#include <c-client.h>
 #include "types.h"
-#include "c-client.h"
+#include "msgid.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -37,7 +38,7 @@ class Store
     string full_mailbox_name(const string& box);
     bool fetch_message_ids(MsgIdPositions& mids);
     bool list_contents();
-    bool remove_message( unsigned long msgno, const string& msgid,
+    bool remove_message( unsigned long msgno, const MsgId& msgid,
                          char * place);
     MAILSTREAM* mailbox_open( const string& boxname,
                                      long c_client_options);

@@ -279,7 +279,7 @@ int main(int argc, char** argv)
       exit(1);
     }
     else if (debug)
-      printf( " Delimiter for store \"%s\" is '%c'.\n",
+      printf( " Delimiter for store \"%s\" is '%c'\n",
               store_b.name.c_str(), store_b.delim);
   }
 

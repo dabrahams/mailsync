@@ -6,6 +6,7 @@
 #include <c-client.h>
 #include "msgstring.h"
 #include <flstring.h>
+#include "msgid.h"
 
 extern Passwd*     current_context_passwd;
 extern options_t options;
@@ -142,7 +143,8 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
           }
         }
         else {                             // it's a message-id
-          mids_per_box[currentbox].insert(&text[k]);
+          mids_per_box[currentbox].insert(
+                                      MsgId( &text[k] ).from_msinfo_format() );
         }
         for( ; k<textlen && text[k] ; k++); // fastforward to next string
         instring = 0;
@@ -179,7 +181,7 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
 //////////////////////////////////////////////////////////////////////////
 //
 bool Channel::copy_message( unsigned long msgno,
-                            const string& msgid,
+                            const MsgId& msgid,
                             string fullboxbname,
                             enum direction_t direction)
 //
@@ -211,7 +213,7 @@ bool Channel::copy_message( unsigned long msgno,
 
   current_context_passwd = &store_from.passwd;
   envelope = mail_fetchenvelope(store_from.stream, msgno);
-  string msgid_fetched;
+  MsgId msgid_fetched;
 
   if (! envelope) {
     fprintf( stderr,
@@ -221,14 +223,13 @@ bool Channel::copy_message( unsigned long msgno,
   }
 
   // Check message-id.
-  if (! envelope->message_id) {
+  msgid_fetched = MsgId(envelope);
+  if (msgid_fetched.length() == 0) {
     printf( "Warning: missing message-id from mailbox %s, message #%lu.\n",
             store_from.stream->mailbox, msgno);
   }
   else
   {
-    msgid_fetched = envelope->message_id;
-    sanitize_message_id(msgid_fetched);
     if ( msgid_fetched != msgid )
     {
       printf( "Warning: suspicious message-id from mailbox %s, message #%lu.",
@@ -324,9 +325,9 @@ bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
 
   // first delete all the info for the channel we're reading
   // it will be replaced by a newly created set
-  for (msgno=1; msgno<=stream->nmsgs; msgno++)
+  for ( msgno=1; msgno <= stream->nmsgs; msgno++)
   {
-    envelope = mail_fetchenvelope(stream, msgno);
+    envelope = mail_fetchenvelope( stream, msgno);
     if (! envelope)
     {
       fprintf( stderr,
@@ -334,7 +335,7 @@ bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
                msgno, stream->mailbox);
       return 0;
     }
-    if (envelope->subject == this->name)
+    if ( envelope->subject == this->name )
     {
       char seq[30];
       sprintf(seq,"%lu",msgno);

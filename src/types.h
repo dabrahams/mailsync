@@ -4,7 +4,8 @@
 #include <string>
 #include <map>
 #include <set>
-#include "c-client.h"
+#include <c-client.h>
+#include "msgid.h"
 
 using namespace std;
 
@@ -24,7 +25,6 @@ typedef struct MailboxProperties {
                        done(false) {};
 };
 
-// STL - Stranger Than Lunacy
 // we sort our mailboxes by length. That way longer mailboxes and their
 // submailboxes (!!) will be traversed first
 struct longer
@@ -40,8 +40,8 @@ struct longer
 };
 
 typedef map<string, MailboxProperties, longer> MailboxMap;
-typedef set<string>  MsgIdSet;
-typedef map<string, unsigned long> MsgIdPositions;  // Map message ids to
+typedef set<MsgId>  MsgIdSet;
+typedef map<MsgId, unsigned long> MsgIdPositions;  // Map message ids to
                                                     // positions within a
                                                     // mailbox
 typedef map<string, MsgIdSet> MsgIdsPerMailbox;     // A List of message ids

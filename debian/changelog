@@ -1,6 +1,7 @@
-mailsync (5.0.0-1) unstable; urgency=high
+mailsync (5.1.0-1) unstable; urgency=high
 
   * new upstream:
+    * md5 msg-ids
     * completely reengineered and source split in smaller and
       more comprehensible chunks
     * synching of mailboxes containing submailboxes and messages should
