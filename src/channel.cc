@@ -246,7 +246,7 @@ bool Channel::copy_message( unsigned long msgno,
 //
 //////////////////////////////////////////////////////////////////////////
 {
-  MSGDATA md;
+  MSGDATA msgdata;
   STRING CCstring;
   char flags[MAILTMPLEN];
   char msgdate[MAILTMPLEN];
@@ -312,8 +312,8 @@ bool Channel::copy_message( unsigned long msgno,
   if (elt->answered) strcat (flags," \\Answered");
   if (elt->draft)    strcat (flags," \\Draft");
 
-  md.stream = store_from.stream;
-  md.msgno = msgno;
+  msgdata.stream = store_from.stream;
+  msgdata.msgno = msgno;
   if( this->sizelimit
       && elt->rfc822_size > this->sizelimit )
   {
@@ -325,7 +325,7 @@ bool Channel::copy_message( unsigned long msgno,
     printf("\n");
     return 0;
   }
-  INIT ( &CCstring, msg_string, (void*) &md, elt->rfc822_size );
+  INIT ( &CCstring, msg_string, (void*) &msgdata, elt->rfc822_size );
   current_context_passwd = &store_to.passwd;
 
   if (!options.simulate) 
