@@ -1,3 +1,7 @@
+New in 4.4.3:
+
+ * do not copy deleted mails
+
 New in 4.4.2:
 
  * documented list mode

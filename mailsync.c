@@ -12,7 +12,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#define VERSION "4.4.2"
+#define VERSION "4.4.3"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -219,6 +219,7 @@ enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
 int delete_empty_mailboxes = 0;
 int debug = 0;
 int report_braindammaged_msgids = 0;
+int copy_deleted_messages = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Mandatory options
@@ -339,13 +340,14 @@ void usage() {
 //
 //////////////////////////////////////////////////////////////////////////
   printf("mailsync %s\n\n", VERSION);
-  printf("usage: mailsync [-nD] [-db] [-dmMv] [-f conf] channel\n");
-  printf("usage: mailsync             [-dmMv] [-f conf] store\n");
+  printf("usage: mailsync [-cd] [-db] [-nDdmMv] [-f conf] channel\n");
+  printf("usage: mailsync               [-dmMv] [-f conf] store\n");
   printf("\n");
   printf("synchronize two stores defined by \"channel\" or\n");
   printf("list mailboxes contained in \"store\"\n");
   printf("\n");
   printf("Options:\n");
+  printf("  -cd      do copy deleted mailboxes (default is not)\n");
   printf("  -n       don't expunge mailboxes\n");
   printf("  -D       delete any empty mailboxes after synchronizing\n");
   printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
@@ -892,6 +894,8 @@ int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
 //
 // To access the stream it uses the passwords passwd[a|b].
 //
+// returns !0 for success
+//
 // TODO: ideally sanitize_message_id should not have a side effect, but just
 //       return 1 or 0 if the message had to be modified or it should have
 //       enough information to print a sufficient error message, i.e. the
@@ -930,6 +934,14 @@ int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
   assert(elt->valid);                   // Should be valid because of
                                         // fetchenvelope()
 
+  // we skip deleted messages unless copying deleted messages is explicitly
+  // demanded
+  if (elt->deleted & ! copy_deleted_messages) {
+    printf("Not copying deleted message# %d from mailbox %s.",
+            msgno, mailboxa_stream->mailbox);
+    return 0;
+  }
+      
   // Copy message over with all the flags that the original has
   memset(flags, 0, MAILTMPLEN);
   if (elt->seen) strcat (flags," \\Seen");
@@ -1261,6 +1273,14 @@ int main(int argc, char** argv) {
           report_braindammaged_msgids = 1;
         else
           debug = 1;
+        break;
+      case 'c':
+        if (argv[optind][2] == 'd')
+          copy_deleted_messages = 1;
+        else {
+          usage();
+          return 1;
+        }
         break;
       default:
         usage();
