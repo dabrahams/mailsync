@@ -1,5 +1,8 @@
 You're wellcome to implement any of these
 -----------------------------------------
+* CFLAGS need to include -fno-operator-names if c-client.h contains a
+  redefinition of "and"
+
 * unless run wit -D a once existent folder will allways be
   recreated because mailsync remembers it in it's .minfo store.
   How to reproduce:
