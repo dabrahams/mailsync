@@ -12,13 +12,21 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	@# Add here commands to configure the package.
-	
 
 	touch configure-stamp
 
 build: configure-stamp build-stamp
 build-stamp:
 	dh_testdir
+
+	# we need depcomp in order to be able to build
+	for i in / 1-4/ 1-5/ 1-6/ 1-7/; do                                  \
+	   if [ ! "$$found" = "1" -a -e /usr/share/automake$${i}depcomp ] ; \
+	    then                                                            \
+	     ln -s /usr/share/automake$${i}depcomp depcomp                ; \
+		 found=1                                                      ; \
+	   fi                                                             ; \
+	done
 
 	@# Add here commands to compile the package.
 	$(MAKE)
@@ -31,7 +39,11 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	@# Add here commands to clean up after the build process.
-	-rm -f mailsync *.o core
+	$(MAKE) clean
+	-rm -f core
+
+	# remove symlinks
+	-rm install-sh mkinstalldirs missing depcomp
 
 	dh_clean
 
@@ -42,7 +54,8 @@ install: build
 	dh_installdirs
 
 	@# Add here commands to install the package into debian/mailsync.
-	install -o root -g root -m 0755 mailsync $(CURDIR)/debian/mailsync/usr/bin
+	install -o root -g root -m 0755 \
+	        src/mailsync $(CURDIR)/debian/mailsync/usr/bin
 
 
 # Build architecture-independent files here.
@@ -53,8 +66,8 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installdocs
-	dh_installman mailsync.1
+	dh_installdocs -XCVS
+	dh_installman doc/mailsync.1
 	dh_installchangelogs 
 	dh_link
 	dh_strip
