@@ -24,6 +24,9 @@ build-stamp:
 	   if [ ! "$$found" = "1" -a -e /usr/share/automake$${i}depcomp ] ; \
 	    then                                                            \
 	     ln -s /usr/share/automake$${i}depcomp depcomp                ; \
+	     ln -s /usr/share/automake$${i}install-sh install-sh          ; \
+	     ln -s /usr/share/automake$${i}missing missing                ; \
+	     ln -s /usr/share/automake$${i}mkinstalldirs mkinstalldirs    ; \
 		 found=1                                                      ; \
 	   fi                                                             ; \
 	done
