@@ -18,6 +18,10 @@ AC_C_CONST
 AC_FUNC_STAT
 AC_CHECK_FUNCS([getpass memset strchr strdup strerror strtoul])
 
+AC_INET_FUNCS(,[
+ AC_MSG_ERROR([essential functions missing])
+])
+
 AC_SO_PREFERENCE([yes])
 AC_WITH_OPENSSL
 AC_WITH_KRB5

@@ -306,6 +306,11 @@ int main(int argc, char** argv)
 
 
   // Iterate over all mailboxes and sync or diff each
+  //
+  // our comparison operator for our stores compares lenghts
+  // that means that we're tracersing the store from longest to
+  // shortest mailbox name - this makes sure that we'll first see
+  // and create all submailboxes
   success = 1; // TODO: this is bogus isn't it?
   for ( MailboxMap::iterator box = store_a.boxes.begin(); 
         box != store_b.boxes.end();
@@ -315,12 +320,12 @@ int main(int argc, char** argv)
       box = store_b.boxes.begin();     // continue with store_b
       continue;
     }
+
     // skip if the box has allready been treated
     if ( box->second.done)
       continue;
     
-    // if mailbox doesn't exist in either store -> create
-    // if we fail, just continue with next mailbox
+    // if mailbox doesn't exist in either store -> create it
     if ( store_a.boxes.find( box->first ) == store_a.boxes.end() )
       if ( ! store_a.mailbox_create( box->first ) )
         continue;
@@ -515,7 +520,10 @@ int main(int argc, char** argv)
                   store_a.name.c_str(), store_b.name.c_str() );
         }
         if (! store_b.isremote) {
-          mail_close(store_b.stream);
+          // TODO: the following line is ugly as a cross between Bush and Saddam
+          if (! (options.simulate||options.no_expunge) )
+             mail_expunge(store_b.stream);
+          mail_close( store_b.stream );
           store_b.stream = NIL;
         } else {
           store_b.stream = store_b.mailbox_open( box->first, 0);
@@ -543,7 +551,10 @@ int main(int argc, char** argv)
           store_b.stream = store_b.mailbox_open( box->first, OP_READONLY);
         }
         if (!store_a.isremote) { // close the stream for writing
-                                // (sic - the beauty of c-client!) !!
+                                 // (sic - the beauty of c-client!) !!
+          // TODO: dito
+          if (! (options.simulate||options.no_expunge) )
+            mail_expunge(store_a.stream);
           mail_close(store_a.stream);
           store_a.stream = NIL;
         } else 
@@ -605,7 +616,7 @@ int main(int argc, char** argv)
         store_a.stream = store_a.mailbox_open( box->first, 0);
       }
       current_context_passwd = &store_a.passwd;
-      if (!options.simulate && !options.no_expunge)
+      if (! options.simulate )
          mail_expunge( store_a.stream );
       if (store_b.stream) {
         if (!store_b.isremote) { // reopen the stream in write mode it was
@@ -614,7 +625,7 @@ int main(int argc, char** argv)
           store_b.stream = store_b.mailbox_open( box->first, 0);
         }
         current_context_passwd = &store_b.passwd;
-        if (!options.simulate && !options.no_expunge)
+        if (! options.simulate )
 	   mail_expunge( store_b.stream );
       }
       printf("Mails expunged\n");

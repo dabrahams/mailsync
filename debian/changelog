@@ -1,8 +1,19 @@
 mailsync (5.0.0-1) unstable; urgency=high
 
   * new upstream:
+    * completely reengineered and source split in smaller and
+      more comprehensible chunks
+    * synching of mailboxes containing submailboxes and messages should
+      be possible now
+    * documented diff mode
+    * Solaris autoconf
+  * debian:
+    * built against libc-client2003-dev (thanks LaMont)     closes: #182245
+    * built against lib-client2003 (J.Guasch)               closes: #185168
+    * libc-client2003-dev now depends on libkrb5-dev        closes: #181353
+      (thanks R.Murray)
   
- -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Sat, 15 Mar 2003 18:09:24 +0100
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Fri, 21 Mar 2003 15:45:28 +0100
 
 mailsync (4.5.3-2) unstable; urgency=high
 

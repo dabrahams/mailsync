@@ -11,6 +11,9 @@ New in 5.0.0:
    no be synchronized! (Detlef Vollmann helped with C++ quirks)
  * build fixes by Michael
  * documented diff mode
+ * Solaris autoconf by Michael, Heiner Steven and anonymous (thanks to all ;-)
+ * mailsync forgetting to purge local stores (problem occurs with #mh boxes)
+   fix by Michael
  
 New in 4.5.4:
 

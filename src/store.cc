@@ -154,8 +154,12 @@ bool Store::mailbox_create( const string& boxname )
   res = mail_create( this->stream, nccs( fullboxname.c_str() ) );
   options.log_error = error_tmp;
   
-  if ( options.debug && res )
-    printf( "Created %s in %s\n", boxname.c_str(), this->name.c_str());
+  if ( options.debug) {
+    if ( res )
+      printf( "Created %s in %s\n", boxname.c_str(), this->name.c_str());
+    else
+      printf( "Failed to create %s in %s\n", boxname.c_str(), name.c_str());
+  }
 
   return res;
 }
@@ -394,4 +398,3 @@ void Store::print_error(const char * cause, const string& mailbox)
   fprintf( stderr,
            "       Continuing with next mailbox\n");
 }
-
