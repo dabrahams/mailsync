@@ -7,6 +7,8 @@ New in 5.1.2:
  * support for Linux-lib64 by Heiko Rommel
  * fixed problem when retrieving delimiter
  * not exiting any more on stores without subdirs
+ * lasttimes were not computed correctly - this could result in a message
+   being retransmitted if deleted on one side
  
 New in 5.1.1:
 
