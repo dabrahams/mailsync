@@ -6,6 +6,8 @@ Michael Krelin          sizelimit option, bugfixes, docu corrections,
                         autoconf ...
 Bob Lindell             first md5 checksumms patch, testing
 Heiko Rommel @ SuSE     Linux-lib64 support, various bugfixes
+Akkana Peck             build bugfix
+Daniel Scheppler        manpage, debian build, dependencies fixes
 
 Good bugreports that helped fix problems
 ----------------------------------------
@@ -16,6 +18,7 @@ Aly Dharshi             RH build
 Andre Srinivasan        not automatically setting -m when listing contents
 Wolfgang Sailer         forgot to adapt README to autoconf build procedure,
                         RH imap location
+Kunal Chavan            don't delete duplicate messages with empty Message-IDs
 
 Current maintainer
 ------------------

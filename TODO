@@ -60,3 +60,11 @@ Nice to have
 * switch to md5 as default algorithm
 
 * include patches for new features from http://bugs.debian.org/mailsync
+
+* #mhinbox refers to the "inbox" box in the Mail folder in #mh format. That
+  means that synchronizing INBOX with #mhinbox is impossible right now
+  because strcmp( "INBOX", "#mhinbox") yield false.
+  It'd be nice if we could sync those. If we'd do that then we could as
+  well do a "whatever" to "whatother" mapping (1:1), which would make 
+  INBOX <-> #mhinbox just a special case of the more general 1:1 maping.
+  

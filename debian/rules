@@ -11,15 +11,7 @@ export DH_COMPAT=3
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	@# Add here commands to configure the package.
-
-	touch configure-stamp
-
-build: configure-stamp build-stamp
-build-stamp:
-	dh_testdir
-
-	# we need depcomp in order to be able to build
+	@# we need depcomp in order to be able to build
 	for i in / -1.4/ -1.5/ -1.6/ -1.7/; do                              \
 	   if [ ! "$$found" = "1" -a -e /usr/share/automake$${i}depcomp ] ; \
 	    then                                                            \
@@ -32,6 +24,14 @@ build-stamp:
 	done
 
 	@# Add here commands to compile the package.
+	./configure --prefix=/usr
+
+	touch configure-stamp
+	
+build: configure-stamp build-stamp
+build-stamp:
+	dh_testdir
+
 	$(MAKE)
 
 	touch build-stamp
@@ -42,10 +42,10 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	@# Add here commands to clean up after the build process.
-	$(MAKE) clean
+	-$(MAKE) distclean
 	-rm -f core
 
-	# remove symlinks
+	@# remove symlinks
 	-rm install-sh mkinstalldirs missing depcomp
 
 	dh_clean
