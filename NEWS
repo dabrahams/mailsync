@@ -19,6 +19,7 @@ New in 5.1.2:
  * added HACKING file
  * more verbose error message when c-client is linked against kerberos, but kerberos is not installed
  * small compilation fixes (thanks Heiko)
+ * checking for and adding libcrypt to LIBS
  * NOT YET RELEASED
  
 New in 5.1.1:
