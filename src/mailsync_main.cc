@@ -450,6 +450,8 @@ int main(int argc, char** argv)
           printf( " Copying messages from store \"%s\" to store \"%s\"\n",
                   store_a.name.c_str(), store_b.name.c_str() );
 
+        if (! channel.open_for_copying( curr_mbox->first, a_to_b) )
+          exit(1);
         for ( MsgIdSet::iterator i =copy_a_b.begin(); i !=copy_a_b.end(); i++) {
           success = channel.copy_message( msgidpos_a[*i], *i,
                                           curr_mbox->first, a_to_b );
@@ -464,6 +466,8 @@ int main(int argc, char** argv)
           printf( " Copying messages from store \"%s\" to store \"%s\"\n",
                   store_b.name.c_str(), store_a.name.c_str() );
 
+        if (! channel.open_for_copying( curr_mbox->first, b_to_a) )
+          exit(1);
         for ( MsgIdSet::iterator i=copy_b_a.begin(); i !=copy_b_a.end(); i++) {
           success = channel.copy_message( msgidpos_b[*i], *i,
                                           curr_mbox->first, b_to_a );

@@ -34,6 +34,7 @@ class Channel
     }
     bool read_lasttime_seen( MsgIdsPerMailbox& mids_per_box, 
                              MailboxMap& deleted_mailboxes);
+    bool open_for_copying( string mailbox_name, enum direction_t direction);
     bool copy_message( unsigned long msgno,
                        const MsgId& msgid,
                        string mailbox_name,

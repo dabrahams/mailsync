@@ -188,6 +188,44 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
 
 //////////////////////////////////////////////////////////////////////////
 //
+bool Channel::open_for_copying( string mailbox_name,
+                                enum direction_t direction)
+//
+// Opens both stores in the appropriate modes for copying
+//
+//////////////////////////////////////////////////////////////////////////
+{
+  Store& store_from = (direction == a_to_b) ? store_a : store_b;
+  Store& store_to   = (direction == a_to_b) ? store_b : store_a;
+
+  if(! store_from.mailbox_open( mailbox_name, OP_READONLY ) ) {
+    fprintf( stderr,
+             "Error: Couldn't open mailbox %s in store %s\n",
+             mailbox_name.c_str(), store_from.name.c_str());
+    return 0;
+  }
+
+  // strangely enough, following Mark Crispin, if you write into
+  // an open stream then it'll mark new messages as seen.
+  //
+  // So if we want to write to a remote mailbox we have to
+  // HALF_OPEN the stream and if we're working on a local
+  // mailbox then we have to use a NIL stream.
+  if (store_to.isremote) {
+    if(! store_to.store_open( OP_HALFOPEN) ) {
+       fprintf( stderr, "Error: Couldn't open store %s\n",
+                        store_to.name.c_str());
+       return 0;
+    }
+  } else {
+    mail_close( store_to.stream );
+    store_to.stream = NIL;
+  }
+  return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 bool Channel::copy_message( unsigned long msgno,
                             const MsgId& msgid,
                             string mailbox_name,
@@ -218,30 +256,6 @@ bool Channel::copy_message( unsigned long msgno,
 
   Store& store_from = (direction == a_to_b) ? store_a : store_b;
   Store& store_to   = (direction == a_to_b) ? store_b : store_a;
-
-  if(! store_from.mailbox_open( mailbox_name, OP_READONLY ) ) {
-    fprintf( stderr,
-             "Error: Couldn't open mailbox %s in store %s\n",
-             mailbox_name.c_str(), store_from.name.c_str());
-    return 0;
-  }
-
-  // strangely enough, following Mark Crispin, if you write into
-  // an open stream then it'll mark new messages as seen.
-  //
-  // So if we want to write to a remote mailbox we have to
-  // HALF_OPEN the stream and if we're working on a local
-  // mailbox then we have to use a NIL stream.
-  if (store_to.isremote) {
-    if(! store_to.store_open( OP_HALFOPEN) ) {
-       fprintf( stderr, "Error: Couldn't open store %s\n",
-                        store_to.name.c_str());
-       return 0;
-    }
-  } else {
-    mail_close( store_to.stream );
-    store_to.stream = NIL;
-  }
 
   current_context_passwd = &store_from.passwd;
   envelope = mail_fetchenvelope(store_from.stream, msgno);
