@@ -1,0 +1,130 @@
+# adapt this file to your needs and move it to
+# $HOME/.mailsync
+#
+# This is my first try at a commented configuration
+# file. If you have some other pertinent examples
+# f.ex. for special configurations or for a mailserver
+# that needs some tweaks then please mail them to me.
+#
+# Tomas Pospisek <tpo_deb@sourecpole.ch>
+#
+# see also:
+# [1] /usr/share/doc/mailsync/README
+# [2] /usr/share/doc/libc-client-ssl2001/naming.txt.gz
+# [3] rfc2060
+#
+
+#
+# Get all mail from the "debian.org" IMAPS (IMAP over SSL)
+# server for the user "tpo" (IMAP is the default transport).
+# Do not validate the SSL certificate. Get all the
+# mailboxes that start with "INBOX." but do not recurse
+# into subfolders. Before comparing mailboxes strip off
+# "INBOX." form their name. When authentificating use
+# "secret" as password.
+#
+# for the exact semantics of the server line see [2]
+#
+# (Can anybody lighten me up on what "ref" is?)
+#
+store cyrus-store {
+	server	{debian.org/user=tpo/ssl/novalidate-cert}
+	ref	{debian.org}
+	pat	INBOX.%
+	prefix  INBOX.
+	passwd secret
+}
+
+#
+# same as before but recurse into subfolders and do
+# validate the SSL certificate
+#
+store other-cyrus-store {
+	server	{debian.org/user=tpo/ssl}
+	ref	{debian.org}
+	pat	INBOX.*
+	prefix  INBOX.
+}
+
+#
+# *only* the inbox on a cyrus IMAP server
+#
+# no prefix! INBOX will be understood as such
+# by mailsync!
+#
+store cyrus-inbox {
+	server	{debian.org/user=tpo}
+	ref	{debian.org}
+	pat	INBOX
+}
+
+#
+# typical netscape or uw store
+#
+# only the contents of the folder sync will be
+# transferred
+#
+store netscape-or-uw-store {
+	server  {imap.cs.unc.edu/user=culver}
+	ref     {imap.cs.unc.edu}
+	pat     copy/%
+	prefix  copy/
+}
+
+#
+# local mail on a unix box contained
+# in $HOME/Mail/localcopy
+#
+store local-directory-Mail {
+	pat     Mail/localcopy/%
+	prefix  Mail/
+}
+
+#
+# local mail on a unix box contained
+# in $HOME/mail/
+#                              ^^^^
+#
+store local-directory-mail {
+	pat	mail/%
+	prefix  mail/
+}
+
+#
+# local mail in the INBOX
+# that can be /var/spool/mail/USERNAME or in other
+# standard inbox places
+#
+store local-inbox {
+	pat	INBOX
+}
+
+#
+# one specific folder in the $HOME/mail
+# directory
+#
+store local-oliver {
+	pat	mail/oliver
+	prefix  mail/
+}
+
+#
+# Let's synchronize our local inbox with the cyrus inbox. The
+# synchronization info is kept on the remote cyrus server and
+# "secret" is used for authentification
+#
+channel inbox-local-cyrus  local-inbox cyrus-inbox {
+	msinfo	{debian.org/user=tpo}INBOX.mailsync
+	passwd  secret
+}
+
+#
+# synchronize the mail contained on a netscape or uw
+# imap server in the folder copy with our local mailfolder
+# "$HOME/Mail/localcopy". Keep the synchronization info locally
+# in "Mail/synchronization-info"
+# 
+#
+channel dir-local mail local {
+	msinfo	Mail/synchronization-info
+}
