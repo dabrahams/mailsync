@@ -1,13 +1,13 @@
-Mailsync-4
-----------
+Mailsync
+--------
 
 1.   Compiling mailsync
-2.   Configuring mailsync-4
+2.   Configuring mailsync
 2.1     Mailbox specification
 2.2     Stores
 2.3     Channels
 3.   How does mailsync work?
-4.   Running mailsync-4
+4.   Running mailsync
 4.1     Verbosity
 4.2     Various messages from mailsync
 5.   Limitations
@@ -50,8 +50,8 @@ source package:
 
 
 
-2. Configuring mailsync-4
--------------------------
+2. Configuring mailsync
+-----------------------
 
 To use mailsync, you first have to make a configuration file, which by
 default is `$HOME/.mailsync'.  The config file specifies two kinds of
@@ -234,8 +234,8 @@ Finally, it saves the set of remaining messages to the `msinfo' file.
 
 
 
-4. Running mailsync-4
----------------------
+4. Running mailsync
+-------------------
 
 There are three modes.
 
