@@ -38,12 +38,15 @@ You're wellcome to implement any of these
   as hierarchy separator for mailsync ideally a character that has special meaning
   on all platforms as f.ex. newline?
 
+* no_expunge runtime/compile option don't mix?
+
+* Displaying "=?iso-8859-1?Q?Susanne" in Subject or From: is nonsense
+
 Nice to have
 ------------
 * it'd be nice to know which driver c-client will use for accessing mail
 
-* simulate option would be nice
-
 * synchronize Status
-=======
-* no_expunge runtime/compile option don't mix?
+
+* move CLI options into config file
+
