@@ -292,21 +292,24 @@ int main(int argc, char** argv)
     }
 
     // fetch_message_ids(): map message-ids to message numbers
-    //                      and optionally delete duplicates. 
+    //                      and optionally remember duplicates. 
     //
     // Attention: from here on we're operating on streams to single
     //            _mailboxes_! That means that from here on
     //            streamx_stream is connected to _one_ specific
     //            mailbox.
    
+    // Messges that should be removed in store_a respectively in store_b
+    MsgIdSet remove_a, remove_b;
+
     // open and fetch message ID's from the mailbox in the first store
-    store_a.stream = store_a.mailbox_open( curr_mbox->first, 0 );
+    store_a.stream = store_a.mailbox_open( curr_mbox->first, OP_READONLY );
     if (! store_a.stream)
     {
       store_a.print_error( "opening and writing", curr_mbox->first);
       continue;
     }
-    if (! store_a.fetch_message_ids( msgidpos_a) )
+    if (! store_a.fetch_message_ids( msgidpos_a , remove_a) )
     {
       store_a.print_error( "fetching of mail ids", curr_mbox->first);
       continue;
@@ -315,12 +318,12 @@ int main(int argc, char** argv)
     // if we're in sync mode open and fetch message IDs from the
     // mailbox in the second store
     if( operation_mode == mode_sync ) {
-      store_b.stream = store_b.mailbox_open( curr_mbox->first, 0);
+      store_b.stream = store_b.mailbox_open( curr_mbox->first, OP_READONLY);
       if (! store_b.stream) {
         store_b.print_error( "fetching of mail ids", curr_mbox->first);
         continue;
       }
-      if (! store_b.fetch_message_ids( msgidpos_b )) {
+      if (! store_b.fetch_message_ids( msgidpos_b, remove_b )) {
         store_b.print_error( "fetching of mail ids", curr_mbox->first);
         continue;
       }
@@ -354,9 +357,8 @@ int main(int argc, char** argv)
     }
 
     // Messages that should be copied from store_a to store_b,
-    // from store_b to store_a, that should be removed in store_a and
-    // finally that should be removed in store_b
-    MsgIdSet copy_a_b, copy_b_a, remove_a, remove_b;
+    // from store_b to store_a
+    MsgIdSet copy_a_b, copy_b_a;
 
     // Iterate over all messages that were seen in a mailbox last time,
     // in store_a and in store_b
@@ -423,29 +425,6 @@ int main(int argc, char** argv)
         unsigned long removed_a = 0, removed_b = 0, copied_a_b = 0,
                       copied_b_a = 0;
 
-        //////////////////// removing messages ///////////////////////
-        
-        // We're first flagging messages for removal. If we'd first copy
-        // and then remove, c-client would add a "Status: O" line to each
-        // mail. We don't want this because of MUA's who interpret such
-        // a line as "not new" (in particular mutt!)
-
-        if (debug) printf( " Removing messages from store \"%s\"\n",
-                           store_a.name.c_str() );
-
-        for( MsgIdSet::iterator i =remove_a.begin(); i !=remove_a.end(); i++) {
-          success = store_a.flag_message_for_removal( msgidpos_a[*i], *i, "< ");
-          if (success) removed_a++;
-        }
-
-        if (debug) printf( " Removing messages from store \"%s\"\n",
-                           store_b.name.c_str() );
-
-        for( MsgIdSet::iterator i =remove_b.begin(); i !=remove_b.end(); i++) {
-          success = store_b.flag_message_for_removal( msgidpos_b[*i], *i, "> ");
-          if (success) removed_b++;
-        }
-
         //////////////////// copying messages ///////////////////////
         
         if (debug)
@@ -494,26 +473,61 @@ int main(int argc, char** argv)
                   now_n, curr_mbox->first.c_str() );
         }
 
-        //////////////////////// expunging emails /////////////////////////
-        // this *needs* to be done *after* coying as the *last* step
-        // otherwise the order of the mails will get messed up since
-        // some random messages inbewteen have been deleted in the mean
-        // time and the message numbers we know don't correspond to
-        // messages in the mailbox/store any more
-        
-        if (debug) printf( " Expunging messages\n" );
+        //////////////////// removing messages ///////////////////////
 
-        if (! (options.no_expunge || options.simulate) ) {
+        if ( options.delete_messages && (! options.simulate) ) {
+        
+          if (debug) printf( " Removing messages from store \"%s\"\n",
+                             store_a.name.c_str() );
+
+          // TODO: check first if there are any messages to be removed before
+          //       opening
+          store_a.stream = store_a.mailbox_open( curr_mbox->first, 0 );
+          if (! store_a.stream)
+          {
+            store_a.print_error( "opening for removal ", curr_mbox->first);
+          }
+          else
+            for( MsgIdSet::iterator i =remove_a.begin(); i !=remove_a.end(); i++) {
+              success = store_a.flag_message_for_removal( msgidpos_a[*i], *i, "< ");
+              if (success) removed_a++;
+            }
+      
+          if (debug) printf( " Removing messages from store \"%s\"\n",
+                             store_b.name.c_str() );
+
+          // TODO: check first if there are any messages to be removed before
+          //       opening
+          store_b.stream = store_b.mailbox_open( curr_mbox->first, 0 );
+          if (! store_b.stream)
+          {
+            store_a.print_error( "opening for removal ", curr_mbox->first);
+          }
+          else
+            for( MsgIdSet::iterator i =remove_b.begin(); i !=remove_b.end(); i++) {
+              success = store_b.flag_message_for_removal( msgidpos_b[*i], *i, "> ");
+              if (success) removed_b++;
+            }
+
+          //////////////////////// expunging emails /////////////////////////
+          // this *needs* to be done *after* coying as the *last* step
+          // otherwise the order of the mails will get messed up since
+          // some random messages inbewteen have been deleted in the mean
+          // time and the message numbers we know don't correspond to
+          // messages in the mailbox/store any more
+        
+          if (debug) printf( " Expunging messages\n" );
+
           int n_expunged_a = store_a.mailbox_expunge( curr_mbox->first );
           int n_expunged_b = store_b.mailbox_expunge( curr_mbox->first );
           if (n_expunged_a) printf( "Expunged %d mail%s in store %s\n"
-                                    , n_expunged_a
-                                    , n_expunged_a == 1 ? "" : "s"
-                                    , store_a.name.c_str() );
+                                  , n_expunged_a
+                                  , n_expunged_a == 1 ? "" : "s"
+                                  , store_a.name.c_str() );
           if (n_expunged_b) printf( "Expunged %d mail%s in store %s\n"
-                                    , n_expunged_b
-                                    , n_expunged_b == 1 ? "" : "s"
-                                    , store_b.name.c_str() );
+                                  , n_expunged_b
+                                  , n_expunged_b == 1 ? "" : "s"
+                                  , store_b.name.c_str() );
         }
 
         //////////////////////// deleting empty mailboxes /////////////////////////

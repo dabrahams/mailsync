@@ -31,7 +31,7 @@ void usage()
   printf("\n");
   printf("Options:\n");
   printf("  -cd      do copy deleted mailboxes (default is not)\n");
-  printf("  -n       don't expunge mailboxes\n");
+  printf("  -n       don't delete messages\n");
   printf("  -D       delete any empty mailboxes after synchronizing\n");
   printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
   printf("  -M       also show message-ids (turns on -m)\n");
@@ -71,7 +71,7 @@ bool read_commandline_options( const int argc,
   while (optind<argc && argv[optind][0]=='-') {
     switch (argv[optind][1]) {
     case 'n':
-      options.no_expunge = 1;
+      options.delete_messages = 0;
       break;
     case 'm':
       options.show_from = 1;
@@ -85,7 +85,7 @@ bool read_commandline_options( const int argc,
     case 's':
       printf("Only simulating\n");
       options.simulate = 1;
-      options.no_expunge = 1;
+      options.delete_messages = 0;
       break;
     case 'v':
       if (argv[optind][2] == 'b')

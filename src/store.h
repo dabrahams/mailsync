@@ -36,7 +36,7 @@ class Store
     size_t acquire_mail_list( );
     void get_delim();
     string full_mailbox_name(const string& box);
-    bool fetch_message_ids(MsgIdPositions& mids);
+    bool fetch_message_ids(MsgIdPositions& mids, MsgIdSet& remove_set);
     bool list_contents();
     bool flag_message_for_removal( unsigned long msgno, const MsgId& msgid,
                                    char * place);

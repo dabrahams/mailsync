@@ -311,7 +311,7 @@ of the actions that mailsync is taking:
     
       deleted    >  Wed Jun  9 tony kwami             FROM MR TONY KWAMI.
       duplicate     Wed Jun  9 Some Hero              Re: comment
-    1 duplicate deleted from INBOX/remote-inbox
+    1 duplicate for deletion in INBOX/remote-inbox
     Authorizing against {[192.168.1.2]/imap}
       ign. del   <  Wed Jun  9 Mail Delivery System   Mail failure - no recipient a
       copied     <- Wed Jun  9 Debian Bug Tracking Sy Bug#253290 acknowledged by de
@@ -391,11 +391,26 @@ have not read it.
 
 Mutt and possibly some other clients interpet only a mail with
 "Status: " as unseen. If you want mutt to see all "new" messages as
-"new", then you must use the "-n" (do not expunge) option of mailsync.
+"new", then you must use the "-n" (do not delete messages) option of
+mailsync. This will have the effect of not deleting any messages, not
+even duplicates on either store you're synchronzing.
 
-Explanation: c-clients mail_expunge function will run through all the
-mails and mark them as "Status: O" ("seen"). There's not much I can do
-about that. If someone knows a workaround for this, please mail me.
+Explanation:
+
+c-client's author says the following:
+
+"The definition of "Recent" [that is "Status: " - tpo] is that the
+ message has arrived since the last time the mailbox was opened
+ readwrite."
+ 
+Strangely enough appending new messages to a mailbox can be done without
+opening a mailbox read-write. However any other operation that change
+anything in a mailbox such as tagging a message as deleted or expunging
+old messages needs to be done in read-write mode. As soon as that happens
+*all* messages will be tagged with "Status: O" and hence loose their
+"Recent" status. That means that if we want to be able to maintain that
+status, we are not allowed to tag messages as deleted, to expunge messages
+or similar.
 
 
 

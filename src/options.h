@@ -18,7 +18,7 @@ typedef struct options_t {
   bool show_summary;           // 1 line of output per mailbox
   bool show_from;              // 1 line of output per message
   bool show_message_id;        // Implies show_from
-  bool no_expunge;
+  bool delete_messages;
   bool delete_empty_mailboxes;
   bool debug;
   bool debug_imap;
@@ -38,7 +38,7 @@ typedef struct options_t {
                show_summary(1),
                show_from(0),
                show_message_id(0),
-               no_expunge(0),
+               delete_messages(1),
                delete_empty_mailboxes(0),
                debug(0),
                debug_imap(0),

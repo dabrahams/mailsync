@@ -20,6 +20,8 @@ New in 5.1.2:
  * more verbose error message when c-client is linked against kerberos, but kerberos is not installed
  * small compilation fixes (thanks Heiko)
  * checking for and adding libcrypt to LIBS
+ * added workflow diagrams showing when mail_open is used with what options
+ * -n has a new meaning: do not delete messages
  * NOT YET RELEASED
  
 New in 5.1.1:

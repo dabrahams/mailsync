@@ -201,12 +201,12 @@ bool Store::mailbox_create( const string& boxname )
 
 //////////////////////////////////////////////////////////////////////////
 //
-bool Store::fetch_message_ids(MsgIdPositions& mids)
+bool Store::fetch_message_ids(MsgIdPositions& mids, MsgIdSet& remove_set)
 //
 // Fetch all the message ids that the currently open mailbox contains.
 // 
-// If there are duplicates they will be deleted (depending on the compile
-// time option expunge_duplicates)
+// If there are duplicates they will be added to the remove_set
+// (depending on the compile time option expunge_duplicates)
 //
 // returns:
 //              0              - failure
@@ -255,7 +255,8 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
             fprintf( stderr, "Not deleting duplicate message with empty "
                              "Message-ID - see README");
           else
-            mail_setflag( this->stream, seq, "\\Deleted" );
+            remove_set.insert( msgid );
+            // mail_setflag( this->stream, seq, "\\Deleted" );
       }
       nduplicates++;
       if ( options.show_from ) print_lead( "duplicate", "");
@@ -284,7 +285,7 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
     }
     else
     {
-      printf( "%lu duplicate%s deleted from %s\n",
+      printf( "%lu duplicate%s for deletion in %s\n",
               nduplicates,
               nduplicates==1 ? "" : "s",
               name.c_str() );
@@ -477,10 +478,6 @@ int Store::mailbox_expunge( string mailbox_name )
 //////////////////////////////////////////////////////////////////////////
 {
   expunged_mails = 0; // is manipulated by the c-client callback mm_expunge
-  if (options.debug)
-    printf("Opening %s with options 0\n",
-            mailbox_name.c_str());
-  this->mailbox_open( mailbox_name, 0);
   mail_expunge( this->stream );
   return expunged_mails;
 }
