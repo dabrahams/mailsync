@@ -138,23 +138,21 @@ int main(int argc, char** argv)
 
 #include "linkage.c"
 
+  //
   // Parse arguments, read config file, choose operation mode
+  // --------------------------------------------------------
   {
     string config_file;
     vector<string> channels_and_stores;
-
     // bad command line parameters
-    if(! read_commandline_options( argc, argv, options,
+    if (! read_commandline_options( argc, argv, options,
                                    channels_and_stores, config_file) )
       exit(1);         
-    
     operation_mode = setup_channel_stores_and_mode( config_file,
                                                     channels_and_stores,
                                                     channel);
-
-    if( operation_mode == mode_unknown )
-        // errors are handled by setup_stores_channels_and_operation_mode
-        exit(1);
+    if ( operation_mode == mode_unknown )
+      exit(1);
   }
 
   store_a.boxes.clear();
