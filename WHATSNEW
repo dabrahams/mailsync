@@ -11,6 +11,7 @@ New in 4.5:
    inserted)
  * msinfo format documented
  * a little simpler msinfo parsing
+ * added #mh mail format example
 
 New in 4.4.4:
 

@@ -81,6 +81,14 @@ store local-directory-Mail {
 }
 
 #
+# local inbox in mh format
+#
+store hacker {
+        pat \#mh/inbox
+        prefix \#mh/inbox
+}
+
+#
 # local mail on a unix box contained
 # in $HOME/mail/
 #                              ^^^^
