@@ -11,31 +11,29 @@
 * Better error handling (if there's an IMAP error mailsync just
   quits)
 
-* clean up
-
 * integrate current_context_passwd better with c-client calls
 
 * refuse to run if .mailsync contains password and permissions are wrong
 
-* on the first run the inbox on the remote machine is deleted?
-  test with tpo2!
-
-* test and/or find better solution to the problem when we encounter a mailbox
+* test and/or find better solution to the problem when encountering a mailbox
   that does not match our default mailbox delimiter
 
 * in mailsync.c::copy_message mail_append_full returns an int. c-client's
-  mail_append_full return's a long. What exactly is being returned? Check it
-  out and maybe replace "rv" by "success".
+  mail_append_full return's a long. What exactly is being returned? Go over it
+  and maybe replace "rv" by "success".
 
 * mailsync can't handle mailboxes that contain messages _and_ submailboxes
 
-* why do some errors go to stderr and some to stdout
+* why do some errors go to stderr and some to stdout?
 
 * ideally sanitize_message_id should not have a side effect, but just
   return 1 or 0 if the message had to be modified or it should have
   enough information to print a sufficient error message, i.e. the
   mailbox where the message is originating from
 
-* I'm not sure whether extra mailboxes in read_lasttime_seen and delete_boxes in write_lasttime is consistent
+* I'm not sure whether extra mailboxes in read_lasttime_seen and delete_boxes
+  in write_lasttime is consistent
 
 * make naming of read_lasttime_seen and of write_lasttime consistent
+
+* it'd be nice which driver c-client will use for accessing mail

@@ -12,7 +12,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#define VERSION "4.4.1"
+#define VERSION "4.4.2"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -52,11 +52,13 @@ int report_braindammaged_msgids = 0;
 //////////////////////////////////////////////////////////////////////////
 // Mandatory options
 //////////////////////////////////////////////////////////////////////////
-int kill_duplicates = 1;        // should duplicates be deleted?
+int expunge_duplicates = 1;     // Should duplicates be deleted?
 int log_error = 1;
 int log_warn = 0;
 
 typedef set<string> StringSet;
+typedef map<string,int> MsgIdPositions;  // Map message ids to positions
+                                         // within a mailbox
 
 int critical = NIL;             // Flag saying in critical code
 char *getpass();
@@ -538,7 +540,7 @@ void get_mail_list(MAILSTREAM *stream, Store& store, StringSet& mailbox_names) {
 
 //////////////////////////////////////////////////////////////////////////
 // Print formats that are being used when showin, what mails are being
-// transfered or killed:
+// transfered or expungeed:
 //
 // $ mailsync -m inbox
 // Synchronizing stores "local-inbox" <-> "remote-inbox"...
@@ -587,16 +589,22 @@ void usage() {
 //
 //////////////////////////////////////////////////////////////////////////
   printf("mailsync %s\n\n", VERSION);
-  printf("usage: mailsync [options] channel\n");
-  printf("\nOptions:\n");
-  printf("  -f file  use alternate config file\n");
+  printf("usage: mailsync [-nD] [-db] [-dmMv] [-f conf] channel\n");
+  printf("usage: mailsync             [-dmMv] [-f conf] store\n");
+  printf("\n");
+  printf("synchronize two stores defined by \"channel\" or\n");
+  printf("list mailboxes contained in \"store\"\n");
+  printf("\n");
+  printf("Options:\n");
   printf("  -n       don't expunge mailboxes\n");
   printf("  -D       delete any empty mailboxes after synchronizing\n");
-  printf("  -m       show from, subject, etc. of messages that are killed or moved\n");
+  printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
   printf("  -M       also show message-ids (turns on -m)\n");
-  printf("  -v       show imap chatter\n");
   printf("  -d       show debug info\n");
   printf("  -db      show warning about braindammaged message ids\n");
+  printf("  -v       show imap chatter\n");
+  printf("  -f conf  use alternate config file\n");
+  printf("\n");
   return;
 }
 
@@ -630,7 +638,7 @@ int read_lasttime_seen(Channel channel,
 // not included in the given mailboxes list.
 //
 // The _results_ of this function are used to determine which
-// messages to transfer or to kill.
+// messages to transfer or to expunge.
 //
 // arguments:
 //              channel      - the channel that is being synched
@@ -731,8 +739,56 @@ int read_lasttime_seen(Channel channel,
 
 //////////////////////////////////////////////////////////////////////////
 //
+void list_contents(MAILSTREAM*& stream, Store& store, const string& box) {
+//
+// Display contents of mailbox
+// 
+// The mailbox is defined by the name in "box" and by the "store" where the
+// mailbox resides
+//
+// returns:
+//              stream       - a stream "to" the store
+//              store,box    - the mailbox from which message ids should be
+//                             fetched
+//
+// This was copied from fetch_message_ids
+//
+//////////////////////////////////////////////////////////////////////////
+  string fullboxname = full_mailbox_name(store, box);
+  current_context_passwd = &(store.passwd);
+  MsgIdPositions mids;
+
+  stream = mail_open(stream, nccs(fullboxname), 0);// TODO: use HALF_OPEN?
+
+  // loop and fetch all the message ids from a mailbox
+  int n = stream->nmsgs;
+  for (int j=1; j<=n; j++) {
+    string msgid;
+    ENVELOPE *envelope;
+    bool isdup;
+
+    envelope = mail_fetchenvelope(stream, j);
+    if (!(envelope->message_id))
+      printf(lead_format,"no msg-id", "");
+    else {
+      msgid = string(envelope->message_id);
+      isdup = mids.count(msgid);
+      if (isdup)
+        printf(lead_format,"duplicate", "");
+      else
+        mids.insert(make_pair(msgid, j));
+    
+      if (show_message_id) printf(msgid_format, msgid.c_str());
+    }
+    printf(from_format, summary(stream,j).c_str());
+    printf("\n");
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 int fetch_message_ids(MAILSTREAM*& stream, Store& store, 
-                      const string& box, map<string,int>& mids) {
+                      const string& box, MsgIdPositions& mids) {
 //
 // Fetch all the message ids that a mailbox contains
 // 
@@ -740,7 +796,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
 // mailbox resides
 //
 // If there are duplicates they will be deleted (depending on the compile
-// time option kill_duplicates)
+// time option expunge_duplicates)
 //
 // returns:
 //              1            - success
@@ -763,7 +819,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     return 0;
   }
   
-  // loop and fetch all the message ids from a mailbox1
+  // loop and fetch all the message ids from a mailbox
   int n = stream->nmsgs;
   int nabsent = 0, nduplicates = 0;
   for (int j=1; j<=n; j++) {
@@ -781,7 +837,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     sanitize_message_id(msgid);
     isdup = mids.count(msgid);
     if (isdup) {
-      if (kill_duplicates) {
+      if (expunge_duplicates) {
         char seq[30];
         sprintf(seq,"%d",j);
         mail_setflag(stream, seq, "\\Deleted");
@@ -810,6 +866,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     }
     fflush(stdout);
   }
+
   return 1;
 }
 
@@ -898,14 +955,14 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   current_context_passwd = &(store.passwd);
   envelope = mail_fetchenvelope(stream, msgno);
   if (!(envelope->message_id)) {
-    printf("Error: no message-id, so I won't kill the message.\n");
+    printf("Error: no message-id, so I won't expunge the message.\n");
     // Possibly indicates concurrent access?
     ok = 0;
   } else {
     msgid_fetched = envelope->message_id;
     sanitize_message_id(msgid_fetched);
     if (msgid_fetched != msgid) {
-      printf("Error: message-ids %s and %s don't match, so I won't kill the message.\n",
+      printf("Error: message-ids %s and %s don't match, so I won't expunge the message.\n",
              msgid_fetched.c_str(), msgid.c_str());
       ok = 0;
     }
@@ -918,14 +975,43 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   }
   if (show_from) {
     if (ok) {
-      printf(lead_format, "killed", place);
+      printf(lead_format, "expungeed", place);
     } else
-      printf(lead_format, "killfail", "");
+      printf(lead_format, "expungefail", "");
     printf(from_format, summary(stream,msgno).c_str());
     printf("\n");
   }
   return ok;
 }
+
+/*
+//////////////////////////////////////////////////////////////////////////
+//
+long copy_messages(MAILSTREAM*& from_stream, Store &from_store,
+                   MAILSTREAM*& to_stream, Store &to_store,
+                   StringSet &message_ids,
+                   MsgIdPositions &msgIdPositions,
+                   StringSet &all_known_msgids)
+//
+// copies messages in message_ids from from_stream to to_stream
+//////////////////////////////////////////////////////////////////////////
+{
+  int success;
+
+  unsigned long copied_a_b = 0;
+  for (StringSet::iterator i=message_ids.begin(); i!=message_ids.end(); i++) {
+    success = copy_message(from_stream, from_store, msgIdPositions[*i], *i,
+                           to_stream, from_store, "->");
+    if (success)
+      copied_a_b++;
+    else                           // we've failed to copy the message over
+      all_known_msgids.erase(*i);  // as we should've had. So let's just assume
+                                   // that we haven't seen it at all. That way
+                                   // mailsync will have to rediscover and
+                                   // resync the same message again next time
+  }
+}
+*/
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1056,7 +1142,7 @@ int main(int argc, char** argv) {
 
     } else if (channels.size() == 1 && stores.size() == 1) {
       mode = mode_diff;
-      kill_duplicates = 0;
+      expunge_duplicates = 0;
       channel = channels[0];
       storea = stores[0];
       if (channel.store[0] == storea.tag) {
@@ -1120,7 +1206,14 @@ int main(int argc, char** argv) {
     get_delim(storea_stream, storea);
   assert(storea.delim != '!');
   if (mode==mode_list) {
-    print_list_with_delimiter(allboxes, stdout, "\n");
+    if (show_from | show_message_id)
+      for (StringSet::iterator box = allboxes.begin(); 
+           box != allboxes.end(); box++) {
+        printf("\nMailbox: %s\n\n", (*box).c_str());
+        list_contents(storea_stream, storea, *box);
+      }
+    else
+      print_list_with_delimiter(allboxes, stdout, "\n");
     return 0;
   }
   if (mode==mode_sync) {
@@ -1160,7 +1253,7 @@ int main(int argc, char** argv) {
       printf("\n *** %s ***\n", box->c_str());
 
     StringSet l(lasttime[*box]), u, now;
-    map<string, int> a, b;
+    MsgIdPositions a, b;
 
     if (show_summary) {
       printf("%s: ",box->c_str());
@@ -1187,9 +1280,9 @@ int main(int argc, char** argv) {
 
     // u = union(l, a, b)
     u = l;
-    for (map<string,int>::iterator i=a.begin(); i!=a.end(); i++)
+    for (MsgIdPositions::iterator i=a.begin(); i!=a.end(); i++)
       u.insert(i->first);
-    for (map<string,int>::iterator i=b.begin(); i!=b.end(); i++)
+    for (MsgIdPositions::iterator i=b.begin(); i!=b.end(); i++)
       u.insert(i->first);
 
     StringSet copy_a_b, copy_b_a, remove_a, remove_b;
@@ -1254,7 +1347,7 @@ int main(int argc, char** argv) {
           if (success)
             copied_a_b++;
           else                  // we've failed to copy the message over
-            now.erase(*i);     // as we should've had. So let's just assume
+            now.erase(*i);      // as we should've had. So let's just assume
                                 // that we haven't seen it at all. That way
                                 // mailsync will have to rediscover and resync
                                 // the same message again next time
@@ -1549,9 +1642,10 @@ MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream,
   
   o = log_error;
   log_error = 0;
-  mail_create(stream, nccs(fullboxname));
+  mail_create(stream, nccs(fullboxname));       // creates new if not
+                                                // existent, fails otherwise
   log_error = o;
-  stream = mail_open(stream, nccs(fullboxname), options);
+  stream = mail_open(stream, nccs(fullboxname), options);// TODO: use HALF_OPEN?
   return stream;
 }
 

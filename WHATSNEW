@@ -1,3 +1,9 @@
+New in 4.4.2:
+
+ * documented list mode
+ * list mode can display contents of mailboxes
+ * more docu
+
 New in 4.4.1:
 
  * more explicit and consistent error messages, more sensible debug output
