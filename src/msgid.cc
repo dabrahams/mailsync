@@ -1,5 +1,6 @@
 #include "config.h"
 #include <stdio.h>
+#include <ctype.h>
 #include <string>
 #include "msgid.h"
 #include "options.h"
