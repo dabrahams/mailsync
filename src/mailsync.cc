@@ -70,8 +70,8 @@
 // Take care - mailboxes with *empty* names *are* allowed.
 //
 //////////////////////////////////////////////////////////////////////////
-//
-#define VERSION "4.5"
+
+#include "config.h"             // include autoconf settings
 
 #include <ctype.h>
 #include <stdio.h>
@@ -404,7 +404,7 @@ void usage() {
 // Mailsync help
 //
 //////////////////////////////////////////////////////////////////////////
-  printf("mailsync %s\n\n", VERSION);
+  printf(PACKAGE_STRING "\n\n");        // autoconf bizzarrerie
   printf("usage: mailsync [-cd] [-db] [-nDdmMs] [-v[bwp]] [-f conf] channel\n");
   printf("usage: mailsync               [-dmM]  [-v[bwp]] [-f conf] store\n");
   printf("\n");
@@ -1519,6 +1519,7 @@ int main(int argc, char** argv) {
 
     } else if (channels.size() == 0 && stores.size() == 1) {
       mode = mode_list;
+      show_from = true;
       storea = stores[0];
 
       printf("Listing store \"%s\"\n", storea.tag.c_str());
@@ -1559,13 +1560,13 @@ int main(int argc, char** argv) {
   allboxes.clear();
   if (debug) printf(" Items in store \"%s\":\n", storea.tag.c_str());
   get_mail_list(storea_stream, storea, allboxes);
+  if (storea.delim == '!')
+    get_delim(storea_stream, storea);
   if (debug)
     if (storea.delim)
       printf(" Delimiter for store \"%s\" is '%c'.\n",
              storea.tag.c_str(), storea.delim);
     else printf(" No delimiter found for store \"%s\".\n", storea.tag.c_str());
-  if (storea.delim == '!')
-    get_delim(storea_stream, storea);
   assert(storea.delim != '!');
   if (mode==mode_list) {
     if (show_from | show_message_id)
@@ -1584,14 +1585,13 @@ int main(int argc, char** argv) {
   if (mode==mode_sync) {
     if (debug) printf(" Items in store \"%s\":\n", storeb.tag.c_str());
     get_mail_list(storeb_stream, storeb, allboxes);
+    if (storeb.delim == '!')
+      get_delim(storeb_stream, storeb);
     if (debug)
       if (storeb.delim)
         printf(" Delimiter for store \"%s\" is '%c'.\n",
                storeb.tag.c_str(), storeb.delim);
       else printf(" No delimiter found for store \"%s\"\n", storeb.tag.c_str());
-
-    if (storeb.delim == '!')
-      get_delim(storeb_stream, storeb);
     assert(storeb.delim != '!');
   }
   if (show_message_id) {

@@ -1,0 +1,5 @@
+sinclude(acinclude/ac_so_preference.m4)
+sinclude(acinclude/ac_with_openssl.m4)
+sinclude(acinclude/ac_with_krb5.m4)
+sinclude(acinclude/ac_with_pam.m4)
+sinclude(acinclude/ac_with_cclient.m4)

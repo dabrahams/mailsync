@@ -1,0 +1,7 @@
+EXTRA_DIST=msgstring.c
+bin_PROGRAMS=mailsync
+
+INCLUDES=@CCLIENT_INCLUDES@
+LDADD=@CCLIENT_LIBS@
+
+mailsync_SOURCES=mailsync.cc

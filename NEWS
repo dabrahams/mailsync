@@ -6,13 +6,13 @@ New in 4.5:
  * minimaly better error handling
  * reads in and initializes c-client configuration
  * bugfixes for prefixes that exactly match the mailbox name
-   and therefore end up empty by Michael Krelin
- * preparation for change of msinfo format (version information is now
-   inserted)
+   and therefore end up empty by Michael
  * msinfo format documented
  * a little simpler msinfo parsing
  * added #mh mail format example
- * added Michael Krelin's #mh over ssh example
+ * added Michael's #mh over ssh example
+ * automatically setting -m when listing store. Bugreport by Andre Srinivasan
+ * autoconfiguration by Michael
 
 New in 4.4.4:
 

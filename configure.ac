@@ -1,0 +1,34 @@
+AC_INIT([mailsync], [4.5], [tpo_deb@sourcepole.ch])
+AC_CONFIG_SRCDIR([src/mailsync.cc])
+AC_CONFIG_HEADER([config.h])
+
+AM_INIT_AUTOMAKE
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_AWK
+AC_PROG_CPP
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS([string.h])
+
+AC_C_CONST
+
+AC_FUNC_STAT
+AC_CHECK_FUNCS([getpass memset strchr strdup strerror strtoul])
+
+AC_SO_PREFERENCE([yes])
+AC_WITH_OPENSSL()
+AC_WITH_KRB5()
+AC_WITH_PAM()
+
+AC_WITH_CCLIENT(,[
+ AC_MSG_ERROR([a working c-client installation is required for building mailsync])
+])
+
+AC_CONFIG_FILES([
+ Makefile
+ src/Makefile
+])
+AC_OUTPUT
