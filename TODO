@@ -58,3 +58,5 @@ Nice to have
 * provide an integrated function for print_lead, print_...
 
 * switch to md5 as default algorithm
+
+* include patches for new features from http://bugs.debian.org/mailsync

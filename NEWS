@@ -5,6 +5,10 @@ New in 5.1.0:
  * warn about empty Message-IDs when using the default msg id algorithm.
  * document md5 vs Message-ID in the README
  * -di debug/log IMAP telemetry/protocol
+ * -dc debug configuration
+ * fix copy/paste bug in ac_with_md5.m4 (Michael, bug by me :-/)
+ * fix rubbuish deletion in dist-hook
+ * fixed traversing some boxes twice
 
 New in 5.0.0:
 

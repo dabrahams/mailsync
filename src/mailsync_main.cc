@@ -316,8 +316,11 @@ int main(int argc, char** argv)
     if ( store_b.boxes.find( box->first ) == store_b.boxes.end() )
       if ( ! store_b.mailbox_create( box->first ) )
         continue;
-      
-    box->second.done = true;
+
+    // when traversing store_a's boxes we don't need to care about
+    // duplicates. It's not unless we're in store_b that it matters
+    // whether the box has been traversed in store_a allready
+    store_b.boxes.find(box->first)->second.done = true;
 
     if ( store_a.boxes.find( box->first )->second.no_select ) {
       if ( debug )
