@@ -1,29 +1,30 @@
-/* Please use spaces instead of tabs */
+// Please use spaces instead of tabs
 
-/* ATTENTION: The terminus "mailbox" is used throughout the code, in accordance
- *            with c-client speak.
- *
- *            What c-client calls "mailbox" is commonly referred to as a
- *            mail FOLDER.
- *            
- *            What c-client calls mailstream is somewhat analogous to what
- *            is commonly referred to as mailbox - that means an account,
- *            containing mail folders and messages.
- *
- *            Once again:
- *                        c-client        "real life"
- *                        ---------------------------
- *                        mailbox    ->   mail folder
- *                        mailstream ->   mailbox
- */
+//////////////////////////////////////////////////////////////////////////
+// ATTENTION: The terminus "mailbox" is used throughout the code, in
+//            accordance with c-client speak.
+//
+//            What c-client calls "mailbox" is commonly referred to as a
+//            mail FOLDER.
+//            
+//            What c-client calls mailstream is somewhat analogous to what
+//            is commonly referred to as mailbox - that means an account,
+//            containing mail folders and messages.
+//
+//            Once again:
+//                        c-client        "real life"
+//                        ---------------------------
+//                        mailbox    ->   mail folder
+//                        mailstream ->   mailbox
+//////////////////////////////////////////////////////////////////////////
 
 #define VERSION "4.4.1"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <errno.h>
-extern int errno;               /* Just in case */
-#include <sys/stat.h>           /* Stat() */
+extern int errno;               // Just in case
+#include <sys/stat.h>           // Stat()
 
 #include <string>
 #include <set>
@@ -41,29 +42,29 @@ using std::make_pair;
 
 #define DEFAULT_DELIMITER '/'
 
-/*
- * Options
- */
+//////////////////////////////////////////////////////////////////////////
+// Options
+//////////////////////////////////////////////////////////////////////////
 int log_chatter = 0;
-int show_summary = 1;           /* 1 line of output per mailbox */
-int show_from = 0;              /* 1 line of output per message */
-int show_message_id = 0;        /* Implies show_from */
+int show_summary = 1;           // 1 line of output per mailbox
+int show_from = 0;              // 1 line of output per message
+int show_message_id = 0;        // Implies show_from
 int no_expunge = 0;
 enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
 int delete_empty_mailboxes = 0;
 int debug = 0;
 int report_braindammaged_msgids = 0;
 
-/*
- * Mandatory options
- */
-int kill_duplicates = 1;        /* should duplicates be deleted? */
+//////////////////////////////////////////////////////////////////////////
+// Mandatory options
+//////////////////////////////////////////////////////////////////////////
+int kill_duplicates = 1;        // should duplicates be deleted?
 int log_error = 1;
 int log_warn = 0;
 
 typedef set<string> StringSet;
 
-int critical = NIL;             /* Flag saying in critical code */
+int critical = NIL;             // Flag saying in critical code
 char *getpass();
 
 void save(const StringSet& set, FILE* f, const string& delim) {
@@ -71,19 +72,25 @@ void save(const StringSet& set, FILE* f, const string& delim) {
     fprintf(f, "%s%s", i->c_str(), delim.c_str());
 }
 
-/*
- * C-Client doesn't declare anything const
- * If you're paranoid, you can allocate a new char[] here
- */
+//////////////////////////////////////////////////////////////////////////
+//
 char* nccs(const string& s) {
+//
+// C-Client doesn't declare anything const
+// If you're paranoid, you can allocate a new char[] here
+// 
+//////////////////////////////////////////////////////////////////////////
   return (char*) s.c_str();
 }
 
-/*
- * Prints a string into a file (or std[out|err]) while
- * replacing " " by "\ "
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void print_with_escapes(FILE* f, const string& str) {
+//
+// Prints a string into a file (or std[out|err]) while
+// replacing " " by "\ "
+// 
+//////////////////////////////////////////////////////////////////////////
   const char *s = str.c_str();
   while (*s) {
     if (isspace(*s))
@@ -94,7 +101,13 @@ void print_with_escapes(FILE* f, const string& str) {
   return;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
 struct Passwd {
+//
+// Structure that holds the password
+//
+//////////////////////////////////////////////////////////////////////////
   bool nopasswd;
   string text;
 
@@ -109,18 +122,24 @@ struct Passwd {
   }
 };
 
-/*
- * The password for the current context
- * Required, because in the c-client callback functions we don't know
- * in which context (store1, store2, channel) we are
- */
+//////////////////////////////////////////////////////////////////////////
+// The password for the current context
+// Required, because in the c-client callback functions we don't know
+// in which context (store1, store2, channel) we are
 Passwd * current_context_passwd = NULL;
+//////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+//
 struct Store {
-  string tag, server, prefix;   /* Tag == store name */
+//
+// Structure that holds the pattern for _one_ set of mailboxes to sync
+//
+//////////////////////////////////////////////////////////////////////////
+  string tag, server, prefix;   // Tag == store name
   string ref, pat;
   Passwd passwd;
-  int isremote;     /* I.e. allows OP_HALFOPEN */
+  int isremote;     // I.e. allows OP_HALFOPEN
   int delim;
 
   void clear() {
@@ -166,8 +185,14 @@ struct Store {
   void set_passwd(string password) { passwd.set_passwd(password);}
 };
 
+//////////////////////////////////////////////////////////////////////////
+//
 struct Channel {
-  string tag;           /* Tag == channel name */
+//
+// Structure that holds two Stores (sets of mailboxes) that should be synched
+//
+//////////////////////////////////////////////////////////////////////////
+  string tag;           // Tag == channel name
   string store[2];
   string msinfo;
   Passwd passwd;
@@ -198,7 +223,14 @@ struct Channel {
   void set_passwd(string password) { passwd.set_passwd(password);}
 };
 
+//////////////////////////////////////////////////////////////////////////
+//
 struct ConfigItem {
+//
+// A configuration item from the config file
+// Can either be a Channel or a Store
+//
+//////////////////////////////////////////////////////////////////////////
   int is_Store;
   Store* store;
   Channel* channel;
@@ -212,36 +244,46 @@ struct ConfigItem {
   ConfigItem() { clear(); }
 };
 
-/*
- * Print out a ConfigItem
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void print_ConfigItem(ConfigItem& conf, FILE* f) {
+//
+// Print out a ConfigItem
+//
+//////////////////////////////////////////////////////////////////////////
   if (conf.is_Store)
     conf.store->print(f);
   else
     conf.channel->print(f);
 }
 
-/*
- * A token is a [space|newline|tab] delimited chain of characters which
- * represents a syntactic element
- */
+//////////////////////////////////////////////////////////////////////////
+//
 struct Token {
+//
+// A token is a [space|newline|tab] delimited chain of characters which
+// represents a syntactic element
+//
+//////////////////////////////////////////////////////////////////////////
   string buf;
   int eof;
   int line;
 };
 
-/*
- * Fatal error while parsing the config file
- * Display error message and quit
- *
- * errorMessage       must contain an error message to be displayed
- * insertIntoMessage  is optional. errorMessage can act as a sprintf format
- *                    string in which case insertIntoMessage will be used
- *                    as replacement for "%s" inside errorMessage
- */
-void die_with_fatal_parse_error(Token* t, char * errorMessage, const char * insertIntoMessage = NULL) {
+//////////////////////////////////////////////////////////////////////////
+//
+void die_with_fatal_parse_error(Token* t, char * errorMessage,
+                                const char * insertIntoMessage = NULL) {
+//
+// Fatal error while parsing the config file
+// Display error message and quit
+//
+// errorMessage       must contain an error message to be displayed
+// insertIntoMessage  is optional. errorMessage can act as a sprintf format
+//                    string in which case insertIntoMessage will be used
+//                    as replacement for "%s" inside errorMessage
+//
+//////////////////////////////////////////////////////////////////////////
   fprintf(stderr, "Error: ");
   fprintf(stderr, errorMessage, insertIntoMessage ? insertIntoMessage : "");
   fprintf(stderr, "\n");
@@ -257,48 +299,51 @@ void die_with_fatal_parse_error(Token* t, char * errorMessage, const char * inse
   exit(1);
 }
 
-/* 
- * Read a token from the config file
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void get_token(FILE* f, Token* t) {
+//
+// Read a token from the config file
+//
+//////////////////////////////////////////////////////////////////////////
   int c;
   t->buf = "";
   t->eof = 0;
   while (1) {
     if (t->buf.size() > MAILTMPLEN)
-      /* Token too long */
+      // Token too long
       die_with_fatal_parse_error(t, "Line too long");
     c = getc(f);
    
-    /* Ignore comments */
+    // Ignore comments
     if ( t->buf.size() == 0 && c=='#') {
       while( c != '\n' && c !=EOF) {
         c = getc(f);
       }
     }
     
-    /* Skip newline */
+    // Skip newline
     if (c=='\n')
       t->line++;
 
-    /* We're done reading the config file */
+    // We're done reading the config file
     if (c==EOF) {
       t->eof = 1;
       break;
 
-    /* We've reached a token boundary */
+    // We've reached a token boundary
     } else if (isspace(c)) {
-      /* The token is non empty so we've acquired something and can return */
+      // The token is non empty so we've acquired something and can return
       if (t->buf.size()) {
         break;
-      /* Ignore spaces */
+      // Ignore spaces
       } else {
         continue;
       }
-    /* Continue on next line... */
+    // Continue on next line...
     } else if (c=='\\') {
       t->buf += (char)getc(f);
-    /* Add to token */
+    // Add to token
     } else {
       t->buf += (char)c;
     }
@@ -307,10 +352,13 @@ void get_token(FILE* f, Token* t) {
   return;
 }
 
-/* 
- * Parse config file
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
+// 
+// Parse config file
+// 
+//////////////////////////////////////////////////////////////////////////
   Token token;
   Token *t;
 
@@ -319,37 +367,37 @@ void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
   t = &token;
   t->line = 0;
 
-  /* Read items from file */
+  // Read items from file
   while (1) {
     ConfigItem* conf = new ConfigItem();
     string tag;
     conf->is_Store = -1;
 
-    /* Acquire one item */
+    // Acquire one item
     get_token(f, t);
 
-    /* End of config file reached */
+    // End of config file reached
     if (t->eof)
       break;
     
-    /* Parse store */
+    // Parse store
     if (t->buf == "store") {
       conf->is_Store = 1;
       conf->store = new Store();
-      /* Read tag (store name) */
+      // Read tag (store name)
       get_token(f, t);
       if (t->eof)
         die_with_fatal_parse_error(t, "Store name missing");
       tag = t->buf;
       conf->store->tag = t->buf;
-      /* Read "{" */
+      // Read "{"
       get_token(f, t);
       if (t->eof || t->buf != "{")
         die_with_fatal_parse_error(t, "Expected \"{\" while parsing store");
-      /* Read store configuration (name/value pairs) */
+      // Read store configuration (name/value pairs)
       while (1) {
         get_token(f, t);
-        /* End of store config */
+        // End of store config
         if (t->buf == "}")
           break;
         else if (t->eof)
@@ -384,19 +432,19 @@ void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
         conf->store->isremote = 1;
       }
 
-    /* Parse a channel */
+    // Parse a channel
     }
     else if (t->buf == "channel") {
       conf->is_Store = 0;
       conf->channel = new Channel;
-      /* Read tag (channel name) */
+      // Read tag (channel name)
       get_token(f, t);
       if (t->eof) {
         die_with_fatal_parse_error(t, "Channel name missing");
       }
       tag = t->buf;
       conf->channel->tag = t->buf;
-      /* Read stores */
+      // Read stores
       get_token(f, t);
       if (t->eof)
         die_with_fatal_parse_error(t, "Expected a store name while parsing channel");
@@ -405,11 +453,11 @@ void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
       if (t->eof)
         die_with_fatal_parse_error(t, "Expected a store name while parsing channel");
       conf->channel->store[1] = t->buf;
-      /* Read "{" */
+      // Read "{"
       get_token(f, t);
       if (t->eof || t->buf != "{")
         die_with_fatal_parse_error(t, "Expected \"{\" while parsing channel");
-      /* Read channel config (name/value pairs) */
+      // Read channel config (name/value pairs)
       while (1) {
         get_token(f, t);
         if (t->buf == "}")
@@ -446,13 +494,16 @@ void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
   return;
 }
 
-/* 
- * Given the name of a mailbox on a Store, return its full IMAP name.
- */
+//////////////////////////////////////////////////////////////////////////
+//
 string full_mailbox_name(Store s, const string& box) {
+//
+// Given the name of a mailbox on a Store, return its full IMAP name.
+//
+//////////////////////////////////////////////////////////////////////////
   string boxname = box;
   string fullbox;
-  /* Replace our DEFAULT_DELIMITER by the respective store delimiter */
+  // Replace our DEFAULT_DELIMITER by the respective store delimiter
   for (unsigned int i=0; i<boxname.size(); i++)
     if( boxname[i] == DEFAULT_DELIMITER) boxname[i] = s.delim;
   fullbox = s.server + s.prefix + boxname;
@@ -462,16 +513,19 @@ string full_mailbox_name(Store s, const string& box) {
 static StringSet*   matching_mailbox_names;
 static Store*       match_pattern_store;
 
-/*
- * Fetch a list of mailbox-names from "stream" that match the pattern
- * given by "store" and put them into "mailbox_names".
- *
- * "mailbox_names" is filled up through the callback function "mm_list"
- * by c-client's mail_list function
- *
- * This function corresponds to c-client's mail_list
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void get_mail_list(MAILSTREAM *stream, Store& store, StringSet& mailbox_names) {
+//
+// Fetch a list of mailbox-names from "stream" that match the pattern
+// given by "store" and put them into "mailbox_names".
+//
+// "mailbox_names" is filled up through the callback function "mm_list"
+// by c-client's mail_list function
+//
+// This function corresponds to c-client's mail_list
+//
+//////////////////////////////////////////////////////////////////////////
   match_pattern_store = &store;
   matching_mailbox_names = &mailbox_names;
   current_context_passwd = &(store.passwd);
@@ -480,35 +534,35 @@ void get_mail_list(MAILSTREAM *stream, Store& store, StringSet& mailbox_names) {
   matching_mailbox_names = NULL;
 }
 
-/*
- * Print formats that are being used when showin, what mails are being
- * transfered or killed:
- *
- * $ mailsync -m inbox
- * Synchronizing stores "local-inbox" <-> "remote-inbox"...
- * Authorizing against {my.imap-server/imap}
- *
- *  *** INBOX ***
- *
- * "  copied     <-  Mon Sep  9 Tomas Pospisek         test2
- *                     <Pine.LNX.4.44.0209092123140.24399-100000@petertosh>"
- *
- * |--lead_format--|-------------from_format------------------|
- *                     |--------------------msgid_format-------------------|
- *
- * 
- *  "lead_format"  and
- *  "from_format"  are only used/displayed with options -m and/or -M
- *  "msgid_format" is only used/displayed with option -M
- *
- */
-char lead_format[] = "  %-10s %s  ";    /* arguments:  action, direction */
+//////////////////////////////////////////////////////////////////////////
+// Print formats that are being used when showin, what mails are being
+// transfered or killed:
+//
+// $ mailsync -m inbox
+// Synchronizing stores "local-inbox" <-> "remote-inbox"...
+// Authorizing against {my.imap-server/imap}
+//
+//  *** INBOX ***
+//
+// "  copied     <-  Mon Sep  9 Tomas Pospisek         test2
+//                     <Pine.LNX.4.44.0209092123140.24399-100000@petertosh>"
+//
+// |--lead_format--|-------------from_format------------------|
+//                     |--------------------msgid_format-------------------|
+//
+// 
+//  "lead_format"  and
+//  "from_format"  are only used/displayed with options -m and/or -M
+//  "msgid_format" is only used/displayed with option -M
+//
+//////////////////////////////////////////////////////////////////////////
+char lead_format[] = "  %-10s %s  ";    // arguments:  action, direction
 char from_format[] = "%-61s";
-char msgid_format[] = "%-65s";            /* argument :  message-id */
+char msgid_format[] = "%-65s";            // argument :  message-id
 
-/*
- * Some forward declarations
- */
+//////////////////////////////////////////////////////////////////////////
+// Some forward declarations
+//////////////////////////////////////////////////////////////////////////
 void sanitize_message_id(string& msgid);
 int read_lasttime_seen(Channel channel,
                        StringSet& boxes, 
@@ -523,10 +577,13 @@ MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream,
                                         long options);
 string summary(MAILSTREAM* stream, long msgno);
 
-/*
- * Mailsync help
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void usage() {
+//
+// Mailsync help
+//
+//////////////////////////////////////////////////////////////////////////
   printf("mailsync %s\n\n", VERSION);
   printf("usage: mailsync [options] channel\n");
   printf("\nOptions:\n");
@@ -541,10 +598,13 @@ void usage() {
   return;
 }
 
-/*
- * Determine the mailbox delimiter that "stream" is using.
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void get_delim(MAILSTREAM*& stream, Store& store_in) {
+//
+// Determine the mailbox delimiter that "stream" is using.
+// 
+//////////////////////////////////////////////////////////////////////////
   Store store = store_in;
   store.prefix = "";
   store.pat = "INBOX";
@@ -554,31 +614,34 @@ void get_delim(MAILSTREAM*& stream, Store& store_in) {
   return;
 }
 
-/*
- * Compare a given list of mailboxes with the contents of msinfo
- * and return a hash that contains all the seen message id's for
- * the given mailboxes. Additionaly a separate list is returned,
- * that contains all the mailboxes that were seen, but that are
- * not included in the given mailboxes list.
- *
- * The _results_ of this function are used to determine which
- * messages to transfer or to kill.
- *
- * arguments:
- *              channel      - the channel that is being synched
- *              boxes        - the mailboxes that should be synched
- * returns:
- *              1            - success
- *              0            - failure
- *
- *              mids_per_box - hash of lists with message-ids per mailbox
- *                             (indexed by mailbox)
- *              extra        - mailboxes that are not contained in the 
- */
+//////////////////////////////////////////////////////////////////////////
+//
 int read_lasttime_seen(Channel channel,
                        StringSet& boxes, 
                        map<string, StringSet>& mids_per_box, 
                        StringSet& extra) {
+//
+// Compare a given list of mailboxes with the contents of msinfo
+// and return a hash that contains all the seen message id's for
+// the given mailboxes. Additionaly a separate list is returned,
+// that contains all the mailboxes that were seen, but that are
+// not included in the given mailboxes list.
+//
+// The _results_ of this function are used to determine which
+// messages to transfer or to kill.
+//
+// arguments:
+//              channel      - the channel that is being synched
+//              boxes        - the mailboxes that should be synched
+// returns:
+//              1            - success
+//              0            - failure
+//
+//              mids_per_box - hash of lists with message-ids per mailbox
+//                             (indexed by mailbox)
+//              extra        - mailboxes that are not contained in the 
+//
+//////////////////////////////////////////////////////////////////////////
   MAILSTREAM* msinfo_stream;
   ENVELOPE* envelope;
   unsigned long j, k;
@@ -586,7 +649,7 @@ int read_lasttime_seen(Channel channel,
   char* text;
   unsigned long textlen;
 
-  /* msinfo is the name of the mailbox that contains the sync info */
+  // msinfo is the name of the mailbox that contains the sync info
   current_context_passwd = &(channel.passwd);
   msinfo_stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
                                               OP_READONLY);
@@ -598,9 +661,9 @@ int read_lasttime_seen(Channel channel,
 
   for (j=1; j<=msinfo_stream->nmsgs; j++) {
     envelope = mail_fetchenvelope(msinfo_stream, j);
-    /* The subject line contains the name of the channel */
+    // The subject line contains the name of the channel
     if (channel.tag == envelope->subject) {
-      /* Found our lasttime */
+      // Found our lasttime
       int instring;
 
       text = mail_fetchtext_full(msinfo_stream, j, &textlen, FT_INTERNAL);
@@ -609,19 +672,19 @@ int read_lasttime_seen(Channel channel,
       else
         return 0;
       instring = 0;
-      /* Replace spaces with '\0' */
+      // Replace spaces with '\0'
       for (k=0; k<textlen; k++) {
         if (isspace(text[k])) {
           text[k] = '\0';
           instring = 0;
         } else {
           if (!instring) {
-            /* Do nothing in particular */
+            // Do nothing in particular
           }
           instring = 1;
         }
       }
-      /* Check each box against `boxes' */
+      // Check each box against `boxes'
       instring = 0;
       for (k=0; k<textlen; k++) {
         if (text[k] == '\0') {
@@ -629,7 +692,7 @@ int read_lasttime_seen(Channel channel,
         } else {
           if (!instring) {
             if (text[k] != '<') {
-              /* Mailbox name */
+              // Mailbox name
               if (boxes.count(&text[k])) {
                 currentbox = string(&text[k]);
               } else {
@@ -637,7 +700,7 @@ int read_lasttime_seen(Channel channel,
                 extra.insert(&text[k]);
               }
             } else {
-              /* Message-id */
+              // Message-id
               if (currentbox != "") {
                 mids_per_box[currentbox].insert(&text[k]);
               }
@@ -647,7 +710,7 @@ int read_lasttime_seen(Channel channel,
         }
       }
       free(text);
-      break;    /* Stop searching for message */
+      break;    // Stop searching for message
     }
   }
   
@@ -663,25 +726,27 @@ int read_lasttime_seen(Channel channel,
   return 1;
 }
 
-/*
- * Fetch all the message ids that a box contains
- *
- * If there are duplicates they will be deleted (depending on the compile
- * time option kill_duplicates)
- *
- * returns:
- *              1            - success
- *              0            - failure
- *
- *              stream       - a stream "to" the store
- *              store,box    - the mailbox from which message ids should be
- *                             fetched
- *              mids         - a hash indexed by msgid containing the
- *                             position of the message in the mailbox
- *
- */
+//////////////////////////////////////////////////////////////////////////
+//
 int fetch_message_ids(MAILSTREAM*& stream, Store& store, 
                       const string& box, map<string,int>& mids) {
+//
+// Fetch all the message ids that a box contains
+//
+// If there are duplicates they will be deleted (depending on the compile
+// time option kill_duplicates)
+//
+// returns:
+//              1            - success
+//              0            - failure
+//
+//              stream       - a stream "to" the store
+//              store,box    - the mailbox from which message ids should be
+//                             fetched
+//              mids         - a hash indexed by msgid containing the
+//                             position of the message in the mailbox
+//
+//////////////////////////////////////////////////////////////////////////
   string fullboxname = full_mailbox_name(store, box);
   current_context_passwd = &(store.passwd);
   
@@ -701,7 +766,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     envelope = mail_fetchenvelope(stream, j);
     if (!(envelope->message_id)) {
       nabsent++;
-      /* Absent message-id.  Don't touch message. */
+      // Absent message-id.  Don't touch message.
       continue;
     }
     msgid = string(envelope->message_id);
@@ -754,7 +819,7 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   envelope = mail_fetchenvelope(storea_stream, msgno);
   string msgid_fetched;
 
-  /* Check message-id. */
+  // Check message-id.
   if (!(envelope->message_id) || *(envelope->message_id)!='<') {
     printf("Warning: missing message-id: %s, message %d %s\n",
            storea_stream->mailbox, msgno,
@@ -769,7 +834,7 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   }
 
   elt = mail_elt(storea_stream, msgno);
-  assert(elt->valid); /* Should be valid because of fetchenvelope() */
+  assert(elt->valid); // Should be valid because of fetchenvelope()
 
   memset(flags, 0, MAILTMPLEN);
   if (elt->seen) strcat (flags," \\Seen");
@@ -805,7 +870,7 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   envelope = mail_fetchenvelope(stream, msgno);
   if (!(envelope->message_id)) {
     printf("Error: no message-id, so I won't kill the message.\n");
-    /* Possibly indicates concurrent access? */
+    // Possibly indicates concurrent access?
     ok = 0;
   } else {
     msgid_fetched = envelope->message_id;
@@ -840,19 +905,19 @@ int main(int argc, char** argv) {
   StringSet allboxes;
   MAILSTREAM *storea_stream, *storeb_stream;
   map<string, StringSet> lasttime, thistime;
-  StringSet deleted_boxes;   /* present lasttime, but not this time */
+  StringSet deleted_boxes;   // present lasttime, but not this time
   StringSet empty_mailboxes;
   int ok;
 
 #include "linkage.c"
 
-  /* Parse arguments, read config file, choose mode */
+  // Parse arguments, read config file, choose mode
   {
     string config_file;
     int optind;
     vector<string> args;
 
-    /* All options must be given separately */
+    // All options must be given separately
     optind = 1;
     while (optind<argc && argv[optind][0]=='-') {
       switch (argv[optind][1]) {
@@ -921,7 +986,7 @@ int main(int argc, char** argv) {
     }
     Config_parse(config, confmap);
 
-    /* Search for the desired store or channel; determine mode. */
+    // Search for the desired store or channel; determine mode.
     
     vector<Store> stores;
     vector<Channel> channels;
@@ -986,7 +1051,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  /* Open remote connections. */
+  // Open remote connections.
 
   if (storea.isremote) {
     current_context_passwd = &(storea.passwd);
@@ -1010,7 +1075,7 @@ int main(int argc, char** argv) {
     storeb_stream = NULL;
   }
 
-  /* Get list of all mailboxes from each server. */
+  // Get list of all mailboxes from each server.
   allboxes.clear();
   if (debug) printf(" Items in store \"%s\":\n", storea.tag.c_str());
   get_mail_list(storea_stream, storea, allboxes);
@@ -1044,7 +1109,7 @@ int main(int argc, char** argv) {
     printf("\n");
   }
 
-  /* Read the lasttime lists. */
+  // Read the lasttime lists.
   {
     int success;
     success = read_lasttime_seen(channel, allboxes, lasttime, deleted_boxes);
@@ -1052,7 +1117,7 @@ int main(int argc, char** argv) {
       exit(1);
   }
 
-  /* Process each mailbox. */
+  // Process each mailbox.
   
   ok = 1;
   for (StringSet::iterator box = allboxes.begin(); 
@@ -1071,10 +1136,10 @@ int main(int argc, char** argv) {
       printf("\n");
     }
 
-    /* fetch_message_ids(): map message-ids to message numbers.
-       And optionally delete duplicates. 
-       Also, fetch_message_ids opens/creates the mailbox.
-    */
+    // fetch_message_ids(): map message-ids to message numbers.
+    // And optionally delete duplicates. 
+    // Also, fetch_message_ids opens/creates the mailbox.
+   
     current_context_passwd = &(storea.passwd);
     ok = fetch_message_ids(storea_stream, storea, *box, a);
     if (!ok) break;
@@ -1087,7 +1152,7 @@ int main(int argc, char** argv) {
         b[*i] = 0;
     }
 
-    /* u = union(l, a, b) */
+    // u = union(l, a, b)
     u = l;
     for (map<string,int>::iterator i=a.begin(); i!=a.end(); i++)
       u.insert(i->first);
@@ -1107,33 +1172,33 @@ int main(int argc, char** argv) {
 
       switch (abl) {
 
-      case 0x100:  /* New message on a */
+      case 0x100:  // New message on a
         copy_a_b.insert(*i);
         now.insert(*i);
         break;
 
-      case 0x010:  /* New message on b */
+      case 0x010:  // New message on b
         copy_b_a.insert(*i);
         now.insert(*i);
         break;
 
-      case 0x111:  /* Kept message */
-      case 0x110:  /* New message, no copying necessary */
+      case 0x111:  // Kept message
+      case 0x110:  // New message, no copying necessary
         now.insert(*i);
         break;
 
-      case 0x101:  /* Deleted on b */
+      case 0x101:  // Deleted on b
         remove_a.insert(*i);
         break;
 
-      case 0x011:  /* Deleted on a */
+      case 0x011:  // Deleted on a
         remove_b.insert(*i);
         break;
 
-      case 0x001:  /* Deleted on both */
+      case 0x001:  // Deleted on both
         break;
 
-      case 0x000:  /* Shouldn't happen */
+      case 0x000:  // Shouldn't happen
       default:
         assert(0);
         break;
@@ -1288,7 +1353,7 @@ int write_lasttime(Channel channel,
   }
   mail_expunge(stream);
   
-  /* Write a temporary file. */
+  // Write a temporary file.
   { 
     FILE* f;
     long flen;
@@ -1331,30 +1396,48 @@ string summary(MAILSTREAM* stream, long msgno) {
   return string(&from[0]);
 }
 
-/*
- * Some mail software goes out of its way to produce braindammaged
- * message-ids.
- *
- * This function attempts to bring it back to a sane form following RFC822
- * that is "<blabla@somedomain>". Spaces inside the Message-ID are forbidden
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void sanitize_message_id(string& msgid) {
+//
+// Some mail software goes out of its way to produce braindammaged
+// message-ids.
+//
+// This function attempts to bring it back to a sane form following RFC822
+// that is "<blabla@somedomain>". Spaces inside the Message-ID are forbidden
+//
+// Iif our msgid starts with '<' we find the corresponding '>' and throw
+// everything after that away (let's hope there is no braindead sw that has
+// significant msgid stuff _after_ the '>' or isn't using the '>' _inside_
+// the msgid). If we don't find the ending '>' we just put a ">" at the end
+// of the msgid.
+//
+//////////////////////////////////////////////////////////////////////////
   int removed_blanks = 0;
   int added_brackets = 0;
+  unsigned i;
   if (msgid[0] != '<') {
     msgid = '<'+msgid;
     added_brackets = 1;
   }
-  for (unsigned i=0; i<msgid.size(); i++) {
+  for (i=0; (i < msgid.size()) && (msgid[i] != '>'); i++)
     if (isspace(msgid[i]) || iscntrl(msgid[i])) {
       msgid[i] = '.';
       removed_blanks = 1;
     }
+
+  // Have we reached end of string?
+  if (i == msgid.size()) {
+  // if there's no '>' we need to attach
+    if(msgid[i-1] != '>') {
+      msgid = msgid+'>';
+      added_brackets = 1;
+    }
   }
-  if (msgid[msgid.size()-1] != '>') {
-    msgid = msgid+'>';
-    added_brackets = 1;
-  }
+  // we've found a '>', so let's cut the rubbish that follows
+  else
+    msgid = msgid.substr( 0, i+1);
+
   if (report_braindammaged_msgids)
     if (removed_blanks)
       fprintf(stderr,"Warning: added brackets <> around message id %s\n",
@@ -1377,30 +1460,32 @@ MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream,
   return stream;
 }
 
-/* --------------------------------------------------------------------
- * Callback functions
- *
- * Below are implemented callback functions that are required/called by
- * c-client functions.
- *
- * If we want to manipulate a stream or a mailbox we call a c-client
- * function which does whatever is necessary and will furnish us the
- * results piece by piece as the come by calling the respective callback
- * function.
- *
- * The names of the callback functions are fixed and can not be changed.
- * --------------------------------------------------------------------
- */
+//////////////////////////////////////////////////////////////////////////
+// Callback functions
+//
+// Below are implemented callback functions that are required/called by
+// c-client functions.
+//
+// If we want to manipulate a stream or a mailbox we call a c-client
+// function which does whatever is necessary and will furnish us the
+// results piece by piece as the come by calling the respective callback
+// function.
+//
+// The names of the callback functions are fixed and can not be changed.
+//////////////////////////////////////////////////////////////////////////
 
 
-/*
- * called by c-client's mail_list to give us a mailbox name that matches
- * our search pattern together with it's attributes 
- *
- * mm_list will save the mailbox names in the "matching_mailbox_names"
- * StringSet
- */
+//////////////////////////////////////////////////////////////////////////
+//
 void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
+//
+// called by c-client's mail_list to give us a mailbox name that matches
+// our search pattern together with it's attributes 
+//
+// mm_list will save the mailbox names in the "matching_mailbox_names"
+// StringSet
+//
+//////////////////////////////////////////////////////////////////////////
 {
   const char* name = name_nc;
   
@@ -1417,33 +1502,33 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
   }
 
   if (!match_pattern_store) {
-    /* Internal error */
+    // Internal error
     abort();
   }
 
-  /* Delimiter */
+  // Delimiter
 
   match_pattern_store->delim = delimiter;
 
-  /* If the mailbox is "selectable", i.e. contains messages,
-     store the name in the appropriate StringSet. */
+  // If the mailbox is "selectable", i.e. contains messages,
+  // store the name in the appropriate StringSet.
   if (!(attributes & LATT_NOSELECT) && *name) {
     const char *skip;
 
-    /* Skip over server spec, if present */
+    // Skip over server spec, if present
     skip = strchr(name,'}');
     if (skip)
       name = skip+1;
 
-    /* Remove prefix if it matches specified prefix */
+    // Remove prefix if it matches specified prefix
     skip = match_pattern_store->prefix.c_str();
     while (*skip==*name) {
       skip++;
       name++;
     }
 
-    /* Make sure that name doesn't contain default delimiter and replace
-     * all occurences of the Store delimiter by our default delimiter */
+    // Make sure that name doesn't contain default delimiter and replace
+    // all occurences of the Store delimiter by our default delimiter
     string name_copy = name;
     if (delimiter != DEFAULT_DELIMITER) {
       for (int i = 0; name[i]; i++) {
@@ -1469,26 +1554,26 @@ void mm_status (MAILSTREAM *stream,char *mailbox,MAILSTATUS *status) { }
 
 void mm_notify (MAILSTREAM *stream,char *s,long errflg)
 {
-  mm_log (s,errflg);    /* Just do mm_log action */
+  mm_log (s,errflg);    // Just do mm_log action
 }
 
 void mm_log (char *string,long errflg)
 {
   switch (errflg) {  
   case BYE:
-  case NIL:                     /* No error */
+  case NIL:                     // No error
     if (log_chatter)
       fprintf (stderr,"[%s]\n",string);
     break;
-  case PARSE:                   /* Parsing problem */
-  case WARN:                    /* Warning */
+  case PARSE:                   // Parsing problem
+  case WARN:                    // Warning
     if (log_warn) 
       fprintf (stderr,"%%%s\n",string);
     break;
-  case ERROR:                   /* Error */
+  case ERROR:                   // Error
   default:
     if (log_error)
-      fprintf (stderr,"?%s\n",string);
+      fprintf (stderr,"Error: %s\n",string);
     break;
   }
 }
@@ -1515,12 +1600,12 @@ void mm_login (NETMBX *mb,char *username,char *password,long trial)
 
 void mm_critical (MAILSTREAM *stream)
 {
-  critical = T;                 /* Note in critical code */
+  critical = T;                 // Note in critical code
 }
 
 void mm_nocritical (MAILSTREAM *stream)
 {
-  critical = NIL;               /* Note not in critical code */
+  critical = NIL;               // Note not in critical code
 }
 
 long mm_diskerror (MAILSTREAM *stream,long errcode,long serious)
@@ -1533,5 +1618,5 @@ void mm_fatal (char *st)
   char s[80];
   strncpy(s, st, 79);
   s[79]='\0';
-  fprintf (stderr,"?%s\n",s);
+  fprintf (stderr,"Error: %s\n",s);
 }
