@@ -23,6 +23,9 @@ mailsync \- Synchronize IMAP mailboxes
 or
 .B mailsync
 .RI [ options ] " store" ...
+or
+.B mailsync
+.RI [ options ] " channel" " store" ...
 .br
 .SH DESCRIPTION
 This manual page documents briefly the \fBmailsync\fB command.
@@ -33,14 +36,17 @@ This manual page documents briefly the \fBmailsync\fB command.
 \fBmailsync\fP is a way of keeping a collection of mailboxes synchronized. The
 mailboxes may be on the local filesystem or on an IMAP server.
 
-There are two invocations of \fBmailsync\fB:
+There are three invocations of \fBmailsync\fB:
 
 The first will synchronize two sets of mailboxes - in mailsync referred to
 as "stores".
 
-The second form lists the contents of one store. It's usage is recommended
-before synchronizing two stores to check whether mailsync sees what you are
-expecting.
+The second form will list the contents of a store. It's usage is recommended
+before synchronizing two stores to check whether mailsync is seeing what you
+are expecting it to see.
+
+The third form will show you what has changed in a store since the last
+sync.
 
 .SH OPTIONS
 A summary of options is included below.

@@ -1,5 +1,6 @@
 //--------------------- Configuration Parsing ----------------------------
 #include <stdio.h>
+#include <ctype.h>
 #include <string>
 #include <sys/stat.h>           // Stat()
 #include "c-client.h"           // for MAILTMPLEN

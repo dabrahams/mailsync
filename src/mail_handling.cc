@@ -1,5 +1,5 @@
 #include <stdio.h>  // required by c-client.h
-
+#include <ctype.h>
 #include "c-client.h"
 #include "options.h"
 #include "types.h"
@@ -46,7 +46,7 @@ void print_list_with_delimiter( const MailboxMap& mailboxes,
     for (MailboxMap::const_iterator mailbox = mailboxes.begin() ;
          mailbox != mailboxes.end() ;
          mailbox++ ) {
-      // fprintf(f, "%s%s", mailbox->first.c_str(), delim.c_str());
+      fprintf(f, "%s%s", mailbox->first.c_str(), delim.c_str());
     }
 }
 

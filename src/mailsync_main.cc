@@ -1,4 +1,4 @@
-// Please use spaces instead of tabs
+/// Please use spaces instead of tabs
 
 //////////////////////////////////////////////////////////////////////////
 // ATTENTION: The terminus "mailbox" is used throughout the code in
@@ -605,7 +605,8 @@ int main(int argc, char** argv)
         store_a.stream = store_a.mailbox_open( box->first, 0);
       }
       current_context_passwd = &store_a.passwd;
-      if (!options.simulate) mail_expunge(store_a.stream);
+      if (!options.simulate && !options.no_expunge)
+         mail_expunge( store_a.stream );
       if (store_b.stream) {
         if (!store_b.isremote) { // reopen the stream in write mode it was
                                 // closed before - needed for expunge
@@ -613,7 +614,8 @@ int main(int argc, char** argv)
           store_b.stream = store_b.mailbox_open( box->first, 0);
         }
         current_context_passwd = &store_b.passwd;
-        if (!options.simulate) mail_expunge(store_b.stream);
+        if (!options.simulate && !options.no_expunge)
+	   mail_expunge( store_b.stream );
       }
       printf("Mails expunged\n");
     }

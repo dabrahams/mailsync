@@ -20,11 +20,14 @@ void usage()
 //////////////////////////////////////////////////////////////////////////
 {
   printf(PACKAGE_STRING "\n\n");        // autoconf bizzarrerie
-  printf("usage: mailsync [-cd] [-db] [-nDdmMs] [-v[bwp]] [-f conf] channel\n");
-  printf("usage: mailsync               [-dmM]  [-v[bwp]] [-f conf] store\n");
+  printf("mailsync [-cd] [-db] [-nDdmMs] [-v[bwp]] [-f conf] channel\n");
+  printf("       synchronize two stores defined by \"channel\" or\n");
+  printf("mailsync               [-dmM]  [-v[bwp]] [-f conf] store\n");
+  printf("       list mailboxes contained in \"store\"\n");
+  printf("mailsync               [-dmM]  [-v[bwp]] [-f conf] channel store\n");
+  printf("       display changes from last seen messages in \"channel\" to\n");
+  printf("       those contained in \"store\"\n");
   printf("\n");
-  printf("synchronize two stores defined by \"channel\" or\n");
-  printf("list mailboxes contained in \"store\"\n");
   printf("\n");
   printf("Options:\n");
   printf("  -cd      do copy deleted mailboxes (default is not)\n");

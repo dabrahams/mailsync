@@ -1,3 +1,9 @@
+mailsync (5.0.0-1) unstable; urgency=high
+
+  * new upstream:
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Sat, 15 Mar 2003 18:09:24 +0100
+
 mailsync (4.5.3-2) unstable; urgency=high
 
   * debian changes:

@@ -7,7 +7,9 @@ New in 5.0.0:
  * it should be possible to sync stores which contain messages and/or
    submailboxes. However if two stores are incompatible creating subfolders
    will fall by the wayside in favour of syncing the folder
-
+ * build fixes by Michael
+ * documented diff mode
+ 
 New in 4.5.4:
 
  * removed acinclude.m4 (Krelin's code-beautycenter, me)
