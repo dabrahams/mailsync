@@ -1,7 +1,7 @@
 You're wellcome to implement any of these
 -----------------------------------------
 * unless run wit -D a once existent folder will allways be
-  recreated because mailsync remembers it in it's .minfo store.
+  recreated because mailsync remembers it in it's .msinfo store.
   How to reproduce:
   * create folder F
   * store some file there
@@ -9,11 +9,6 @@ You're wellcome to implement any of these
   * remove F on both sites
   * sync
   * F will be recreated on one site :-/
-
-* Better error handling (if there's an IMAP error mailsync just
-  quits)
-
-* integrate current_context_passwd better with c-client calls
 
 * refuse to run if .mailsync contains password and permissions are wrong
 
@@ -48,23 +43,18 @@ You're wellcome to implement any of these
 
 * escape '<' in mailbox names...
 
-* rename types.h -> store.h
-
 * extern msg_string in msgstring.h is ugly
 
 Nice to have
 ------------
-* it'd be nice to know which driver c-client will use for accessing mail
-
 * if no emails are being expunged mailsync should shut up
 
 * synchronize Status
 
 * move CLI options into config file
 
-* move from map to hash_map
-
 * calculate (direction == ...) immediately in copy_message
 
 * provide an integrated function for print_lead, print_...
 
+* switch to md5 as default algorithm

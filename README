@@ -12,7 +12,9 @@ Mailsync-4
 5. Limitations
 5.1 Problems with concurrent mailbox access
 5.2 Problems wit "New" messages (Mutt)
+5.3 Empty Message-ID headers
 6. More about the algorithm
+6.1 Message id algorithms
 7. History
 8. Further reading
 9. Support and homepage
@@ -345,6 +347,18 @@ about that. If someone knows a workaround for this, please mail me.
 
 
 
+5.3 Empty Message-ID headers
+----------------------------
+
+Some mail software produces messages with no or empty Message-ID headers in
+particular for draft or unsent messages and in particular Microsoft Outlook.
+That means that mailsync will not be able to uniquely identify such a message
+using the Message-ID header. If you need to synchronize such messages you
+should use the md5 message id algorithm. You can achieve this by passing
+"-t md5" to mailsync.
+
+
+
 6. More about the algorithm
 ---------------------------
 
@@ -364,6 +378,14 @@ Since both stores can be local, and in different formats, you can also
 use mailsync as a method for keeping all of your messages accessible
 by two MUAs, even if neither is IMAP-aware.  So mailsync could help
 you transition between MUAs.
+
+
+
+6.1 Message id algorithms
+-------------------------
+By default mailsync uses the Message-ID header to uniquely identify email
+messages. In case this is not possible (see 5.2) mailsync can use a md5
+hash of a number of mailheaders (defined in msgid.c) to identify a message.
 
 
 

@@ -2,6 +2,9 @@ New in 5.1.0:
 
  * option to use md5 hashes of headers as msg ids and/or along with
    the msgid in the message header (patch by Bob Lindell, adaptation me)
+ * warn about empty Message-IDs when using the default msg id algorithm.
+ * document md5 vs Message-ID in the README
+ * -di debug/log IMAP telemetry/protocol
 
 New in 5.0.0:
 
