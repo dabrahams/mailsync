@@ -6,6 +6,8 @@
 #include <set>
 #include "c-client.h"
 
+using namespace std;
+
 //////////////////////////////////////////////////////////////////////////
 
 enum operation_mode_t { mode_unknown, mode_sync, mode_list, mode_diff };

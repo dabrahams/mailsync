@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string>
 
+using namespace std;
+
 void print_with_escapes( FILE* f, const string& str);
 char* nccs( const string& s);
 
