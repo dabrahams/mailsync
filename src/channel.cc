@@ -417,7 +417,6 @@ bool Channel::write_thistime_seen( const MailboxMap& deleted_mailboxes,
           mailbox != thistime.end() ;
           mailbox++)
     {
-      printf("DEBUG: writing thistime box: %s\n", mailbox->first.c_str());
       if ( deleted_mailboxes.find(mailbox->first)
            == deleted_mailboxes.end()) { // not found
         fprintf( f, "%s\n", mailbox->first.c_str() );
