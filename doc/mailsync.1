@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH MAILSYNC SECTION "September  26, 2002"
+.TH MAILSYNC SECTION "February 15, 2003"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -19,13 +19,17 @@
 mailsync \- Synchronize IMAP mailboxes
 .SH SYNOPSIS
 .B mailsync
-.RI [ options ] " channel" ...
+.RI [ options ] " channel"
+.br
 or
+.br
 .B mailsync
-.RI [ options ] " store" ...
+.RI [ options ] " store"
+.br
 or
+.br
 .B mailsync
-.RI [ options ] " channel" " store" ...
+.RI [ options ] " channel store"
 .br
 .SH DESCRIPTION
 This manual page documents briefly the \fBmailsync\fB command.
@@ -36,7 +40,7 @@ This manual page documents briefly the \fBmailsync\fB command.
 \fBmailsync\fP is a way of keeping a collection of mailboxes synchronized. The
 mailboxes may be on the local filesystem or on an IMAP server.
 
-There are three invocations of \fBmailsync\fB:
+There are three invocations of \fBmailsync\fP:
 
 The first will synchronize two sets of mailboxes - in mailsync referred to
 as "stores".
