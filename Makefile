@@ -15,7 +15,7 @@ CC = g++
 ##CC = g++-3.0
 
 # flags for your compiler
-CFLAGS = -g  -O2 -Wall -I$(C) 
+CFLAGS = -g  -O2 -Wall -I$(C)
 
 # required libraries
 LDFLAGS = -lm -lssl

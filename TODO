@@ -21,3 +21,6 @@
 
 * on the first run the inbox on the remote machine is deleted?
   test with tpo2!
+
+* mailsync.c:392: warning: passing `const char *' as argument 3 of `die_with_fatal_parse_error3(Token *, char *, char *)' discards qualifiers
+  don't know what to do of this - had to use -fpermissive :-(

@@ -1,11 +1,11 @@
-/* Set tab to 8 */
+/* Please use spaces instead of tabs */
 
 #define VERSION "4.4.1"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <errno.h>
-extern int errno;		/* Just in case */
+extern int errno;               /* Just in case */
 #include <sys/stat.h>           /* Stat() */
 
 #include <string>
@@ -28,9 +28,9 @@ using std::make_pair;
  * Options
  */
 int log_chatter = 0;
-int show_summary = 1;    /* 1 line of output per mailbox */
-int show_from = 0;       /* 1 line of output per message */
-int show_message_id = 0; /* Implies show_from */
+int show_summary = 1;           /* 1 line of output per mailbox */
+int show_from = 0;              /* 1 line of output per message */
+int show_message_id = 0;        /* Implies show_from */
 int no_expunge = 0;
 enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
 int delete_empty_mailboxes = 0;
@@ -45,7 +45,7 @@ int log_warn = 0;
 
 typedef set<string> StringSet;
 
-int critical = NIL;		/* Flag saying in critical code */
+int critical = NIL;             /* Flag saying in critical code */
 char *getpass();
 
 void save(const StringSet& set, FILE* f, const string& delim) {
@@ -61,6 +61,10 @@ char* nccs(const string& s) {
   return (char*) s.c_str();
 }
 
+/*
+ * Prints a string into a file (or std[out|err]) while
+ * replacing " " by "\ "
+ */
 void print_with_escapes(FILE* f, const string& str) {
   const char *s = str.c_str();
   while (*s) {
@@ -95,7 +99,7 @@ struct Passwd {
 Passwd * current_context_passwd = NULL;
 
 struct Store {
-  string tag, server, prefix;	/* Tag == store name */
+  string tag, server, prefix;   /* Tag == store name */
   string ref, pat;
   Passwd passwd;
   int isremote;     /* I.e. allows OP_HALFOPEN */
@@ -131,7 +135,7 @@ struct Store {
 };
 
 struct Channel {
-  string tag;		/* Tag == channel name */
+  string tag;           /* Tag == channel name */
   string store[2];
   string msinfo;
   Passwd passwd;
@@ -156,7 +160,7 @@ struct Channel {
   void set_passwd(string password) { passwd.set_passwd(password);}
 };
 
-struct Configitem {
+struct ConfigItem {
   int is_Store;
   Store* store;
   Channel* channel;
@@ -167,10 +171,13 @@ struct Configitem {
     channel = NULL;
     return;
   }
-  Configitem() { clear(); }
+  ConfigItem() { clear(); }
 };
 
-void Configitem_print(Configitem& conf, FILE* f) {
+/*
+ * Print out a ConfigItem
+ */
+void print_ConfigItem(ConfigItem& conf, FILE* f) {
   if (conf.is_Store)
     conf.store->print(f);
   else
@@ -191,16 +198,19 @@ struct Token {
  * Fatal error while parsing the config file
  * Display error message and quit
  */
-void parse_error_fatal(Token* t) {
+void die_with_fatal_parse_error(Token* t, char * errorMessage, const char * token = NULL) {
+  fprintf(stderr, "Error: ");
+  fprintf(stderr, errorMessage, token ? token : "");
+  fprintf(stderr, "\n");
   if (t->eof) {
-    fprintf(stderr, "Error: Unexpected EOF while parsing configuration file");
+    fprintf(stderr, "       Unexpected EOF while parsing configuration file");
+    fprintf(stderr, "       While parsing line %d:\n", t->line);
   } else {
-    fprintf(stderr, "Error: While parsing line %-4d:\n\n", t->line);
-    fprintf(stderr, "       \"%s\"\n\n", t->buf.c_str());
+    fprintf(stderr, "       While parsing line %d at token \"%s\"\n",
+            t->line, t->buf.c_str());
   }
-  fprintf(stderr, "Quitting!\n");
+  fprintf(stderr,   "       Quitting!\n");
 
-  assert(0);
   exit(1);
 }
 
@@ -212,18 +222,15 @@ void get_token(FILE* f, Token* t) {
   t->buf = "";
   t->eof = 0;
   while (1) {
-    if (t->buf.size() > MAILTMPLEN) {
+    if (t->buf.size() > MAILTMPLEN)
       /* Token too long */
-      fprintf(stderr, "Error: Line too long\n");
-      parse_error_fatal(t);
-      return;
-    }
+      die_with_fatal_parse_error(t, "Line too long");
     c = getc(f);
    
     /* Ignore comments */
     if ( t->buf.size() == 0 && c=='#') {
       while( c != '\n' && c !=EOF) {
-	c = getc(f);
+        c = getc(f);
       }
     }
     
@@ -240,10 +247,10 @@ void get_token(FILE* f, Token* t) {
     } else if (isspace(c)) {
       /* The token is non empty so we've acquired something and can return */
       if (t->buf.size()) {
-	break;
+        break;
       /* Ignore spaces */
       } else {
-	continue;
+        continue;
       }
     /* Continue on next line... */
     } else if (c=='\\') {
@@ -260,7 +267,7 @@ void get_token(FILE* f, Token* t) {
 /* 
  * Parse config file
  */
-void Config_parse(FILE* f, map<string, Configitem>& confmap) {
+void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
   Token token;
   Token *t;
 
@@ -271,7 +278,7 @@ void Config_parse(FILE* f, map<string, Configitem>& confmap) {
 
   /* Read items from file */
   while (1) {
-    Configitem* conf = new Configitem();
+    ConfigItem* conf = new ConfigItem();
     string tag;
     conf->is_Store = -1;
 
@@ -288,58 +295,50 @@ void Config_parse(FILE* f, map<string, Configitem>& confmap) {
       conf->store = new Store();
       /* Read tag (store name) */
       get_token(f, t);
-      if (t->eof) {
-	fprintf(stderr,"Error: Store name missing\n");
-        parse_error_fatal(t);
-      }
+      if (t->eof)
+        die_with_fatal_parse_error(t, "Store name missing");
       tag = t->buf;
       conf->store->tag = t->buf;
       /* Read "{" */
       get_token(f, t);
-      if (t->eof || t->buf != "{") {
-	fprintf(stderr,"Error: Expected \"{\" while parsing store\n");
-	parse_error_fatal(t);
-      }
+      if (t->eof || t->buf != "{")
+        die_with_fatal_parse_error(t, "Expected \"{\" while parsing store");
       /* Read store configuration (name/value pairs) */
       while (1) {
-	get_token(f, t);
-	/* End of store config */
-	if (t->buf == "}")
-	  break;
-	else if (t->eof) {
-	  fprintf(stderr,"Error: Expected \"{\" while parsing store: unclosed store\n");
-	  parse_error_fatal(t);
-	}
-	else if (t->buf == "server") {
-	  get_token(f, t);
-	  conf->store->server = t->buf;
-	}
-	else if (t->buf == "prefix") {
-	  get_token(f, t);
-	  conf->store->prefix = t->buf;
-	}
-	else if (t->buf == "ref") {
-	  get_token(f, t);
-	  conf->store->ref = t->buf;
-	}
-	else if (t->buf == "pat") {
-	  get_token(f, t);
-	  conf->store->pat = t->buf;
-	}
-	else if (t->buf == "passwd") {
-	  get_token(f, t);
-	  conf->store->set_passwd(t->buf);
-	}
-	else {
-	  fprintf(stderr,"Error: Unknown store field\n");
-	  parse_error_fatal(t);
-	}
+        get_token(f, t);
+        /* End of store config */
+        if (t->buf == "}")
+          break;
+        else if (t->eof)
+          die_with_fatal_parse_error(t, "Expected \"{\" while parsing store: unclosed store");
+        else if (t->buf == "server") {
+          get_token(f, t);
+          conf->store->server = t->buf;
+        }
+        else if (t->buf == "prefix") {
+          get_token(f, t);
+          conf->store->prefix = t->buf;
+        }
+        else if (t->buf == "ref") {
+          get_token(f, t);
+          conf->store->ref = t->buf;
+        }
+        else if (t->buf == "pat") {
+          get_token(f, t);
+          conf->store->pat = t->buf;
+        }
+        else if (t->buf == "passwd") {
+          get_token(f, t);
+          conf->store->set_passwd(t->buf);
+        }
+        else
+          die_with_fatal_parse_error(t, "Unknown store field");
       }
       if (conf->store->server == "") {
-	conf->store->isremote = 0;
+        conf->store->isremote = 0;
       }
       else {
-	conf->store->isremote = 1;
+        conf->store->isremote = 1;
       }
 
     /* Parse a channel */
@@ -350,64 +349,50 @@ void Config_parse(FILE* f, map<string, Configitem>& confmap) {
       /* Read tag (channel name) */
       get_token(f, t);
       if (t->eof) {
-	fprintf(stderr,"Error: Channel name missing\n");
-	parse_error_fatal(t);
+        die_with_fatal_parse_error(t, "Channel name missing");
       }
       tag = t->buf;
       conf->channel->tag = t->buf;
       /* Read stores */
       get_token(f, t);
-      if (t->eof) {
-	fprintf(stderr,"Error: Expected a store name while parsing channel\n");
-	parse_error_fatal(t);
-      }
+      if (t->eof)
+        die_with_fatal_parse_error(t, "Expected a store name while parsing channel");
       conf->channel->store[0] = t->buf;
       get_token(f, t);
-      if (t->eof) {
-	fprintf(stderr,"Error: Expected a store name while parsing channel\n");
-	parse_error_fatal(t);
-      }
+      if (t->eof)
+        die_with_fatal_parse_error(t, "Expected a store name while parsing channel");
       conf->channel->store[1] = t->buf;
       /* Read "{" */
       get_token(f, t);
-      if (t->eof || t->buf != "{") {
-	fprintf(stderr,"Error: Expected \"{\" while parsing channel\n");
-	parse_error_fatal(t);
-      }
+      if (t->eof || t->buf != "{")
+        die_with_fatal_parse_error(t, "Expected \"{\" while parsing channel");
       /* Read channel config (name/value pairs) */
       while (1) {
-	get_token(f, t);
-	if (t->buf == "}")
-	  break;
-	else if (t->eof) {
-	  fprintf(stderr,"Error: Unclosed channel\n");
-	  parse_error_fatal(t);
-	}
-	else if (t->buf == "msinfo") {
-	  get_token(f, t);
-	  conf->channel->msinfo = t->buf;
-	}
-	else if (t->buf == "passwd") {
-	  get_token(f, t);
-	  conf->channel->set_passwd(t->buf);
-	}
-	else {
-	  fprintf(stderr,"Error: Unknown channel field\n");
-	  parse_error_fatal(t);
-	}
+        get_token(f, t);
+        if (t->buf == "}")
+          break;
+        else if (t->eof)
+          die_with_fatal_parse_error(t, "Unclosed channel");
+        else if (t->buf == "msinfo") {
+          get_token(f, t);
+          conf->channel->msinfo = t->buf;
+        }
+        else if (t->buf == "passwd") {
+          get_token(f, t);
+          conf->channel->set_passwd(t->buf);
+        }
+        else
+          die_with_fatal_parse_error(t, "Unknown channel field");
       }
       if (conf->channel->msinfo == "") {
-	fprintf(stderr,"Error: %s: missing msinfo\n", conf->channel->tag.c_str());
-	exit(1);
+        die_with_fatal_parse_error(t, "%s: missing msinfo", conf->channel->tag.c_str());
       }
     }
-    else {
-      fprintf(stderr,"Error: unknow configuration element\n");
-      parse_error_fatal(t);
-    }
+    else
+      die_with_fatal_parse_error(t, "unknow configuration element");
+
     if (confmap.count(tag)) {
-      fprintf(stderr,"Error: Tag (store or channel name) used twice: %s\n", tag.c_str());
-      exit(1);
+      die_with_fatal_parse_error(t, "Tag (store or channel name) used twice: %s", tag.c_str());
     }
     confmap.insert(make_pair(tag, *conf));
     delete conf;
@@ -443,7 +428,8 @@ void tdc_mail_list(MAILSTREAM *stream, Store& store, StringSet& list) {
   tdc_mail_list_dest = NULL;
 }
 
-/* Some print formats
+/*
+ * Some print formats
  */
 char lead_format[] = "  %-10s %s  ";
 char mid_format[] = "%-65s";
@@ -452,18 +438,18 @@ char from_format[] = "%-61s";
 void simplify_message_id(string& msgid);
 
 int read_lasttime(Channel channel,
-		  StringSet& boxes, 
-		  map<string, StringSet>& mids, 
-		  StringSet& extra);
+                  StringSet& boxes, 
+                  map<string, StringSet>& mids, 
+                  StringSet& extra);
 
 int write_lasttime(Channel channel,
-		   const StringSet& boxes, 
-		   const StringSet& deleted_boxes,
-		   map<string, StringSet>& lasttime);
+                   const StringSet& boxes, 
+                   const StringSet& deleted_boxes,
+                   map<string, StringSet>& lasttime);
 
 MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream, 
-					const string& fullboxname, 
-					long options);
+                                        const string& fullboxname, 
+                                        long options);
 
 string summary(MAILSTREAM* stream, long msgno);
 
@@ -495,9 +481,9 @@ void get_delim(MAILSTREAM*& stream, Store& store_in) {
  * Find out what we've seen the last time we
  */
 int read_lasttime(Channel channel,
-		  StringSet& boxes, 
-		  map<string, StringSet>& mids, 
-		  StringSet& extra) {
+                  StringSet& boxes, 
+                  map<string, StringSet>& mids, 
+                  StringSet& extra) {
   MAILSTREAM* stream;
   ENVELOPE* envelope;
   unsigned long j, k;
@@ -508,7 +494,7 @@ int read_lasttime(Channel channel,
   /* msinfo is the name of the mailbox that contains the sync info */
   current_context_passwd = &(channel.passwd);
   stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
-				       OP_READONLY);
+                                       OP_READONLY);
   if (!stream) {
     fprintf(stderr,"Error: Couldn't open lasttime box %s\n", channel.msinfo.c_str());
     return 0;
@@ -523,49 +509,49 @@ int read_lasttime(Channel channel,
 
       text = mail_fetchtext_full(stream, j, &textlen, FT_INTERNAL);
       if (text)
-	text = strdup(text);
+        text = strdup(text);
       else
-	return 0;
+        return 0;
       instring = 0;
       /* Replace spaces with '\0' */
       for (k=0; k<textlen; k++) {
-	if (isspace(text[k])) {
-	  text[k] = '\0';
-	  instring = 0;
-	} else {
-	  if (!instring) {
-	    /* Do nothing in particular */
-	  }
-	  instring = 1;
-	}
+        if (isspace(text[k])) {
+          text[k] = '\0';
+          instring = 0;
+        } else {
+          if (!instring) {
+            /* Do nothing in particular */
+          }
+          instring = 1;
+        }
       }
       /* Check each box against `boxes' */
       instring = 0;
       for (k=0; k<textlen; k++) {
-	if (text[k] == '\0') {
-	  instring = 0;
-	} else {
-	  if (!instring) {
-	    if (text[k] != '<') {
-	      /* Mailbox name */
-	      if (boxes.count(&text[k])) {
-		currentbox = string(&text[k]);
-	      } else {
-		currentbox = "";
-		extra.insert(&text[k]);
-	      }
-	    } else {
-	      /* Message-id */
-	      if (currentbox != "") {
-		mids[currentbox].insert(&text[k]);
-	      }
-	    }
-	  }
-	  instring = 1;
-	}
+        if (text[k] == '\0') {
+          instring = 0;
+        } else {
+          if (!instring) {
+            if (text[k] != '<') {
+              /* Mailbox name */
+              if (boxes.count(&text[k])) {
+                currentbox = string(&text[k]);
+              } else {
+                currentbox = "";
+                extra.insert(&text[k]);
+              }
+            } else {
+              /* Message-id */
+              if (currentbox != "") {
+                mids[currentbox].insert(&text[k]);
+              }
+            }
+          }
+          instring = 1;
+        }
       }
       free(text);
-      break;	/* Stop searching for message */
+      break;    /* Stop searching for message */
     }
   }
   
@@ -582,7 +568,7 @@ int read_lasttime(Channel channel,
 }
 
 int fetch_message_ids(MAILSTREAM*& stream, Store& store, 
-		      const string& box, map<string,int>& m) {
+                      const string& box, map<string,int>& m) {
   string fullboxname = Store_mailbox(store, box);
   current_context_passwd = &(store.passwd);
   stream = tdc_mail_open_create_if_nec(stream, fullboxname, 0);
@@ -608,9 +594,9 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     isdup = m.count(msgid);
     if (isdup) {
       if (kill_duplicates) {
-	char seq[30];
-	sprintf(seq,"%d",j);
-	mail_setflag(stream, seq, "\\Deleted");
+        char seq[30];
+        sprintf(seq,"%d",j);
+        mail_setflag(stream, seq, "\\Deleted");
       }
       nduplicates++;
       if (show_from) printf(lead_format,"duplicate", "");
@@ -627,11 +613,11 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     if (show_summary) {
       printf("%d duplicate%s", nduplicates, nduplicates==1 ? "" : "s");
       if (mode!=mode_diff)
-	printf(" in %s", store.tag.c_str());
+        printf(" in %s", store.tag.c_str());
       printf(", ");
     } else {
       printf("%d duplicates deleted from %s/%s\n",
-	     nduplicates, store.tag.c_str(), box.c_str());
+             nduplicates, store.tag.c_str(), box.c_str());
     }
     fflush(stdout);
   }
@@ -639,9 +625,9 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
 }
 
 int copy_message(MAILSTREAM*& storea_stream, Store& storea, 
-		 int msgno, const string& msgid,
-		 MAILSTREAM*& storeb_stream, Store& storeb,
-		 char * direction) {
+                 int msgno, const string& msgid,
+                 MAILSTREAM*& storeb_stream, Store& storeb,
+                 char * direction) {
   MSGDATA md;
   STRING CCstring;
   char flags[MAILTMPLEN];
@@ -656,14 +642,14 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   /* Check message-id. */
   if (!(envelope->message_id) || *(envelope->message_id)!='<') {
     printf("Warning: missing message-id: %s, message %d %s\n",
-	   storea_stream->mailbox, msgno,
-	   envelope->message_id ? envelope->message_id : "NULL");
+           storea_stream->mailbox, msgno,
+           envelope->message_id ? envelope->message_id : "NULL");
   } else {
     msgid_fetched = envelope->message_id;
     simplify_message_id(msgid_fetched);
     if (msgid_fetched != msgid) {
       printf("Warning: suspicious message-id: %s, message %d %s\n",
-	     storea_stream->mailbox, msgno, msgid_fetched.c_str());
+             storea_stream->mailbox, msgno, msgid_fetched.c_str());
     }
   }
 
@@ -681,8 +667,8 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   INIT (&CCstring, msg_string, (void*) &md, elt->rfc822_size);
   current_context_passwd = &(storeb.passwd);
   int rv = mail_append_full(storeb_stream, storeb_stream->mailbox,
-			    &flags[1], mail_date(msgdate,elt), 
-			    &CCstring);
+                            &flags[1], mail_date(msgdate,elt), 
+                            &CCstring);
   if (show_from) {
     printf(lead_format, rv ? "copied" : "copyfail", direction);
     printf(from_format, summary(storea_stream, msgno).c_str());
@@ -694,8 +680,8 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
 
 
 int remove_message(MAILSTREAM*& stream, Store& store, 
-		   int msgno, const string& msgid,
-		   char * place) {
+                   int msgno, const string& msgid,
+                   char * place) {
   string msgid_fetched;
   ENVELOPE *envelope;
   int ok = 1;
@@ -755,32 +741,32 @@ int main(int argc, char** argv) {
     while (optind<argc && argv[optind][0]=='-') {
       switch (argv[optind][1]) {
       case 'n':
-	no_expunge = 1;
-	break;
+        no_expunge = 1;
+        break;
       case 'm':
-	show_from = 1;
-	show_summary = 0;
-	break;
+        show_from = 1;
+        show_summary = 0;
+        break;
       case 'M':
-	show_from = 1;
-	show_summary = 0;
-	show_message_id = 1;
-	break;
+        show_from = 1;
+        show_summary = 0;
+        show_message_id = 1;
+        break;
       case 'v':
-	log_chatter = 1;
-	break;
+        log_chatter = 1;
+        break;
       case 'f':
-	config_file = argv[++optind];
-	break;
+        config_file = argv[++optind];
+        break;
       case 'D':
-	delete_empty_mailboxes = 1;
-	break;
+        delete_empty_mailboxes = 1;
+        break;
       case 'd':
-	debug = 1;
-	break;
+        debug = 1;
+        break;
       default:
-	usage();
-	return 1;
+        usage();
+        return 1;
       }
       optind++;
     }
@@ -792,7 +778,7 @@ int main(int argc, char** argv) {
       args.push_back(argv[optind]);
     }
 
-    map<string, Configitem> confmap;
+    map<string, ConfigItem> confmap;
     FILE* config;
     Store s;
     
@@ -800,18 +786,18 @@ int main(int argc, char** argv) {
       char *home;
       home = getenv("HOME");
       if (home) {
-	config_file = string(home) + "/.mailsync";
+        config_file = string(home) + "/.mailsync";
       } else {
-	fprintf(stderr,"Error: Can't get home directory. Use `-f file'.\n");
-	return 1;
+        fprintf(stderr,"Error: Can't get home directory. Use `-f file'.\n");
+        return 1;
       }
     }
     {
       struct stat st;
       stat(config_file.c_str(), &st);
       if (S_ISDIR(st.st_mode) || !(config=fopen(config_file.c_str(),"r"))) {
-	fprintf(stderr,"Error: Can't open config file %s\n",config_file.c_str());
-	return 1;
+        fprintf(stderr,"Error: Can't open config file %s\n",config_file.c_str());
+        return 1;
       }
     }
     Config_parse(config, confmap);
@@ -823,14 +809,14 @@ int main(int argc, char** argv) {
 
     for (unsigned i=0; i<args.size(); i++) {
       if (confmap.count(args[i])==0) {
-	fprintf(stderr, "Error: A channel or store named \"%s\" has not been configured\n", args[i].c_str());
-	return 1;
+        fprintf(stderr, "Error: A channel or store named \"%s\" has not been configured\n", args[i].c_str());
+        return 1;
       }
-      Configitem* p = &(confmap[args[i]]);
+      ConfigItem* p = &(confmap[args[i]]);
       if (p->is_Store && p->store->tag == args[i]) {
-	stores.push_back(*p->store);
+        stores.push_back(*p->store);
       } else if (! p->is_Store && p->channel->tag == args[i]) {
-	channels.push_back(*p->channel);
+        channels.push_back(*p->channel);
       }
     }
 
@@ -838,19 +824,19 @@ int main(int argc, char** argv) {
       mode = mode_sync;
       channel = channels[0];
       if (confmap[channel.store[0]].is_Store != 1 ||
-	  confmap[channel.store[1]].is_Store != 1) {
-	fprintf(stderr,"Error: Malconfigured channel %s\n", channel.tag.c_str());
-	if(confmap[channel.store[0]].is_Store != 1)
-	  fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[0].c_str());
-	else
-	  fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[1].c_str());
-	return 1;
+          confmap[channel.store[1]].is_Store != 1) {
+        fprintf(stderr,"Error: Malconfigured channel %s\n", channel.tag.c_str());
+        if(confmap[channel.store[0]].is_Store != 1)
+          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[0].c_str());
+        else
+          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[1].c_str());
+        return 1;
       }
       storea = *confmap[channel.store[0]].store;
       storeb = *confmap[channel.store[1]].store;
 
       printf("Synchronizing stores \"%s\" <-> \"%s\"...\n",
-	     storea.tag.c_str(), storeb.tag.c_str());
+             storea.tag.c_str(), storeb.tag.c_str());
 
     } else if (channels.size() == 1 && stores.size() == 1) {
       mode = mode_diff;
@@ -858,16 +844,16 @@ int main(int argc, char** argv) {
       channel = channels[0];
       storea = stores[0];
       if (channel.store[0] == storea.tag) {
-	storeb = *confmap[channel.store[0]].store;
+        storeb = *confmap[channel.store[0]].store;
       } else if (channel.store[1] == storea.tag) {
-	storeb = *confmap[channel.store[1]].store;
+        storeb = *confmap[channel.store[1]].store;
       } else {
-	fprintf(stderr,"Diff mode: channel %s doesn't contain store %s.\n",
-		channel.tag.c_str(), argv[optind+1]);
-	return 1;
+        fprintf(stderr,"Diff mode: channel %s doesn't contain store %s.\n",
+                channel.tag.c_str(), argv[optind+1]);
+        return 1;
       }
       printf("Comparing store \"%s\" <-> \"%s\"...\n",
-	     storea.tag.c_str(), storeb.tag.c_str());
+             storea.tag.c_str(), storeb.tag.c_str());
 
     } else if (channels.size() == 0 && stores.size() == 1) {
       mode = mode_list;
@@ -912,7 +898,7 @@ int main(int argc, char** argv) {
   if (debug)
     if (storea.delim)
       printf(" Delimiter for store \"%s\" is '%c'.\n",
-	     storea.tag.c_str(), storea.delim);
+             storea.tag.c_str(), storea.delim);
     else printf(" No delimiter found for store \"%s\".\n", storea.tag.c_str());
   if (storea.delim == '!')
     get_delim(storea_stream, storea);
@@ -927,7 +913,7 @@ int main(int argc, char** argv) {
     if (debug)
     if (storeb.delim)
       printf(" Delimiter for store \"%s\" is '%c'.\n",
-	      storeb.tag.c_str(), storeb.delim);
+              storeb.tag.c_str(), storeb.delim);
     else printf(" No delimiter found for store \"%s\"\n", storeb.tag.c_str());
     if (storeb.delim == '!')
       get_delim(storeb_stream, storeb);
@@ -979,7 +965,7 @@ int main(int argc, char** argv) {
       if (!ok) break;
     } else if (mode==mode_diff) {
       for (StringSet::iterator i=l.begin(); i!=l.end(); i++)
-	b[*i] = 0;
+        b[*i] = 0;
     }
 
     /* u = union(l, a, b) */
@@ -997,41 +983,41 @@ int main(int argc, char** argv) {
       bool in_l = l.count(*i);
 
       int abl = (  (in_a ? 0x100 : 0) 
-		 + (in_b ? 0x010 : 0)
-		 + (in_l ? 0x001 : 0) );
+                 + (in_b ? 0x010 : 0)
+                 + (in_l ? 0x001 : 0) );
 
       switch (abl) {
 
       case 0x100:  /* New message on a */
-	copy_a_b.insert(*i);
-	now.insert(*i);
-	break;
+        copy_a_b.insert(*i);
+        now.insert(*i);
+        break;
 
       case 0x010:  /* New message on b */
-	copy_b_a.insert(*i);
-	now.insert(*i);
-	break;
+        copy_b_a.insert(*i);
+        now.insert(*i);
+        break;
 
       case 0x111:  /* Kept message */
       case 0x110:  /* New message, no copying necessary */
-	now.insert(*i);
-	break;
+        now.insert(*i);
+        break;
 
       case 0x101:  /* Deleted on b */
-	remove_a.insert(*i);
-	break;
+        remove_a.insert(*i);
+        break;
 
       case 0x011:  /* Deleted on a */
-	remove_b.insert(*i);
-	break;
+        remove_b.insert(*i);
+        break;
 
       case 0x001:  /* Deleted on both */
-	break;
+        break;
 
       case 0x000:  /* Shouldn't happen */
       default:
-	assert(0);
-	break;
+        assert(0);
+        break;
       }
 
 
@@ -1042,44 +1028,44 @@ int main(int argc, char** argv) {
     switch (mode) {
     case mode_sync:
       {
-	for (StringSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++)
-	  copy_message(storea_stream, storea, a[*i], *i,
-		       storeb_stream, storeb, "->");
-	for (StringSet::iterator i=copy_b_a.begin(); i!=copy_b_a.end(); i++)
-	  copy_message(storeb_stream, storeb, b[*i], *i,
-		       storea_stream, storea, "<-");
-	for (StringSet::iterator i=remove_a.begin(); i!=remove_a.end(); i++)
-	  remove_message(storea_stream, storea, a[*i], *i, "< ");
-	for (StringSet::iterator i=remove_b.begin(); i!=remove_b.end(); i++)
-	  remove_message(storeb_stream, storeb, b[*i], *i, "> ");
+        for (StringSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++)
+          copy_message(storea_stream, storea, a[*i], *i,
+                       storeb_stream, storeb, "->");
+        for (StringSet::iterator i=copy_b_a.begin(); i!=copy_b_a.end(); i++)
+          copy_message(storeb_stream, storeb, b[*i], *i,
+                       storea_stream, storea, "<-");
+        for (StringSet::iterator i=remove_a.begin(); i!=remove_a.end(); i++)
+          remove_message(storea_stream, storea, a[*i], *i, "< ");
+        for (StringSet::iterator i=remove_b.begin(); i!=remove_b.end(); i++)
+          remove_message(storeb_stream, storeb, b[*i], *i, "> ");
 
-	printf("\n");
-	if (copy_a_b.size())
-	  printf("%d copied %s->%s.\n", copy_a_b.size(),
-		 storea.tag.c_str(), storeb.tag.c_str());
-	if (copy_b_a.size())
-	  printf("%d copied %s->%s.\n", copy_b_a.size(),
-		 storeb.tag.c_str(), storea.tag.c_str());
-	if (remove_a.size())
-	  printf("%d deleted on %s.\n", remove_a.size(), storea.tag.c_str());
-	if (remove_b.size())
-	  printf("%d deleted on %s.\n", remove_b.size(), storeb.tag.c_str());
-	if (show_summary) {
-	  printf("%d remain%s.\n", now_n, now_n!=1 ? "" : "s");
-	  fflush(stdout);
-	} else {
-	  printf("%d messages remain in %s\n", now_n, box->c_str());
-	}
+        printf("\n");
+        if (copy_a_b.size())
+          printf("%d copied %s->%s.\n", copy_a_b.size(),
+                 storea.tag.c_str(), storeb.tag.c_str());
+        if (copy_b_a.size())
+          printf("%d copied %s->%s.\n", copy_b_a.size(),
+                 storeb.tag.c_str(), storea.tag.c_str());
+        if (remove_a.size())
+          printf("%d deleted on %s.\n", remove_a.size(), storea.tag.c_str());
+        if (remove_b.size())
+          printf("%d deleted on %s.\n", remove_b.size(), storeb.tag.c_str());
+        if (show_summary) {
+          printf("%d remain%s.\n", now_n, now_n!=1 ? "" : "s");
+          fflush(stdout);
+        } else {
+          printf("%d messages remain in %s\n", now_n, box->c_str());
+        }
       }
       break;
 
     case mode_diff:
       {
-	if (copy_a_b.size())
-	  printf("%d new, ", copy_a_b.size());
-	if (remove_b.size())
-	  printf("%d deleted, ", remove_b.size());
-	printf("%d currently at store %s.\n", now.size(), storeb.tag.c_str());
+        if (copy_a_b.size())
+          printf("%d new, ", copy_a_b.size());
+        if (remove_b.size())
+          printf("%d deleted, ", remove_b.size());
+        printf("%d currently at store %s.\n", now.size(), storeb.tag.c_str());
       }
       break;
 
@@ -1094,7 +1080,7 @@ int main(int argc, char** argv) {
       mail_expunge(storea_stream);
       if (storeb_stream) {
         current_context_passwd = &(storeb.passwd);
-	mail_expunge(storeb_stream);
+        mail_expunge(storeb_stream);
       }
     }
 
@@ -1105,7 +1091,7 @@ int main(int argc, char** argv) {
 
     if (delete_empty_mailboxes) {
       if (now_n == 0) {
-	empty_mailboxes.insert(*box);
+        empty_mailboxes.insert(*box);
       }
     }
 
@@ -1133,24 +1119,24 @@ int main(int argc, char** argv) {
       storeb_stream = NULL;
     }
     for (StringSet::iterator i=empty_mailboxes.begin(); 
-	 i!=empty_mailboxes.end(); i++) {
+         i!=empty_mailboxes.end(); i++) {
       fullboxname = Store_mailbox(storea, *i);
       printf("%s: deleting\n", i->c_str());
       printf("  %s", fullboxname.c_str());
       fflush(stdout);
       current_context_passwd = &(storea.passwd);
       if (mail_delete(storea_stream, nccs(fullboxname)))
-	printf("\n");
+        printf("\n");
       else
-	printf(" failed\n");
+        printf(" failed\n");
       fullboxname = Store_mailbox(storeb, *i);
       printf("  %s", fullboxname.c_str());
       fflush(stdout);
       current_context_passwd = &(storeb.passwd);
       if (mail_delete(storeb_stream, nccs(fullboxname))) 
-	printf("\n");
+        printf("\n");
       else
-	printf(" failed\n");
+        printf(" failed\n");
     }
   }
 
@@ -1159,11 +1145,11 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
-	 
+         
 int write_lasttime(Channel channel,
-		   const StringSet& boxes, 
-		   const StringSet& deleted_boxes,
-		   map<string, StringSet>& lasttime) {
+                   const StringSet& boxes, 
+                   const StringSet& deleted_boxes,
+                   map<string, StringSet>& lasttime) {
   MAILSTREAM* stream;
   ENVELOPE* envelope;
   unsigned long j;
@@ -1193,8 +1179,8 @@ int write_lasttime(Channel channel,
     fprintf(f,"From: mailsync\nSubject: %s\n\n",channel.tag.c_str());
     for (StringSet::iterator i=boxes.begin(); i!=boxes.end(); i++) {
       if (! deleted_boxes.count(*i)) {
-	fprintf(f,"%s\n", i->c_str());
-	save(lasttime[*i], f, "\n");
+        fprintf(f,"%s\n", i->c_str());
+        save(lasttime[*i], f, "\n");
       }
     }
     flen = ftell(f);
@@ -1239,8 +1225,8 @@ void simplify_message_id(string& msgid) {
 }
 
 MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream, 
-					const string& fullboxname,
-					long options) {
+                                        const string& fullboxname,
+                                        long options) {
   int o;
   
   o = log_error;
@@ -1298,13 +1284,13 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
     string name_copy = name;
     if (delimiter != DEFAULT_DELIMITER) {
       for (int i = 0; name[i]; i++) {
-	if (name_copy[i] == DEFAULT_DELIMITER) {
-	  printf("?Name of mailbox %s contains standard delimiter '%c'\n",
-		 name, DEFAULT_DELIMITER);
-	  printf(" So I can not synchronize this it!");
-	  return;
-	} else if (name_copy[i] == (char)delimiter)
-	  name_copy[i] = DEFAULT_DELIMITER;
+        if (name_copy[i] == DEFAULT_DELIMITER) {
+          printf("?Name of mailbox %s contains standard delimiter '%c'\n",
+                 name, DEFAULT_DELIMITER);
+          printf(" So I can not synchronize this it!");
+          return;
+        } else if (name_copy[i] == (char)delimiter)
+          name_copy[i] = DEFAULT_DELIMITER;
       }
     }
     tdc_mail_list_dest->insert(string(name_copy));
@@ -1320,23 +1306,23 @@ void mm_status (MAILSTREAM *stream,char *mailbox,MAILSTATUS *status) { }
 
 void mm_notify (MAILSTREAM *stream,char *s,long errflg)
 {
-  mm_log (s,errflg);	/* Just do mm_log action */
+  mm_log (s,errflg);    /* Just do mm_log action */
 }
 
 void mm_log (char *string,long errflg)
 {
   switch (errflg) {  
   case BYE:
-  case NIL:			/* No error */
+  case NIL:                     /* No error */
     if (log_chatter)
       fprintf (stderr,"[%s]\n",string);
     break;
-  case PARSE:			/* Parsing problem */
-  case WARN:			/* Warning */
+  case PARSE:                   /* Parsing problem */
+  case WARN:                    /* Warning */
     if (log_warn) 
       fprintf (stderr,"%%%s\n",string);
     break;
-  case ERROR:			/* Error */
+  case ERROR:                   /* Error */
   default:
     if (log_error)
       fprintf (stderr,"?%s\n",string);
@@ -1366,12 +1352,12 @@ void mm_login (NETMBX *mb,char *username,char *password,long trial)
 
 void mm_critical (MAILSTREAM *stream)
 {
-  critical = T;			/* Note in critical code */
+  critical = T;                 /* Note in critical code */
 }
 
 void mm_nocritical (MAILSTREAM *stream)
 {
-  critical = NIL;		/* Note not in critical code */
+  critical = NIL;               /* Note not in critical code */
 }
 
 long mm_diskerror (MAILSTREAM *stream,long errcode,long serious)
