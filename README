@@ -1,24 +1,25 @@
 Mailsync-4
 ----------
 
-1. Compiling mailsync
-2. Configuring mailsync-4
-2.1 Mailbox specification
-2.2 Stores
-2.3 Channels
-3. How does mailsync work?
-4. Running mailsync-4
-4.1 Verbosity
-5. Limitations
-5.1 Problems with concurrent mailbox access
-5.2 Problems wit "New" messages (Mutt)
-5.3 Empty Message-ID headers
-6. More about the algorithm
-6.1 Message id algorithms
-7. History
-8. Further reading
-9. Support and homepage
-10. Author, disclaimer, etc.
+1.   Compiling mailsync
+2.   Configuring mailsync-4
+2.1     Mailbox specification
+2.2     Stores
+2.3     Channels
+3.   How does mailsync work?
+4.   Running mailsync-4
+4.1     Verbosity
+4.2     Various messages from mailsync
+5.   Limitations
+5.1     Problems with concurrent mailbox access
+5.2     Problems wit "New" messages (Mutt)
+5.3     Empty Message-ID headers
+6.   More about the algorithm
+6.1     Message id algorithms
+7.   History
+8.   Further reading
+9.   Support and homepage
+10.  Author, disclaimer, etc.
 
 
 
@@ -292,6 +293,48 @@ what's going on. Run:
 
 to see what logging options mailsync offers. The different log levels
 are described in the c-client documentation "internal.txt" under mm_log.
+
+
+
+4.2 Various messages from mailsync
+----------------------------------
+
+When running mailsync with the "-m" you'll can see what messages mailsync
+is copying forth and back. Below is an example session with an explanation
+of the actions that mailsync is taking:
+
+    $ mailsync -vw -m inbox
+    Synchronizing stores "local-inbox" <-> "remote-inbox"...
+    Authorizing against {[192.168.1.2]/imap}
+    
+     *** INBOX ***
+    
+      deleted    >  Wed Jun  9 tony kwami             FROM MR TONY KWAMI.
+      duplicate     Wed Jun  9 Some Hero              Re: comment
+    1 duplicate deleted from INBOX/remote-inbox
+    Authorizing against {[192.168.1.2]/imap}
+      ign. del   <  Wed Jun  9 Mail Delivery System   Mail failure - no recipient a
+      copied     <- Wed Jun  9 Debian Bug Tracking Sy Bug#253290 acknowledged by de
+    
+    1 copied remote-inbox->local-inbox.
+    1 deleted on remote-inbox.
+    69 messages remain in INBOX
+    Expunged 2 mail(s) in store remote-inbox
+
+Above you can see that:
+
+* a spam from some "tony kwami" was deleted on the remote mailbox, since I have
+  deleted it locally
+
+* "Some Hero" sent me the same message twice - probably he sent it to me
+   and to some mailing list in the "Cc:". Since I'm using msg-id algorithm,
+   the duplicate is detected and automatically deleted.
+
+* copying a message from a mail daemon was not done, since it is marked as
+  deleted in the remote mailbox and mailsync by default doesn't copy
+  deleted mails
+
+* a mail from the Debian Bug Tracking System was copyied to the local mailbox.
 
 
 
