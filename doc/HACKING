@@ -9,6 +9,7 @@ What c-client calls "mailbox" is commonly referred to as a mail FOLDER.
 In mailsync a box containing multiple folders is described by a "Store"
 - have a look at store.h for details.
 
+
 MSINFO format description:
 --------------------------
 
@@ -67,6 +68,7 @@ identify messages and the second one is using md5 checksums.
 
 Take care - mailboxes with *empty* names *are* allowed.
 
+
 RELEASE PROCESS
 ---------------
 1. * release CVS tarballs
@@ -89,7 +91,9 @@ RELEASE PROCESS
    * make dist
    * double check that the tarball doesn't contain any crap
    * upload
-   * go through bugs and tag them as closed in debian/changelog
+   * go through Tracker and tag them as closed in debian/changelog
+5. after some time:
+   * go through BTS and tag them as closed in debian/changelog
    * make debian package with:
      dpkg-buildpackage -iCVS/*\|.cvsignore -rfakeroot -kFC992520
    * double check that the diff doesn't contain any crap
