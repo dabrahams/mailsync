@@ -46,6 +46,8 @@ You're wellcome to implement any of these
 
 * spaces should not be replaced by dots in msinfo
 
+* escape '<' in mailbox names...
+
 Nice to have
 ------------
 * it'd be nice to know which driver c-client will use for accessing mail
