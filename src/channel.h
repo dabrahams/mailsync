@@ -39,8 +39,8 @@ class Channel
                        const MsgId& msgid,
                        string mailbox_name,
                        enum direction_t direction);
-    bool write_lasttime_seen( const MailboxMap& deleted_mailboxes,
-                                    MsgIdsPerMailbox& lasttime);
+    bool write_thistime_seen( const MailboxMap& deleted_mailboxes,
+                                    MsgIdsPerMailbox& thistime);
 };
 
 #define __MAILSYNC_CHANNEL__

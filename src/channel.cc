@@ -146,7 +146,7 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
           currentbox = &text[k];
           // if the mailbox is unknown
           if ( store_a.boxes.find(currentbox) == store_a.boxes.end()
-               || store_b.boxes.find(currentbox) == store_b.boxes.end()) {
+               && store_b.boxes.find(currentbox) == store_b.boxes.end()) {
             deleted_mailboxes[currentbox]; //-% creates a new MailboxProperties
           }
         }
@@ -346,14 +346,14 @@ bool Channel::copy_message( unsigned long msgno,
 
 //////////////////////////////////////////////////////////////////////////
 //
-bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
-                                         MsgIdsPerMailbox& lasttime)
+bool Channel::write_thistime_seen( const MailboxMap& deleted_mailboxes,
+                                         MsgIdsPerMailbox& thistime)
 //
 // Save in channel.msinfo all mailboxes with all msgids (found in
-// "lasttime") they contain.
+// "thistime") they contain.
 //
 // deleted_mailboxes  - the mailboxes that were deleted since the last sync
-// lasttime           - hash indexed by mailbox name containing a list of
+// thistime           - hash indexed by mailbox name containing a list of
 //                      msgids for each box
 //
 // returns !0 on success
@@ -413,15 +413,15 @@ bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
     // for each box - if it's not a deleted mailbox:
     // * first write a line containing it's name
     // * then dump all the message-id's we've seen the last time into it
-    // TODO: verify this really works for store_a AND store_b
-    for ( MailboxMap::const_iterator mailbox = store_a.boxes.begin() ;
-          mailbox != store_a.boxes.end() ;
+    for ( MsgIdsPerMailbox::const_iterator mailbox = thistime.begin() ;
+          mailbox != thistime.end() ;
           mailbox++)
     {
+      printf("DEBUG: writing thistime box: %s\n", mailbox->first.c_str());
       if ( deleted_mailboxes.find(mailbox->first)
            == deleted_mailboxes.end()) { // not found
         fprintf( f, "%s\n", mailbox->first.c_str() );
-        print_list_with_delimiter( lasttime[ mailbox->first ], f, "\n");
+        print_list_with_delimiter( thistime[ mailbox->first ], f, "\n");
       }
     }
 
@@ -431,7 +431,7 @@ bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
     INIT(&CCstring, file_string, (void*) f, flen);
     if (!mail_append(stream, nccs(this->msinfo), &CCstring))
     {
-      fprintf( stderr, "Error: Can't append lasttime to msinfo \"%s\"\n",
+      fprintf( stderr, "Error: Can't append thistime to msinfo \"%s\"\n",
                        this->msinfo.c_str() );
       fclose(f);
       mail_close(stream);

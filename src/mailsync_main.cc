@@ -48,8 +48,8 @@ Store*       match_pattern_store;
 
 //////////////////////////////////////////////////////////////////////////
 // The password for the current context
-// Required, because in the c-client callback functions we don't know
-// in which context (store1, store2, channel) we are
+// Required, because we don't know inside the c-client callback functions
+// which context (store1, store2, channel) we are in
 Passwd * current_context_passwd = NULL;
 //////////////////////////////////////////////////////////////////////////
 
@@ -504,9 +504,11 @@ int main(int argc, char** argv)
         }
 
         if (options.delete_empty_mailboxes) {
-          if (now_n == 0)
+          if (now_n == 0) {
             // add empty mailbox to empty_mailboxes
-            empty_mailboxes[ curr_mbox->first ] = MailboxProperties();
+            empty_mailboxes[ curr_mbox->first ];
+            deleted_mailboxes[ curr_mbox->first ];
+          }
         }
       } // end case mode_sync
       break;
@@ -528,7 +530,12 @@ int main(int argc, char** argv)
       break;
     }
 
+    printf("DEBUG: mailbox: %s\n", curr_mbox->first.c_str());
     thistime[curr_mbox->first] = msgids_now;
+    for( MsgIdSet::iterator msgid = msgids_now.begin() ;
+           msgid != msgids_now.end() ;
+           msgid++ )
+         printf("DEBUG: contains: %s\n", (new MsgId(*msgid))->to_msinfo_format().c_str());
 
     // close local boxes
     if (!store_a.isremote)
@@ -587,8 +594,13 @@ int main(int argc, char** argv)
   }
 
   if (operation_mode==mode_sync)
-    if (!options.simulate)
-      channel.write_lasttime_seen( deleted_mailboxes, thistime);
+    if (!options.simulate) {
+      channel.write_thistime_seen( deleted_mailboxes, thistime);
+      for( MailboxMap::iterator mailbox = deleted_mailboxes.begin() ;
+           mailbox != deleted_mailboxes.end() ;
+           mailbox++ )
+         printf("DEBUG: deleted: %s", mailbox->first.c_str());
+    }
 
   return 0;
 }
