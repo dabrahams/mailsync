@@ -1,6 +1,10 @@
 New in 4.5.4:
 
- * removed acinclude.m4 (Krelin's code-beautycenter)
+ * removed acinclude.m4 (Krelin's code-beautycenter, me)
+ * checking right at the start if we've found any boxes to sync
+ * added courier example with foldername with spaces
+   (upon Gonzalo G. Agulló's confusion)
+ * splited up sources
 
 New in 4.5.3:
 

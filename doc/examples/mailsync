@@ -18,7 +18,7 @@
 ######################################################
 
 #
-# Get all mail from the "debian.org" IMAPS (IMAP over SSL)
+# Get all mail from the "example.org" IMAPS (IMAP over SSL)
 # server for the user "tpo" (IMAP is the default transport).
 # Do not validate the SSL certificate. Get all the
 # mailboxes that start with "INBOX." but do not recurse
@@ -31,8 +31,8 @@
 # (Can anybody lighten me up on what "ref" is?)
 #
 store cyrus-store {
-	server	{debian.org/user=tpo/ssl/novalidate-cert}
-	ref	{debian.org}
+	server	{example.org/user=tpo/ssl/novalidate-cert}
+	ref	{example.org}
 	pat	INBOX.%
 	prefix  INBOX.
 	passwd secret
@@ -43,8 +43,8 @@ store cyrus-store {
 # validate the SSL certificate
 #
 store other-cyrus-store {
-	server	{debian.org/user=tpo/ssl}
-	ref	{debian.org}
+	server	{example.org/user=tpo/ssl}
+	ref	{example.org}
 	pat	INBOX.*
 	prefix  INBOX.
 }
@@ -56,11 +56,34 @@ store other-cyrus-store {
 # by mailsync!
 #
 store cyrus-inbox {
-	server	{debian.org/user=tpo}
-	ref	{debian.org}
+	server	{example.org/user=tpo}
+	ref	{example.org}
 	pat	INBOX
 }
 
+#
+# courier INBOX over IMAP only
+#
+# do not verify any certs either
+#
+#
+store courier-inbox {
+	server	{example.org/user=tpo/imap/novalidate-cert/norsh}
+	ref	{example.org}
+	pat	INBOX
+}
+
+#
+# "My Draft Folder" on a courier IMAP server
+#
+# this will ask you for the username and
+# password since it's not given here
+#
+store courier-inbox {
+	server	{example.org}
+	ref	{example.org}
+	pat	INBOX.My\ Draft\ Folder
+}
 #
 # typical netscape or uw store
 #
@@ -151,7 +174,7 @@ store local-oliver {
 # mailsync will gladly skip all messages bigger than 80k
 #
 channel inbox-local-cyrus  local-inbox cyrus-inbox {
-	msinfo	{debian.org/user=tpo}INBOX.mailsync
+	msinfo	{example.org/user=tpo}INBOX.mailsync
 	passwd  secret
 	sizelimit 81920
 }
