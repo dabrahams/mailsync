@@ -8,6 +8,8 @@ Bugs
           
 You're wellcome to implement any of these
 -----------------------------------------
+* maintaining message Status is broken again. Need to fix that.
+
 * unless run wit -D a once existent folder will allways be
   recreated because mailsync remembers it in it's .msinfo store.
   How to reproduce:
