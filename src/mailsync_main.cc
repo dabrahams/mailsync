@@ -422,7 +422,7 @@ int main(int argc, char** argv)
         //////////////////// removing messages ///////////////////////
         
         // We're first flagging messages for removal. If we'd first copy
-        // and then remove, c-client would add a "Status: 0" line to each
+        // and then remove, c-client would add a "Status: O" line to each
         // mail. We don't want this because of MUA's who interpret such
         // a line as "not new" (in particular mutt!)
 
@@ -497,10 +497,14 @@ int main(int argc, char** argv)
         if (! (options.no_expunge || options.simulate) ) {
           int n_expunged_a = store_a.mailbox_expunge( curr_mbox->first );
           int n_expunged_b = store_b.mailbox_expunge( curr_mbox->first );
-          if (n_expunged_a) printf( "Expunged %d mail(s) in store %s\n"
-                                    , n_expunged_a, store_a.name.c_str() );
-          if (n_expunged_b) printf( "Expunged %d mail(s) in store %s\n"
-                                    , n_expunged_b, store_b.name.c_str() );
+          if (n_expunged_a) printf( "Expunged %d mail%s in store %s\n"
+                                    , n_expunged_a
+                                    , n_expunged_a == 1 ? "" : "s"
+                                    , store_a.name.c_str() );
+          if (n_expunged_b) printf( "Expunged %d mail%s in store %s\n"
+                                    , n_expunged_b,
+                                    , n_expunged_a == 1 ? "" : "s"
+                                    , store_b.name.c_str() );
         }
 
         if (options.delete_empty_mailboxes) {
