@@ -1,4 +1,4 @@
-AC_INIT([mailsync], [5.2beta], [tpo_deb@sourcepole.ch])
+AC_INIT([mailsync], [5.2], [tpo_deb@sourcepole.ch])
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR([src/mailsync_main.cc])
