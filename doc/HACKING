@@ -1,0 +1,68 @@
+DEFINITIONS:
+------------
+
+The terminus "mailbox" is used throughout the code in accordance with
+c-client speak.
+
+What c-client calls "mailbox" is commonly referred to as a mail FOLDER.
+
+In mailsync a box containing multiple folders is described by a "Store"
+- have a look at store.h for details.
+
+MSINFO format description:
+--------------------------
+
+ATTENTION: the msinfo format can change without warning!
+
+The msinfo file contains synchronization information for channels as
+defined in the configuration file. Each channel contains the mailboxes
+associated with it and the message ids of all the mails that have been
+seen in those mailboxes the last time a sync was done.
+
+The msinfo file is a normal mailbox.
+
+Each email therein represents a channel. The channel is identified by
+the "Subject: " email header.
+
+The body of an email contains a series of mailbox synchronization entries.
+Each such entry starts with the name of the mailbox followed by all the
+message ids that were seen and synchronized. Message ids have the format
+"<xxx@yyy>" or "<>, tag: <value>".
+
+Example:
+
+From tpo@petertosh Fri Oct  4 12:18:13 2002 +0200
+From: mailsync
+Subject: all
+Status: O
+X-Status:
+X-Keywords:
+X-UID: 2095
+
+linux/apt
+<1018460459.4617.23.camel@mpav>
+<1027985024.1352.19.camel@server1>
+linux/mailsync
+<001001c1d37a$39ee3d70$e349428e@ludwig>
+<002b01c1e95c$94957390$e349428e@ludwig>
+
+From tpo@petertosh Sat Nov 30 18:21:55 2002 +0100
+Status:
+X-Status:
+X-Keywords:
+From: mailsync
+Subject: inbox
+
+INBOX
+<>, md5: <2292e5bda62ae83acbd11f3d61d62c7b>
+<>, md5: <24c5f14bd1b8198520736843f369f415>
+
+We have here two channels. The first is use for synchronization
+of all my mailboxes and the second one solely for my inbox.
+
+The first channel contains the mailboxes "linux/apt" and "linux/mailsync".
+Each of those mailboxes has had two mails in it. The first is being
+synchronized through the standard method, by using Message-IDs to uniquely
+identify messages and the second one is using md5 checksums.
+
+Take care - mailboxes with *empty* names *are* allowed.
