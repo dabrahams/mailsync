@@ -175,7 +175,7 @@ string MsgId::from_msinfo_format()
   switch( options.msgid_type) {
 
    case (HEADER_MSGID) :
-        return this->substr(1, this->find(">") - 1);
+        return this->substr(0, this->find(">") + 1);
         break;
 
 #ifdef HAVE_MD5
