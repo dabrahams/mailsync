@@ -1,6 +1,6 @@
 Thanks go out to the following people
 -------------------------------------
-Tim Culver              mailsync v1-v4.2
+Tim Culver              original mailsync author: v1-v4.2
 Jaldhar H. Vyas         mailsync manpage and initial Debian package
 Michael Krelin          sizelimit option, bugfixes, docu corrections,
                         autoconf ...
@@ -19,6 +19,7 @@ Andre Srinivasan        not automatically setting -m when listing contents
 Wolfgang Sailer         forgot to adapt README to autoconf build procedure,
                         RH imap location
 Kunal Chavan            don't delete duplicate messages with empty Message-IDs
+Akkana Peck             config.h quoted in configure.ac
 
 Current maintainer
 ------------------

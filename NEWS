@@ -11,6 +11,9 @@ New in 5.1.2:
    being retransmitted if deleted on one side
  * not deleting duplicate messages with empty Message-IDs
    (thanks Kunal Chavan for bugreport)
+ * removed [] around config.h in configure.ac - this was causing problems for
+   Akkana Peck for unknown reasons
+ * NOT YET RELEASED
  
 New in 5.1.1:
 
