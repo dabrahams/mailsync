@@ -1,3 +1,11 @@
+mailsync (5.1.0-2) unstable; urgency=high
+
+  * dpkg-buildpackage -i excludes .deps which are needed. Sigh. Hyper-ugly
+    dpkg-buildpackage commandline (included) is now required for building
+    the package. (bugreport: Bdale/builddaemon)             closes: #186943
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Thu, 03 Apr 2003 10:12:16 +0200
+
 mailsync (5.1.0-1) unstable; urgency=high
 
   * new upstream:

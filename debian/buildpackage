@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# I build the Debian source packages with this command
+
+# make distclean; ./autogen.sh; make dist
+# mv mailsync-5.1.0.tar.gz ../mailsync_5.1.0.orig.tar.gz
+dpkg-buildpackage -iCVS\|\\\.cvsignore\|config\\\.log\|stamp-h1 -rfakeroot -ktpo@spin.ch
