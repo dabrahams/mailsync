@@ -3,6 +3,12 @@ New in 4.4.2:
  * documented list mode
  * list mode can display contents of mailboxes
  * more docu
+ * reordered code to make it more coherent (IMHO)
+ * various functions (fetch_mail_ids, tdc_mail_open) had too many crucial
+   side effects which made the code very hard to follow. Untangled that.
+ * closing a stream before writing in it (c-client logic!) so that new
+   messages are not marked as seen. That means, that mutt users should be
+   happy(er?) now.
 
 New in 4.4.1:
 

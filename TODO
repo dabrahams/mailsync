@@ -37,3 +37,5 @@
 * make naming of read_lasttime_seen and of write_lasttime consistent
 
 * it'd be nice which driver c-client will use for accessing mail
+
+* simulate option would be nice

@@ -9,6 +9,7 @@ Mailsync-4
 3. How does mailsync work?
 4. Running mailsync-4
 5. Limitations
+5.1 Problems wit "New" messages (Mutt)
 6. More about the algorithm
 7. History
 8. Author, disclaimer, etc.
@@ -284,6 +285,23 @@ some network bandwidth if you move large messages around between
 syncs.  Workaround: try to put large messages in their final resting
 place before you run mailsync.
 
+
+
+5.1 Problems wit "New" messages (Mutt)
+--------------------------------------
+
+The mail header line "Status: O" is interpreted differently depending
+on which mail client you're using. Pine and it's mailbox manipulation
+library c-client assume, that a new message is new as long as you
+have not read it.
+
+Mutt and possibly some other clients interpet only a mail with
+"Status: " as unseen. If you want mutt to see all "new" messages as
+"new", then you must use the "-n" (do not expunge) option of mailsync.
+
+Explanation: c-clients mail_expunge function will run through all the
+mails and mark them as "Status: O" ("seen"). There's not much I can do
+about that. If someone knows a workaround for this, please mail me.
 
 
 6. More about the algorithm

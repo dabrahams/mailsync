@@ -1,7 +1,7 @@
 // Please use spaces instead of tabs
 
 //////////////////////////////////////////////////////////////////////////
-// ATTENTION: The terminus "mailbox" is used throughout the code, in
+// ATTENTION: The terminus "mailbox" is used throughout the code in
 //            accordance with c-client speak.
 //
 //            What c-client calls "mailbox" is commonly referred to as a
@@ -34,76 +34,17 @@ using std::make_pair;
 #include "flstring.h"
 #include "msgstring.c"
 
+//------------------------------- Defines  -------------------------------
+
 #define DEFAULT_DELIMITER '/'
+#define CREATE   1
+#define NOCREATE 0
 
-//////////////////////////////////////////////////////////////////////////
-// Options
-//////////////////////////////////////////////////////////////////////////
-int log_chatter = 0;
-int show_summary = 1;           // 1 line of output per mailbox
-int show_from = 0;              // 1 line of output per message
-int show_message_id = 0;        // Implies show_from
-int no_expunge = 0;
-enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
-int delete_empty_mailboxes = 0;
-int debug = 0;
-int report_braindammaged_msgids = 0;
-
-//////////////////////////////////////////////////////////////////////////
-// Mandatory options
-//////////////////////////////////////////////////////////////////////////
-int expunge_duplicates = 1;     // Should duplicates be deleted?
-int log_error = 1;
-int log_warn = 0;
+//------------------------------ Type Defs -------------------------------
 
 typedef set<string> StringSet;
 typedef map<string,int> MsgIdPositions;  // Map message ids to positions
                                          // within a mailbox
-
-int critical = NIL;             // Flag saying in critical code
-char *getpass();
-
-//////////////////////////////////////////////////////////////////////////
-//
-void print_list_with_delimiter(const StringSet& set, FILE* f,
-                               const string& delim) {
-//
-// Print the set of strings contained in "set" and terminate each item with
-// the delimiter "delim"
-// 
-//////////////////////////////////////////////////////////////////////////
-  for (StringSet::iterator i=set.begin(); i!=set.end(); i++)
-    fprintf(f, "%s%s", i->c_str(), delim.c_str());
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-char* nccs(const string& s) {
-//
-// C-Client doesn't declare anything const
-// If you're paranoid, you can allocate a new char[] here
-// 
-//////////////////////////////////////////////////////////////////////////
-  return (char*) s.c_str();
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-void print_with_escapes(FILE* f, const string& str) {
-//
-// Prints a string into a file (or std[out|err]) while
-// replacing " " by "\ "
-// 
-//////////////////////////////////////////////////////////////////////////
-  const char *s = str.c_str();
-  while (*s) {
-    if (isspace(*s))
-      fputc('\\',f);
-    fputc(*s,f);
-    s++;
-  }
-  return;
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -126,12 +67,7 @@ struct Passwd {
   }
 };
 
-//////////////////////////////////////////////////////////////////////////
-// The password for the current context
-// Required, because in the c-client callback functions we don't know
-// in which context (store1, store2, channel) we are
-Passwd * current_context_passwd = NULL;
-//////////////////////////////////////////////////////////////////////////
+void print_with_escapes(FILE* f, const string& str); // forward declaration
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -246,33 +182,184 @@ struct ConfigItem {
     return;
   }
   ConfigItem() { clear(); }
+  
+  void print(FILE* f) {
+    if (is_Store)
+      store->print(f);
+    else
+      channel->print(f);
+  }
 };
-
-//////////////////////////////////////////////////////////////////////////
-//
-void print_ConfigItem(ConfigItem& conf, FILE* f) {
-//
-// Print out a ConfigItem
-//
-//////////////////////////////////////////////////////////////////////////
-  if (conf.is_Store)
-    conf.store->print(f);
-  else
-    conf.channel->print(f);
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
 struct Token {
 //
 // A token is a [space|newline|tab] delimited chain of characters which
-// represents a syntactic element
+// represents a syntactic element from the configuration file
 //
 //////////////////////////////////////////////////////////////////////////
   string buf;
   int eof;
   int line;
 };
+
+
+//------------------------ Global Variables ------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// Options and default settings
+//////////////////////////////////////////////////////////////////////////
+int log_chatter = 0;
+int show_summary = 1;           // 1 line of output per mailbox
+int show_from = 0;              // 1 line of output per message
+int show_message_id = 0;        // Implies show_from
+int no_expunge = 0;
+enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
+int delete_empty_mailboxes = 0;
+int debug = 0;
+int report_braindammaged_msgids = 0;
+
+//////////////////////////////////////////////////////////////////////////
+// Mandatory options
+//////////////////////////////////////////////////////////////////////////
+// TODO: int expunge_duplicates = 1;     // Should duplicates be deleted?
+int expunge_duplicates = 0;     // Should duplicates be deleted?
+int log_error = 1;
+int log_warn = 0;
+
+int critical = NIL;             // Flag saying in critical code
+
+//////////////////////////////////////////////////////////////////////////
+// The password for the current context
+// Required, because in the c-client callback functions we don't know
+// in which context (store1, store2, channel) we are
+Passwd * current_context_passwd = NULL;
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Print formats that are being used when showin, what mails are being
+// transfered or expunged:
+//
+// $ mailsync -m inbox
+// Synchronizing stores "local-inbox" <-> "remote-inbox"...
+// Authorizing against {my.imap-server/imap}
+//
+//  *** INBOX ***
+//
+// "  copied     <-  Mon Sep  9 Tomas Pospisek         test2
+//                     <Pine.LNX.4.44.0209092123140.24399-100000@petertosh>"
+//
+// |--lead_format--|-------------from_format------------------|
+//                     |--------------------msgid_format-------------------|
+//
+// 
+//  "lead_format"  and
+//  "from_format"  are only used/displayed with options -m and/or -M
+//  "msgid_format" is only used/displayed with option -M
+//
+//////////////////////////////////////////////////////////////////////////
+char lead_format[] = "  %-10s %s  ";    // arguments:  action, direction
+char from_format[] = "%-61s";
+char msgid_format[] = "%-65s";            // argument :  message-id
+
+
+//------------------------ Forward Declarations --------------------------
+
+void sanitize_message_id(string& msgid);
+int read_lasttime_seen(Channel channel,
+                       StringSet& boxes, 
+                       map<string, StringSet>& mids, 
+                       StringSet& extra);
+int write_lasttime(Channel channel,
+                   const StringSet& boxes, 
+                   const StringSet& deleted_boxes,
+                   map<string, StringSet>& lasttime);
+MAILSTREAM* mailbox_open_create(MAILSTREAM* stream, 
+                                Store& store,
+                                const string& fullboxname, 
+                                long options,
+                                bool create);
+MAILSTREAM* mailbox_open_create(MAILSTREAM* stream, 
+                                const string& fullboxname, 
+                                long options,
+                                bool create);
+string summary(MAILSTREAM* stream, long msgno);
+
+
+//------------------------- Helper functions -----------------------------
+
+//////////////////////////////////////////////////////////////////////////
+//
+void print_list_with_delimiter(const StringSet& set, FILE* f,
+                               const string& delim) {
+//
+// Print the set of strings contained in "set" and terminate each item with
+// the delimiter "delim"
+// 
+//////////////////////////////////////////////////////////////////////////
+  for (StringSet::iterator i=set.begin(); i!=set.end(); i++)
+    fprintf(f, "%s%s", i->c_str(), delim.c_str());
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+char* nccs(const string& s) {
+//
+// C-Client doesn't declare anything const
+// If you're paranoid, you can allocate a new char[] here
+// 
+//////////////////////////////////////////////////////////////////////////
+  return (char*) s.c_str();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+void print_with_escapes(FILE* f, const string& str) {
+//
+// Prints a string into a file (or std[out|err]) while
+// replacing " " by "\ "
+// 
+//////////////////////////////////////////////////////////////////////////
+  const char *s = str.c_str();
+  while (*s) {
+    if (isspace(*s))
+      fputc('\\',f);
+    fputc(*s,f);
+    s++;
+  }
+  return;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+void usage() {
+//
+// Mailsync help
+//
+//////////////////////////////////////////////////////////////////////////
+  printf("mailsync %s\n\n", VERSION);
+  printf("usage: mailsync [-nD] [-db] [-dmMv] [-f conf] channel\n");
+  printf("usage: mailsync             [-dmMv] [-f conf] store\n");
+  printf("\n");
+  printf("synchronize two stores defined by \"channel\" or\n");
+  printf("list mailboxes contained in \"store\"\n");
+  printf("\n");
+  printf("Options:\n");
+  printf("  -n       don't expunge mailboxes\n");
+  printf("  -D       delete any empty mailboxes after synchronizing\n");
+  printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
+  printf("  -M       also show message-ids (turns on -m)\n");
+  printf("  -d       show debug info\n");
+  printf("  -db      show warning about braindammaged message ids\n");
+  printf("  -v       show imap chatter\n");
+  printf("  -f conf  use alternate config file\n");
+  printf("\n");
+  return;
+}
+
+
+//--------------------- Configuration Parsing ----------------------------
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -358,7 +445,7 @@ void get_token(FILE* f, Token* t) {
 
 //////////////////////////////////////////////////////////////////////////
 //
-void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
+void parse_config(FILE* f, map<string, ConfigItem>& confmap) {
 // 
 // Parse config file
 // 
@@ -498,11 +585,14 @@ void Config_parse(FILE* f, map<string, ConfigItem>& confmap) {
   return;
 }
 
+
+//--------------------------- Mail handling ------------------------------
+
 //////////////////////////////////////////////////////////////////////////
 //
 string full_mailbox_name(Store s, const string& box) {
 //
-// Given the name of a mailbox on a Store, return its full IMAP name.
+// Given the name of a mailbox in a Store, return its full IMAP name.
 //
 //////////////////////////////////////////////////////////////////////////
   string boxname = box;
@@ -539,76 +629,6 @@ void get_mail_list(MAILSTREAM *stream, Store& store, StringSet& mailbox_names) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Print formats that are being used when showin, what mails are being
-// transfered or expungeed:
-//
-// $ mailsync -m inbox
-// Synchronizing stores "local-inbox" <-> "remote-inbox"...
-// Authorizing against {my.imap-server/imap}
-//
-//  *** INBOX ***
-//
-// "  copied     <-  Mon Sep  9 Tomas Pospisek         test2
-//                     <Pine.LNX.4.44.0209092123140.24399-100000@petertosh>"
-//
-// |--lead_format--|-------------from_format------------------|
-//                     |--------------------msgid_format-------------------|
-//
-// 
-//  "lead_format"  and
-//  "from_format"  are only used/displayed with options -m and/or -M
-//  "msgid_format" is only used/displayed with option -M
-//
-//////////////////////////////////////////////////////////////////////////
-char lead_format[] = "  %-10s %s  ";    // arguments:  action, direction
-char from_format[] = "%-61s";
-char msgid_format[] = "%-65s";            // argument :  message-id
-
-//////////////////////////////////////////////////////////////////////////
-// Some forward declarations
-//////////////////////////////////////////////////////////////////////////
-void sanitize_message_id(string& msgid);
-int read_lasttime_seen(Channel channel,
-                       StringSet& boxes, 
-                       map<string, StringSet>& mids, 
-                       StringSet& extra);
-int write_lasttime(Channel channel,
-                   const StringSet& boxes, 
-                   const StringSet& deleted_boxes,
-                   map<string, StringSet>& lasttime);
-MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream, 
-                                        const string& fullboxname, 
-                                        long options);
-string summary(MAILSTREAM* stream, long msgno);
-
-//////////////////////////////////////////////////////////////////////////
-//
-void usage() {
-//
-// Mailsync help
-//
-//////////////////////////////////////////////////////////////////////////
-  printf("mailsync %s\n\n", VERSION);
-  printf("usage: mailsync [-nD] [-db] [-dmMv] [-f conf] channel\n");
-  printf("usage: mailsync             [-dmMv] [-f conf] store\n");
-  printf("\n");
-  printf("synchronize two stores defined by \"channel\" or\n");
-  printf("list mailboxes contained in \"store\"\n");
-  printf("\n");
-  printf("Options:\n");
-  printf("  -n       don't expunge mailboxes\n");
-  printf("  -D       delete any empty mailboxes after synchronizing\n");
-  printf("  -m       show from, subject, etc. of messages that get expunged or moved\n");
-  printf("  -M       also show message-ids (turns on -m)\n");
-  printf("  -d       show debug info\n");
-  printf("  -db      show warning about braindammaged message ids\n");
-  printf("  -v       show imap chatter\n");
-  printf("  -f conf  use alternate config file\n");
-  printf("\n");
-  return;
-}
-
-//////////////////////////////////////////////////////////////////////////
 //
 void get_delim(MAILSTREAM*& stream, Store& store_in) {
 //
@@ -631,18 +651,21 @@ int read_lasttime_seen(Channel channel,
                        map<string, StringSet>& mids_per_box, 
                        StringSet& extra) {
 //
-// Compare a given list of mailboxes with the contents of msinfo
-// and return a hash that contains all the seen message id's for
-// the given mailboxes. Additionaly a separate list is returned,
-// that contains all the mailboxes that were seen, but that are
-// not included in the given mailboxes list.
+// Read from msinfo the message ids of all the messages that have been
+// seen last time the channel was synchronized and return a hash that
+// contains those message ids indexed by "boxes"' names.
 //
-// The _results_ of this function are used to determine which
-// messages to transfer or to expunge.
+// Extra contains another hash containing the names of mailboxes that
+// were seen last time but were not included in "boxes".
+//
+// If msinfo doesn't exist yet, it will be created.
+//
+// This function is used in order to determine which messages to transfer
+// or to expunge.
 //
 // arguments:
 //              channel      - the channel that is being synched
-//              boxes        - the mailboxes that should be synched
+//              boxes        - the mailboxes that will be synched
 // returns:
 //              1            - success
 //              0            - failure
@@ -660,10 +683,11 @@ int read_lasttime_seen(Channel channel,
   char* text;
   unsigned long textlen;
 
+  if (debug) printf(" Reading lasttime of channel \"%s\":\n", channel.tag.c_str());
+
   // msinfo is the name of the mailbox that contains the sync info
   current_context_passwd = &(channel.passwd);
-  msinfo_stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
-                                              OP_READONLY);
+  msinfo_stream = mailbox_open_create(NULL, nccs(channel.msinfo), OP_READONLY, CREATE);
   if (!msinfo_stream) {
     fprintf(stderr,"Error: Couldn't open lasttime box %s\n",
                    channel.msinfo.c_str());
@@ -739,7 +763,7 @@ int read_lasttime_seen(Channel channel,
 
 //////////////////////////////////////////////////////////////////////////
 //
-void list_contents(MAILSTREAM*& stream, Store& store, const string& box) {
+void list_contents(MAILSTREAM*& mailbox_stream) {
 //
 // Display contents of mailbox
 // 
@@ -747,27 +771,21 @@ void list_contents(MAILSTREAM*& stream, Store& store, const string& box) {
 // mailbox resides
 //
 // returns:
-//              stream       - a stream "to" the store
-//              store,box    - the mailbox from which message ids should be
-//                             fetched
+//              mailbox_stream       - a stream "to" the mailbox
 //
 // This was copied from fetch_message_ids
 //
 //////////////////////////////////////////////////////////////////////////
-  string fullboxname = full_mailbox_name(store, box);
-  current_context_passwd = &(store.passwd);
   MsgIdPositions mids;
 
-  stream = mail_open(stream, nccs(fullboxname), 0);// TODO: use HALF_OPEN?
-
   // loop and fetch all the message ids from a mailbox
-  int n = stream->nmsgs;
+  int n = mailbox_stream->nmsgs;
   for (int j=1; j<=n; j++) {
     string msgid;
     ENVELOPE *envelope;
     bool isdup;
 
-    envelope = mail_fetchenvelope(stream, j);
+    envelope = mail_fetchenvelope(mailbox_stream, j);
     if (!(envelope->message_id))
       printf(lead_format,"no msg-id", "");
     else {
@@ -780,17 +798,17 @@ void list_contents(MAILSTREAM*& stream, Store& store, const string& box) {
     
       if (show_message_id) printf(msgid_format, msgid.c_str());
     }
-    printf(from_format, summary(stream,j).c_str());
+    printf(from_format, summary(mailbox_stream,j).c_str());
     printf("\n");
   }
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-int fetch_message_ids(MAILSTREAM*& stream, Store& store, 
-                      const string& box, MsgIdPositions& mids) {
+void fetch_message_ids(MAILSTREAM*& mailbox_stream, string store_tag, 
+                      MsgIdPositions& mids) {
 //
-// Fetch all the message ids that a mailbox contains
+// Fetch all the message ids that a mailbox contains.
 // 
 // The mailbox is defined by the name in "box" and by the "store" where the
 // mailbox resides
@@ -798,36 +816,27 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
 // If there are duplicates they will be deleted (depending on the compile
 // time option expunge_duplicates)
 //
-// returns:
-//              1            - success
-//              0            - failure
+// If the mailbox doesn't exist yet, it will be created.
 //
-//              stream       - a stream "to" the store
-//              store,box    - the mailbox from which message ids should be
-//                             fetched
-//              mids         - a hash indexed by msgid containing the
-//                             position of the message in the mailbox
+// returns:
+//              mailbox_stream - a mailbox_stream "to" the store
+//              store_tag      - the name of the store
+//              mids           - a hash indexed by msgid containing the
+//                               position of the message in the mailbox
 //
 //////////////////////////////////////////////////////////////////////////
-  string fullboxname = full_mailbox_name(store, box);
-  current_context_passwd = &(store.passwd);
-  
-  // open the mailbox
-  stream = tdc_mail_open_create_if_nec(stream, fullboxname, 0);
-  if (!stream) {
-    fprintf(stderr,"Error: Couldn't open %s\n", fullboxname.c_str());
-    return 0;
-  }
-  
   // loop and fetch all the message ids from a mailbox
-  int n = stream->nmsgs;
+  int n = mailbox_stream->nmsgs;
   int nabsent = 0, nduplicates = 0;
+
+  if (debug) printf(" Fetching message id's in mailbox \"%s\":\n", mailbox_stream->mailbox);
+
   for (int j=1; j<=n; j++) {
     string msgid;
     ENVELOPE *envelope;
     bool isdup;
 
-    envelope = mail_fetchenvelope(stream, j);
+    envelope = mail_fetchenvelope(mailbox_stream, j);
     if (!(envelope->message_id)) {
       nabsent++;
       // Absent message-id.  Don't touch message.
@@ -840,7 +849,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
       if (expunge_duplicates) {
         char seq[30];
         sprintf(seq,"%d",j);
-        mail_setflag(stream, seq, "\\Deleted");
+        mail_setflag(mailbox_stream, seq, "\\Deleted");
       }
       nduplicates++;
       if (show_from) printf(lead_format,"duplicate", "");
@@ -848,7 +857,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
       mids.insert(make_pair(msgid, j));
     }
     if (isdup && show_from) {
-      printf(from_format, summary(stream,j).c_str());
+      printf(from_format, summary(mailbox_stream,j).c_str());
       if (show_message_id) printf(msgid_format, msgid.c_str());
       printf("\n");
     }
@@ -858,27 +867,30 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
     if (show_summary) {
       printf("%d duplicate%s", nduplicates, nduplicates==1 ? "" : "s");
       if (mode!=mode_diff)
-        printf(" in %s", store.tag.c_str());
+        printf(" in %s", store_tag.c_str());
       printf(", ");
     } else {
       printf("%d duplicates deleted from %s/%s\n",
-             nduplicates, store.tag.c_str(), box.c_str());
+             nduplicates, store_tag.c_str(), mailbox_stream->mailbox);
     }
     fflush(stdout);
   }
-
-  return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
-int copy_message(MAILSTREAM*& storea_stream, Store& storea, 
+int copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda, 
                  int msgno, const string& msgid,
-                 MAILSTREAM*& storeb_stream, Store& storeb,
-                 char * direction) {
+                 MAILSTREAM*& mailboxb_stream, Passwd& passwdb,
+                 string fullboxbname, char * direction) {
 //
-// Copies the message "msgno" with "msgid" from "storea_stream"
-// to "storeb_stream"
+// Copies the message "msgno" with "msgid" from the stream "mailboxa_stream"
+// which is connected to the mailboxa to the respective "mailboxb_stream".
+//
+// When appending to a HALF_OPEN stream or to a local mailbox, mailboxb_stream
+// will be NIL. Therefore we need the full name of the box.
+//
+// To access the stream it uses the passwords passwd[a|b].
 //
 // TODO: ideally sanitize_message_id should not have a side effect, but just
 //       return 1 or 0 if the message had to be modified or it should have
@@ -893,27 +905,27 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   ENVELOPE *envelope;
   MESSAGECACHE *elt;
 
-  current_context_passwd = &(storea.passwd);
-  envelope = mail_fetchenvelope(storea_stream, msgno);
+  current_context_passwd = &passwda;
+  envelope = mail_fetchenvelope(mailboxa_stream, msgno);
   string msgid_fetched;
 
   // Check message-id.
   if (! envelope->message_id) {
     printf("Warning: missing message-id from mailbox %s, message #%d.\n",
-           storea_stream->mailbox, msgno);
+           mailboxa_stream->mailbox, msgno);
   } else {
     msgid_fetched = envelope->message_id;
     sanitize_message_id(msgid_fetched);
     if (msgid_fetched != msgid) {
       printf("Warning: suspicious message-id from mailbox %s, message# %d.",
-             storea_stream->mailbox, msgno);
+             mailboxa_stream->mailbox, msgno);
       printf("         msgid expected: %s, msgid found: %s. \n",
              msgid.c_str(), msgid_fetched.c_str());
       printf("Please report this to http://sourceforge.net/tracker/?group_id=6374&atid=106374\n");
     }
   }
 
-  elt = mail_elt(storea_stream, msgno); // the c-client docu says not to do
+  elt = mail_elt(mailboxa_stream, msgno); // the c-client docu says not to do
                                         // this :-/ ?
   assert(elt->valid);                   // Should be valid because of
                                         // fetchenvelope()
@@ -925,19 +937,23 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   if (elt->flagged) strcat (flags," \\Flagged");
   if (elt->answered) strcat (flags," \\Answered");
   if (elt->draft) strcat (flags," \\Draft");
-  md.stream = storea_stream;
+
+  md.stream = mailboxa_stream;
   md.msgno = msgno;
   INIT (&CCstring, msg_string, (void*) &md, elt->rfc822_size);
-  current_context_passwd = &(storeb.passwd);
-  int rv = mail_append_full(storeb_stream, storeb_stream->mailbox,
+  current_context_passwd = &passwdb;
+
+  int rv = mail_append_full(mailboxb_stream, nccs(fullboxbname),
                             &flags[1], mail_date(msgdate,elt), 
                             &CCstring);
   if (show_from) {
     printf(lead_format, rv ? "copied" : "copyfail", direction);
-    printf(from_format, summary(storea_stream, msgno).c_str());
+    printf(from_format, summary(mailboxa_stream, msgno).c_str());
     if (show_message_id) printf(msgid_format, msgid.c_str());
     printf("\n");
   }
+
+  if (debug) printf(" Flags: \"%s\"\n", flags);
   return rv;
 }
 
@@ -955,14 +971,14 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   current_context_passwd = &(store.passwd);
   envelope = mail_fetchenvelope(stream, msgno);
   if (!(envelope->message_id)) {
-    printf("Error: no message-id, so I won't expunge the message.\n");
+    printf("Error: no message-id, so I won't delete the message.\n");
     // Possibly indicates concurrent access?
     ok = 0;
   } else {
     msgid_fetched = envelope->message_id;
     sanitize_message_id(msgid_fetched);
     if (msgid_fetched != msgid) {
-      printf("Error: message-ids %s and %s don't match, so I won't expunge the message.\n",
+      printf("Error: message-ids %s and %s don't match, so I won't delete the message.\n",
              msgid_fetched.c_str(), msgid.c_str());
       ok = 0;
     }
@@ -975,513 +991,15 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   }
   if (show_from) {
     if (ok) {
-      printf(lead_format, "expungeed", place);
+      printf(lead_format, "deleted", place);
     } else
-      printf(lead_format, "expungefail", "");
+      printf(lead_format, "deletefail", "");
     printf(from_format, summary(stream,msgno).c_str());
     printf("\n");
   }
   return ok;
 }
 
-/*
-//////////////////////////////////////////////////////////////////////////
-//
-long copy_messages(MAILSTREAM*& from_stream, Store &from_store,
-                   MAILSTREAM*& to_stream, Store &to_store,
-                   StringSet &message_ids,
-                   MsgIdPositions &msgIdPositions,
-                   StringSet &all_known_msgids)
-//
-// copies messages in message_ids from from_stream to to_stream
-//////////////////////////////////////////////////////////////////////////
-{
-  int success;
-
-  unsigned long copied_a_b = 0;
-  for (StringSet::iterator i=message_ids.begin(); i!=message_ids.end(); i++) {
-    success = copy_message(from_stream, from_store, msgIdPositions[*i], *i,
-                           to_stream, from_store, "->");
-    if (success)
-      copied_a_b++;
-    else                           // we've failed to copy the message over
-      all_known_msgids.erase(*i);  // as we should've had. So let's just assume
-                                   // that we haven't seen it at all. That way
-                                   // mailsync will have to rediscover and
-                                   // resync the same message again next time
-  }
-}
-*/
-
-//////////////////////////////////////////////////////////////////////////
-//
-int main(int argc, char** argv) {
-//
-//////////////////////////////////////////////////////////////////////////
-  Channel channel;
-  Store storea, storeb;
-  StringSet allboxes;
-  MAILSTREAM *storea_stream, *storeb_stream;
-  map<string, StringSet> lasttime, thistime;
-  StringSet deleted_boxes;   // present lasttime, but not this time
-  StringSet empty_mailboxes;
-  int ok;
-
-#include "linkage.c"
-
-  // Parse arguments, read config file, choose mode
-  {
-    string config_file;
-    int optind;
-    vector<string> args;
-
-    // All options must be given separately
-    optind = 1;
-    while (optind<argc && argv[optind][0]=='-') {
-      switch (argv[optind][1]) {
-      case 'n':
-        no_expunge = 1;
-        break;
-      case 'm':
-        show_from = 1;
-        show_summary = 0;
-        break;
-      case 'M':
-        show_from = 1;
-        show_summary = 0;
-        show_message_id = 1;
-        break;
-      case 'v':
-        log_chatter = 1;
-        break;
-      case 'f':
-        config_file = argv[++optind];
-        break;
-      case 'D':
-        delete_empty_mailboxes = 1;
-        break;
-      case 'd':
-        if (argv[optind][2] == 'b')
-          report_braindammaged_msgids = 1;
-        else
-          debug = 1;
-        break;
-      default:
-        usage();
-        return 1;
-      }
-      optind++;
-    }
-    if (argc-optind<1) {
-      usage();
-      return 1;
-    }
-    for ( ; optind < argc; optind++) {
-      args.push_back(argv[optind]);
-    }
-
-    map<string, ConfigItem> confmap;
-    FILE* config;
-    Store s;
-    
-    if (config_file == "") {
-      char *home;
-      home = getenv("HOME");
-      if (home) {
-        config_file = string(home) + "/.mailsync";
-      } else {
-        fprintf(stderr,"Error: Can't get home directory. Use `-f file'.\n");
-        return 1;
-      }
-    }
-    {
-      struct stat st;
-      stat(config_file.c_str(), &st);
-      if (S_ISDIR(st.st_mode) || !(config=fopen(config_file.c_str(),"r"))) {
-        fprintf(stderr,"Error: Can't open config file %s\n",config_file.c_str());
-        return 1;
-      }
-    }
-    Config_parse(config, confmap);
-
-    // Search for the desired store or channel; determine mode.
-    
-    vector<Store> stores;
-    vector<Channel> channels;
-
-    for (unsigned i=0; i<args.size(); i++) {
-      if (confmap.count(args[i])==0) {
-        fprintf(stderr, "Error: A channel or store named \"%s\" has not been configured\n", args[i].c_str());
-        return 1;
-      }
-      ConfigItem* p = &(confmap[args[i]]);
-      if (p->is_Store && p->store->tag == args[i]) {
-        stores.push_back(*p->store);
-      } else if (! p->is_Store && p->channel->tag == args[i]) {
-        channels.push_back(*p->channel);
-      }
-    }
-
-    if (channels.size() == 1 && stores.size() == 0) {
-      mode = mode_sync;
-      channel = channels[0];
-      if (confmap[channel.store[0]].is_Store != 1 ||
-          confmap[channel.store[1]].is_Store != 1) {
-        fprintf(stderr,"Error: Malconfigured channel %s\n", channel.tag.c_str());
-        if(confmap[channel.store[0]].is_Store != 1)
-          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[0].c_str());
-        else
-          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[1].c_str());
-        return 1;
-      }
-      storea = *confmap[channel.store[0]].store;
-      storeb = *confmap[channel.store[1]].store;
-
-      printf("Synchronizing stores \"%s\" <-> \"%s\"...\n",
-             storea.tag.c_str(), storeb.tag.c_str());
-
-    } else if (channels.size() == 1 && stores.size() == 1) {
-      mode = mode_diff;
-      expunge_duplicates = 0;
-      channel = channels[0];
-      storea = stores[0];
-      if (channel.store[0] == storea.tag) {
-        storeb = *confmap[channel.store[0]].store;
-      } else if (channel.store[1] == storea.tag) {
-        storeb = *confmap[channel.store[1]].store;
-      } else {
-        fprintf(stderr,"Diff mode: channel %s doesn't contain store %s.\n",
-                channel.tag.c_str(), argv[optind+1]);
-        return 1;
-      }
-      printf("Comparing store \"%s\" <-> \"%s\"...\n",
-             storea.tag.c_str(), storeb.tag.c_str());
-
-    } else if (channels.size() == 0 && stores.size() == 1) {
-      mode = mode_list;
-      storea = stores[0];
-
-      printf("Listing store \"%s\"\n", storea.tag.c_str());
-
-    } else {
-      fprintf(stderr, "Don't know what to do with %d channels and %d stores.\n", channels.size(), stores.size());
-      return 1;
-    }
-  }
-
-  // Open remote connections.
-
-  if (storea.isremote) {
-    current_context_passwd = &(storea.passwd);
-    storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN);
-    if (!storea_stream) {
-      fprintf(stderr,"Error: Can't contact first server %s\n",storea.server.c_str());
-      return 1;
-    }
-  } else {
-    storea_stream = NULL;
-  }
-
-  if (mode == mode_sync && storeb.isremote) {
-    current_context_passwd = &(storeb.passwd);
-    storeb_stream = mail_open(NIL, nccs(storeb.server), OP_HALFOPEN);
-    if (!storeb_stream) {
-      fprintf(stderr,"Error: Can't contact second server %s\n",storeb.server.c_str());
-      return 1;
-    }
-  } else {
-    storeb_stream = NULL;
-  }
-
-  // Get list of all mailboxes from each server.
-  allboxes.clear();
-  if (debug) printf(" Items in store \"%s\":\n", storea.tag.c_str());
-  get_mail_list(storea_stream, storea, allboxes);
-  if (debug)
-    if (storea.delim)
-      printf(" Delimiter for store \"%s\" is '%c'.\n",
-             storea.tag.c_str(), storea.delim);
-    else printf(" No delimiter found for store \"%s\".\n", storea.tag.c_str());
-  if (storea.delim == '!')
-    get_delim(storea_stream, storea);
-  assert(storea.delim != '!');
-  if (mode==mode_list) {
-    if (show_from | show_message_id)
-      for (StringSet::iterator box = allboxes.begin(); 
-           box != allboxes.end(); box++) {
-        printf("\nMailbox: %s\n\n", (*box).c_str());
-        list_contents(storea_stream, storea, *box);
-      }
-    else
-      print_list_with_delimiter(allboxes, stdout, "\n");
-    return 0;
-  }
-  if (mode==mode_sync) {
-    if (debug) printf(" Items in store \"%s\":\n", storeb.tag.c_str());
-    get_mail_list(storeb_stream, storeb, allboxes);
-    if (debug)
-      if (storeb.delim)
-        printf(" Delimiter for store \"%s\" is '%c'.\n",
-               storeb.tag.c_str(), storeb.delim);
-      else printf(" No delimiter found for store \"%s\"\n", storeb.tag.c_str());
-
-    if (storeb.delim == '!')
-      get_delim(storeb_stream, storeb);
-    assert(storeb.delim != '!');
-  }
-  if (show_message_id) {
-    printf(" All seen mailboxes: ");
-    print_list_with_delimiter(allboxes, stdout, " ");
-    printf("\n");
-  }
-
-  // Read the lasttime lists.
-  {
-    int success;
-    success = read_lasttime_seen(channel, allboxes, lasttime, deleted_boxes);
-    if (!success) 
-      exit(1);
-  }
-
-  // Process each mailbox.
-  
-  ok = 1;
-  for (StringSet::iterator box = allboxes.begin(); 
-       box != allboxes.end(); box++) {
-
-    if (show_from)
-      printf("\n *** %s ***\n", box->c_str());
-
-    StringSet l(lasttime[*box]), u, now;
-    MsgIdPositions a, b;
-
-    if (show_summary) {
-      printf("%s: ",box->c_str());
-      fflush(stdout);
-    } else {
-      printf("\n");
-    }
-
-    // fetch_message_ids(): map message-ids to message numbers.
-    // And optionally delete duplicates. 
-    // Also, fetch_message_ids opens/creates the mailbox.
-   
-    current_context_passwd = &(storea.passwd);
-    ok = fetch_message_ids(storea_stream, storea, *box, a);
-    if (!ok) break;
-    if (mode==mode_sync) {
-      current_context_passwd = &(storeb.passwd);
-      ok = fetch_message_ids(storeb_stream, storeb, *box, b);
-      if (!ok) break;
-    } else if (mode==mode_diff) {
-      for (StringSet::iterator i=l.begin(); i!=l.end(); i++)
-        b[*i] = 0;
-    }
-
-    // u = union(l, a, b)
-    u = l;
-    for (MsgIdPositions::iterator i=a.begin(); i!=a.end(); i++)
-      u.insert(i->first);
-    for (MsgIdPositions::iterator i=b.begin(); i!=b.end(); i++)
-      u.insert(i->first);
-
-    StringSet copy_a_b, copy_b_a, remove_a, remove_b;
-
-    for (StringSet::iterator i=u.begin(); i!=u.end(); i++) {
-      bool in_a = a.count(*i);
-      bool in_b = b.count(*i);
-      bool in_l = l.count(*i);
-
-      int abl = (  (in_a ? 0x100 : 0) 
-                 + (in_b ? 0x010 : 0)
-                 + (in_l ? 0x001 : 0) );
-
-      switch (abl) {
-
-      case 0x100:  // New message on a
-        copy_a_b.insert(*i);
-        now.insert(*i);
-        break;
-
-      case 0x010:  // New message on b
-        copy_b_a.insert(*i);
-        now.insert(*i);
-        break;
-
-      case 0x111:  // Kept message
-      case 0x110:  // New message, present in a and b, no copying necessary
-        now.insert(*i);
-        break;
-
-      case 0x101:  // Deleted on b
-        remove_a.insert(*i);
-        break;
-
-      case 0x011:  // Deleted on a
-        remove_b.insert(*i);
-        break;
-
-      case 0x001:  // Deleted on both
-        break;
-
-      case 0x000:  // Shouldn't happen
-      default:
-        assert(0);
-        break;
-      }
-
-
-    }
-
-    unsigned long now_n = now.size();
-
-    switch (mode) {
-    case mode_sync:
-      {
-        int success;
-
-        unsigned long copied_a_b = 0;
-        for (StringSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++) {
-          success = copy_message(storea_stream, storea, a[*i], *i,
-                                storeb_stream, storeb, "->");
-          if (success)
-            copied_a_b++;
-          else                  // we've failed to copy the message over
-            now.erase(*i);      // as we should've had. So let's just assume
-                                // that we haven't seen it at all. That way
-                                // mailsync will have to rediscover and resync
-                                // the same message again next time
-        }
-
-        unsigned long copied_b_a = 0;
-        for (StringSet::iterator i=copy_b_a.begin(); i!=copy_b_a.end(); i++) {
-          success = copy_message(storeb_stream, storeb, b[*i], *i,
-                                 storea_stream, storea, "<-");
-          if (success)
-            copied_b_a++;
-          else
-            now.erase(*i);
-        }
-
-        unsigned long removed_a = 0;
-        for (StringSet::iterator i=remove_a.begin(); i!=remove_a.end(); i++) {
-          success = remove_message(storea_stream, storea, a[*i], *i, "< ");
-          if (success) removed_a++;
-        }
-
-        unsigned long removed_b = 0;
-        for (StringSet::iterator i=remove_b.begin(); i!=remove_b.end(); i++) {
-          success = remove_message(storeb_stream, storeb, b[*i], *i, "> ");
-          if (success) removed_b++;
-        }
-
-        printf("\n");
-        if (copied_a_b)
-          printf("%ld copied %s->%s.\n", copied_a_b,
-                 storea.tag.c_str(), storeb.tag.c_str());
-        if (copied_b_a)
-          printf("%ld copied %s->%s.\n", copied_b_a,
-                 storeb.tag.c_str(), storea.tag.c_str());
-        if (removed_a)
-          printf("%ld deleted on %s.\n", removed_a, storea.tag.c_str());
-        if (removed_b)
-          printf("%ld deleted on %s.\n", removed_b, storeb.tag.c_str());
-        if (show_summary) {
-          printf("%ld remain%s.\n", now_n, now_n!=1 ? "" : "s");
-          fflush(stdout);
-        } else {
-          printf("%ld messages remain in %s\n", now_n, box->c_str());
-        }
-      }
-      break;
-
-    case mode_diff:
-      {
-        if (copy_a_b.size())
-          printf("%d new, ", copy_a_b.size());
-        if (remove_b.size())
-          printf("%d deleted, ", remove_b.size());
-        printf("%d currently at store %s.\n", now.size(), storeb.tag.c_str());
-      }
-      break;
-
-    default:
-      break;
-    }
-
-    thistime[*box] = now;
-
-    if (!no_expunge) {
-      current_context_passwd = &(storea.passwd);
-      mail_expunge(storea_stream);
-      if (storeb_stream) {
-        current_context_passwd = &(storeb.passwd);
-        mail_expunge(storeb_stream);
-      }
-    }
-
-    if (!storea.isremote)
-      storea_stream = mail_close(storea_stream);
-    if (storeb_stream && !storeb.isremote)
-      storeb_stream = mail_close(storeb_stream);
-
-    if (delete_empty_mailboxes) {
-      if (now_n == 0) {
-        empty_mailboxes.insert(*box);
-      }
-    }
-
-  }
-
-  if (storea.isremote) storea_stream = mail_close(storea_stream);
-  if (storeb.isremote) storeb_stream = mail_close(storeb_stream);
-
-  if (!ok)
-    return 1;
-
-  if (delete_empty_mailboxes) {
-    string fullboxname;
-
-    if (storea.isremote) {
-      current_context_passwd = &(storea.passwd);
-      storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN);
-    } else {
-      storea_stream = NULL;
-    }
-    if (storeb.isremote) {
-      current_context_passwd = &(storeb.passwd);
-      storeb_stream = mail_open(NIL, nccs(storeb.server), OP_HALFOPEN);
-    } else {
-      storeb_stream = NULL;
-    }
-    for (StringSet::iterator i=empty_mailboxes.begin(); 
-         i!=empty_mailboxes.end(); i++) {
-      fullboxname = full_mailbox_name(storea, *i);
-      printf("%s: deleting\n", i->c_str());
-      printf("  %s", fullboxname.c_str());
-      fflush(stdout);
-      current_context_passwd = &(storea.passwd);
-      if (mail_delete(storea_stream, nccs(fullboxname)))
-        printf("\n");
-      else
-        printf(" failed\n");
-      fullboxname = full_mailbox_name(storeb, *i);
-      printf("  %s", fullboxname.c_str());
-      fflush(stdout);
-      current_context_passwd = &(storeb.passwd);
-      if (mail_delete(storeb_stream, nccs(fullboxname))) 
-        printf("\n");
-      else
-        printf(" failed\n");
-    }
-  }
-
-  if (mode==mode_sync) {
-    write_lasttime(channel, allboxes, deleted_boxes, thistime);
-  }
-  return 0;
-}
-         
 //////////////////////////////////////////////////////////////////////////
 //
 int write_lasttime(Channel channel,
@@ -1506,7 +1024,7 @@ int write_lasttime(Channel channel,
 
   // open the msinfo box
   current_context_passwd = &(channel.passwd);
-  stream = tdc_mail_open_create_if_nec(NIL, nccs(channel.msinfo), 0);
+  stream = mailbox_open_create(NIL, nccs(channel.msinfo), 0, NOCREATE);
   if (!stream) {
     return 0;
   }
@@ -1633,27 +1151,586 @@ void sanitize_message_id(string& msgid) {
 
 //////////////////////////////////////////////////////////////////////////
 //
-MAILSTREAM* tdc_mail_open_create_if_nec(MAILSTREAM* stream, 
-                                        const string& fullboxname,
-                                        long options) {
+MAILSTREAM* mailbox_open_create(MAILSTREAM* stream, 
+                                const string& fullboxname,
+                                long c_client_options,
+                                bool create) {
+//
+// Opens mailbox "fullboxname" with "c_client_options" options.
+//
+// If "create" is set it will try to create the mailbox. If the mailbox
+// allready exists nothing will happen.
+//
+// If possible use the higherlevel function below
+//
+// Returns NIL on failure.
 //
 //////////////////////////////////////////////////////////////////////////
   int o;
   
   o = log_error;
   log_error = 0;
-  mail_create(stream, nccs(fullboxname));       // creates new if not
-                                                // existent, fails otherwise
+  if (create)
+    mail_create(stream, nccs(fullboxname));       // creates new if not
+                                                  // existent, fails otherwise
   log_error = o;
-  stream = mail_open(stream, nccs(fullboxname), options);// TODO: use HALF_OPEN?
+  stream = mail_open(stream, nccs(fullboxname), c_client_options);
   return stream;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Callback functions
 //
-// Below are implemented callback functions that are required/called by
-// c-client functions.
+MAILSTREAM* mailbox_open_create(MAILSTREAM* stream,
+                                Store& store,
+                                const string& boxname,
+                                long c_client_options,
+                                bool create) {
+//
+// Opens the mailbox "boxname" inside "store" with "c_client_options" options.
+//
+// If "create" is set it will try to create the mailbox. If the mailbox
+// allready exists nothing will happen.
+//
+// The function will complain to STDERR on error.
+//
+// Returns NIL on failure.
+//
+//////////////////////////////////////////////////////////////////////////
+  string fullboxname = full_mailbox_name(store, boxname);
+  current_context_passwd = &(store.passwd);
+  
+  stream = mailbox_open_create(stream, fullboxname, c_client_options, create);
+  if (!stream) {
+    fprintf(stderr,"Error: Couldn't open %s\n", fullboxname.c_str());
+  }
+  
+  return stream;
+}
+
+//-------------------------------- main ----------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+//
+int main(int argc, char** argv) {
+//
+//////////////////////////////////////////////////////////////////////////
+  Channel channel;
+  Store storea, storeb;
+  StringSet allboxes;
+  MAILSTREAM *storea_stream, *storeb_stream;
+  map<string, StringSet> lasttime, thistime;
+  StringSet deleted_boxes;   // present lasttime, but not this time
+  StringSet empty_mailboxes;
+  int ok;
+
+#include "linkage.c"
+
+  // Parse arguments, read config file, choose mode
+  {
+    string config_file;
+    int optind;
+    vector<string> args;
+
+    // All options must be given separately
+    optind = 1;
+    while (optind<argc && argv[optind][0]=='-') {
+      switch (argv[optind][1]) {
+      case 'n':
+        no_expunge = 1;
+        break;
+      case 'm':
+        show_from = 1;
+        show_summary = 0;
+        break;
+      case 'M':
+        show_from = 1;
+        show_summary = 0;
+        show_message_id = 1;
+        break;
+      case 'v':
+        log_chatter = 1;
+        break;
+      case 'f':
+        config_file = argv[++optind];
+        break;
+      case 'D':
+        delete_empty_mailboxes = 1;
+        break;
+      case 'd':
+        if (argv[optind][2] == 'b')
+          report_braindammaged_msgids = 1;
+        else
+          debug = 1;
+        break;
+      default:
+        usage();
+        return 1;
+      }
+      optind++;
+    }
+    if (argc-optind<1) {
+      usage();
+      return 1;
+    }
+    for ( ; optind < argc; optind++) {
+      args.push_back(argv[optind]);
+    }
+
+    map<string, ConfigItem> confmap;
+    FILE* config;
+    Store s;
+    
+    if (config_file == "") {
+      char *home;
+      home = getenv("HOME");
+      if (home) {
+        config_file = string(home) + "/.mailsync";
+      } else {
+        fprintf(stderr,"Error: Can't get home directory. Use `-f file'.\n");
+        return 1;
+      }
+    }
+    {
+      struct stat st;
+      stat(config_file.c_str(), &st);
+      if (S_ISDIR(st.st_mode) || !(config=fopen(config_file.c_str(),"r"))) {
+        fprintf(stderr,"Error: Can't open config file %s\n",config_file.c_str());
+        return 1;
+      }
+    }
+    parse_config(config, confmap);
+
+    // Search for the desired store or channel; determine mode.
+    
+    vector<Store> stores;
+    vector<Channel> channels;
+
+    for (unsigned i=0; i<args.size(); i++) {
+      if (confmap.count(args[i])==0) {
+        fprintf(stderr, "Error: A channel or store named \"%s\" has not been configured\n", args[i].c_str());
+        return 1;
+      }
+      ConfigItem* p = &(confmap[args[i]]);
+      if (p->is_Store && p->store->tag == args[i]) {
+        stores.push_back(*p->store);
+      } else if (! p->is_Store && p->channel->tag == args[i]) {
+        channels.push_back(*p->channel);
+      }
+    }
+
+    if (channels.size() == 1 && stores.size() == 0) {
+      mode = mode_sync;
+      channel = channels[0];
+      if (confmap[channel.store[0]].is_Store != 1 ||
+          confmap[channel.store[1]].is_Store != 1) {
+        fprintf(stderr,"Error: Malconfigured channel %s\n", channel.tag.c_str());
+        if(confmap[channel.store[0]].is_Store != 1)
+          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[0].c_str());
+        else
+          fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[1].c_str());
+        return 1;
+      }
+      storea = *confmap[channel.store[0]].store;
+      storeb = *confmap[channel.store[1]].store;
+
+      printf("Synchronizing stores \"%s\" <-> \"%s\"...\n",
+             storea.tag.c_str(), storeb.tag.c_str());
+
+    } else if (channels.size() == 1 && stores.size() == 1) {
+      mode = mode_diff;
+      expunge_duplicates = 0;
+      channel = channels[0];
+      storea = stores[0];
+      if (channel.store[0] == storea.tag) {
+        storeb = *confmap[channel.store[0]].store;
+      } else if (channel.store[1] == storea.tag) {
+        storeb = *confmap[channel.store[1]].store;
+      } else {
+        fprintf(stderr,"Diff mode: channel %s doesn't contain store %s.\n",
+                channel.tag.c_str(), argv[optind+1]);
+        return 1;
+      }
+      printf("Comparing store \"%s\" <-> \"%s\"...\n",
+             storea.tag.c_str(), storeb.tag.c_str());
+
+    } else if (channels.size() == 0 && stores.size() == 1) {
+      mode = mode_list;
+      storea = stores[0];
+
+      printf("Listing store \"%s\"\n", storea.tag.c_str());
+
+    } else {
+      fprintf(stderr, "Don't know what to do with %d channels and %d stores.\n", channels.size(), stores.size());
+      return 1;
+    }
+  }
+
+  // Open remote connections.
+
+  if (storea.isremote) {
+    current_context_passwd = &(storea.passwd);
+    storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN | OP_READONLY);
+    if (!storea_stream) {
+      fprintf(stderr,"Error: Can't contact first server %s\n",storea.server.c_str());
+      return 1;
+    }
+  } else {
+    storea_stream = NULL;
+  }
+
+  if (mode == mode_sync && storeb.isremote) {
+    current_context_passwd = &(storeb.passwd);
+    storeb_stream = mail_open(NIL, nccs(storeb.server), OP_HALFOPEN | OP_READONLY);
+    if (!storeb_stream) {
+      fprintf(stderr,"Error: Can't contact second server %s\n",storeb.server.c_str());
+      return 1;
+    }
+  } else {
+    storeb_stream = NULL;
+  }
+
+  // Get list of all mailboxes from each server.
+  allboxes.clear();
+  if (debug) printf(" Items in store \"%s\":\n", storea.tag.c_str());
+  get_mail_list(storea_stream, storea, allboxes);
+  if (debug)
+    if (storea.delim)
+      printf(" Delimiter for store \"%s\" is '%c'.\n",
+             storea.tag.c_str(), storea.delim);
+    else printf(" No delimiter found for store \"%s\".\n", storea.tag.c_str());
+  if (storea.delim == '!')
+    get_delim(storea_stream, storea);
+  assert(storea.delim != '!');
+  if (mode==mode_list) {
+    if (show_from | show_message_id)
+      for (StringSet::iterator box = allboxes.begin(); 
+           box != allboxes.end(); box++) {
+        printf("\nMailbox: %s\n\n", (*box).c_str());
+        storea_stream = mailbox_open_create(storea_stream, storea, *box, 0, NOCREATE);
+        if (!storea_stream) break;
+        list_contents(storea_stream);
+      }
+    else
+      print_list_with_delimiter(allboxes, stdout, "\n");
+    return 0;
+  }
+  if (mode==mode_sync) {
+    if (debug) printf(" Items in store \"%s\":\n", storeb.tag.c_str());
+    get_mail_list(storeb_stream, storeb, allboxes);
+    if (debug)
+      if (storeb.delim)
+        printf(" Delimiter for store \"%s\" is '%c'.\n",
+               storeb.tag.c_str(), storeb.delim);
+      else printf(" No delimiter found for store \"%s\"\n", storeb.tag.c_str());
+
+    if (storeb.delim == '!')
+      get_delim(storeb_stream, storeb);
+    assert(storeb.delim != '!');
+  }
+  if (show_message_id) {
+    printf(" All seen mailboxes: ");
+    print_list_with_delimiter(allboxes, stdout, " ");
+    printf("\n");
+  }
+
+  // Read the lasttime lists.
+  {
+    int success;
+    success = read_lasttime_seen(channel, allboxes, lasttime, deleted_boxes);
+    if (!success) 
+      exit(1);
+  }
+
+  // Process each mailbox.
+  
+  ok = 1;
+  for (StringSet::iterator box = allboxes.begin(); 
+       box != allboxes.end(); box++) {
+
+    if (show_from)
+      printf("\n *** %s ***\n", box->c_str());
+
+    StringSet l(lasttime[*box]), u, now;
+    MsgIdPositions a, b;
+
+    if (show_summary) {
+      printf("%s: ",box->c_str());
+      fflush(stdout);
+    } else {
+      printf("\n");
+    }
+
+    // fetch_message_ids(): map message-ids to message numbers.
+    // And optionally delete duplicates. 
+    //
+    // Attention: from here on we're operating on streams to single
+    //            _mailboxes_! That means that from here on
+    //            streamx_stream is connected to _one_ specific
+    //            mailbox.
+   
+    storea_stream = mailbox_open_create(storea_stream, storea, *box, 0, CREATE);
+    if (!storea_stream) break;
+    fetch_message_ids(storea_stream, storea.tag, a);
+    if (mode==mode_sync) {
+      storeb_stream = mailbox_open_create(storeb_stream, storeb, *box, 0, CREATE);
+      if (!storeb_stream) break;
+      fetch_message_ids(storeb_stream, storeb.tag, b);
+    } else if (mode==mode_diff) {
+      for (StringSet::iterator i=l.begin(); i!=l.end(); i++)
+        b[*i] = 0;
+    }
+
+    // u = union(l, a, b)
+    u = l;
+    for (MsgIdPositions::iterator i=a.begin(); i!=a.end(); i++)
+      u.insert(i->first);
+    for (MsgIdPositions::iterator i=b.begin(); i!=b.end(); i++)
+      u.insert(i->first);
+
+    StringSet copy_a_b, copy_b_a, remove_a, remove_b;
+
+
+    for (StringSet::iterator i=u.begin(); i!=u.end(); i++) {
+      bool in_a = a.count(*i);
+      bool in_b = b.count(*i);
+      bool in_l = l.count(*i);
+
+      int abl = (  (in_a ? 0x100 : 0) 
+                 + (in_b ? 0x010 : 0)
+                 + (in_l ? 0x001 : 0) );
+
+      switch (abl) {
+
+      case 0x100:  // New message on a
+        copy_a_b.insert(*i);
+        now.insert(*i);
+        break;
+
+      case 0x010:  // New message on b
+        copy_b_a.insert(*i);
+        now.insert(*i);
+        break;
+
+      case 0x111:  // Kept message
+      case 0x110:  // New message, present in a and b, no copying necessary
+        now.insert(*i);
+        break;
+
+      case 0x101:  // Deleted on b
+        remove_a.insert(*i);
+        break;
+
+      case 0x011:  // Deleted on a
+        remove_b.insert(*i);
+        break;
+
+      case 0x001:  // Deleted on both
+        break;
+
+      case 0x000:  // Shouldn't happen
+      default:
+        assert(0);
+        break;
+      }
+
+
+    }
+
+    unsigned long now_n = now.size();
+
+    switch (mode) {
+    case mode_sync:
+      {
+        int success;
+
+        // we're first removing messages
+        // if we'd first copy and the remove, mailclient would add a "Status: 0" line to
+        // each mail. We don't want this wrt to MUA's who interpret such a line as "not new"
+        // (in particular mutt!)
+
+        if (debug) printf(" Removing messages from store \"%s\"\n", storea.tag.c_str() );
+
+        unsigned long removed_a = 0;
+        for (StringSet::iterator i=remove_a.begin(); i!=remove_a.end(); i++) {
+          success = remove_message(storea_stream, storea, a[*i], *i, "< ");
+          if (success) removed_a++;
+        }
+
+        if (debug) printf(" Removing messages from store \"%s\"\n", storeb.tag.c_str() );
+
+        unsigned long removed_b = 0;
+        for (StringSet::iterator i=remove_b.begin(); i!=remove_b.end(); i++) {
+          success = remove_message(storeb_stream, storeb, b[*i], *i, "> ");
+          if (success) removed_b++;
+        }
+
+        string fullboxnamea = full_mailbox_name(storea, *box);
+        string fullboxnameb = full_mailbox_name(storeb, *box);
+
+        // strangely enough, following Mark Crispin, if you write into an open
+        // stream then it'll mark new messages as seen.
+        //
+        // So if we want to write to a remote mailbox we have to HALF_OPEN the stream
+        // and if we're working on a local mailbox then we have to use a NIL stream.
+
+        if (debug) printf(" Copying messages from store \"%s\" to store \"%s\"\n",
+                          storea.tag.c_str(), storeb.tag.c_str() );
+
+        if (! storeb.isremote) {
+          mail_close(storeb_stream);
+          storeb_stream = NIL;
+        } else 
+          storeb_stream = mailbox_open_create(storeb_stream, storeb, *box, 0, NOCREATE);
+        unsigned long copied_a_b = 0;
+        for (StringSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++) {
+          success = copy_message(storea_stream, storea.passwd, a[*i], *i,
+                                storeb_stream, storeb.passwd, fullboxnameb, "->");
+          if (success)
+            copied_a_b++;
+          else                  // we've failed to copy the message over
+            now.erase(*i);      // as we should've had. So let's just assume
+                                // that we haven't seen it at all. That way
+                                // mailsync will have to rediscover and resync
+                                // the same message again next time
+        }
+
+        if (debug) printf(" Copying messages from store \"%s\" to store \"%s\"\n",
+                          storeb.tag.c_str(), storea.tag.c_str() );
+
+        if (!storeb.isremote)   // reopen the stream if it was closed before
+          storeb_stream = mailbox_open_create(NIL, storeb, *box, OP_READONLY, NOCREATE);
+        if (!storea.isremote) { // close the stream for writing (sic - the beauty of c-client!) !!
+          mail_close(storea_stream);
+          storea_stream = NIL;
+        } else 
+          storea_stream = mailbox_open_create(storea_stream, storea, *box, 0, NOCREATE);
+        unsigned long copied_b_a = 0;
+        for (StringSet::iterator i=copy_b_a.begin(); i!=copy_b_a.end(); i++) {
+          success = copy_message(storeb_stream, storeb.passwd, b[*i], *i,
+                                 storea_stream, storea.passwd, fullboxnamea, "<-");
+          if (success)
+            copied_b_a++;
+          else
+            now.erase(*i);
+        }
+        
+        printf("\n");
+        if (copied_a_b)
+          printf("%ld copied %s->%s.\n", copied_a_b,
+                 storea.tag.c_str(), storeb.tag.c_str());
+        if (copied_b_a)
+          printf("%ld copied %s->%s.\n", copied_b_a,
+                 storeb.tag.c_str(), storea.tag.c_str());
+        if (removed_a)
+          printf("%ld deleted on %s.\n", removed_a, storea.tag.c_str());
+        if (removed_b)
+          printf("%ld deleted on %s.\n", removed_b, storeb.tag.c_str());
+        if (show_summary) {
+          printf("%ld remain%s.\n", now_n, now_n!=1 ? "" : "s");
+          fflush(stdout);
+        } else {
+          printf("%ld messages remain in %s\n", now_n, box->c_str());
+        }
+      }
+      break;
+
+    case mode_diff:
+      {
+        if (copy_a_b.size())
+          printf("%d new, ", copy_a_b.size());
+        if (remove_b.size())
+          printf("%d deleted, ", remove_b.size());
+        printf("%d currently at store %s.\n", now.size(), storeb.tag.c_str());
+      }
+      break;
+
+    default:
+      break;
+    }
+
+    thistime[*box] = now;
+
+    if (!no_expunge) {
+      if (!storea.isremote)   // reopen the stream if it was closed before - needed for expunge
+        storea_stream = mailbox_open_create(NIL, storea, *box, 0, NOCREATE);
+      current_context_passwd = &(storea.passwd);
+      mail_expunge(storea_stream);
+      if (storeb_stream) {
+        if (!storeb.isremote)   // reopen the stream in write mode it was closed before - needed for expunge
+          storeb_stream = mailbox_open_create(NIL, storeb, *box, 0, NOCREATE);
+        current_context_passwd = &(storeb.passwd);
+        mail_expunge(storeb_stream);
+      }
+      printf("Mails expunged\n");
+    }
+
+    if (!storea.isremote)
+      storea_stream = mail_close(storea_stream);
+    if (storeb_stream && !storeb.isremote)
+      storeb_stream = mail_close(storeb_stream);
+
+    if (delete_empty_mailboxes) {
+      if (now_n == 0) {
+        empty_mailboxes.insert(*box);
+      }
+    }
+
+  }
+
+  if (storea.isremote) storea_stream = mail_close(storea_stream);
+  if (storeb.isremote) storeb_stream = mail_close(storeb_stream);
+
+  if (!ok)
+    return 1;
+
+  if (delete_empty_mailboxes) {
+    string fullboxname;
+
+    if (storea.isremote) {
+      current_context_passwd = &(storea.passwd);
+      storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN);
+    } else {
+      storea_stream = NULL;
+    }
+    if (storeb.isremote) {
+      current_context_passwd = &(storeb.passwd);
+      storeb_stream = mail_open(NIL, nccs(storeb.server), OP_HALFOPEN);
+    } else {
+      storeb_stream = NULL;
+    }
+    for (StringSet::iterator i=empty_mailboxes.begin(); 
+         i!=empty_mailboxes.end(); i++) {
+      fullboxname = full_mailbox_name(storea, *i);
+      printf("%s: deleting\n", i->c_str());
+      printf("  %s", fullboxname.c_str());
+      fflush(stdout);
+      current_context_passwd = &(storea.passwd);
+      if (mail_delete(storea_stream, nccs(fullboxname)))
+        printf("\n");
+      else
+        printf(" failed\n");
+      fullboxname = full_mailbox_name(storeb, *i);
+      printf("  %s", fullboxname.c_str());
+      fflush(stdout);
+      current_context_passwd = &(storeb.passwd);
+      if (mail_delete(storeb_stream, nccs(fullboxname))) 
+        printf("\n");
+      else
+        printf(" failed\n");
+    }
+  }
+
+  if (mode==mode_sync) {
+    write_lasttime(channel, allboxes, deleted_boxes, thistime);
+  }
+  return 0;
+}
+         
+
+//-------------------------- Callback functions --------------------------
+//
+// Below are the implementations callback functions that are required/called
+// by c-client functions.
 //
 // If we want to manipulate a stream or a mailbox we call a c-client
 // function which does whatever is necessary and will furnish us the
