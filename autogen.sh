@@ -1,6 +1,6 @@
 #!/bin/sh
-aclocal
-autoheader
-automake -a
-autoconf
+aclocal -I acinclude     && \
+autoheader               && \
+automake -a              && \
+autoconf                 && \
 ./configure "$@"

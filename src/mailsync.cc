@@ -1269,11 +1269,12 @@ void sanitize_message_id(string& msgid) {
     msgid = '<'+msgid;
     added_brackets = 1;
   }
-  for (i=0; (i < msgid.size()) && (msgid[i] != '>'); i++)
+  for (i=0; (i < msgid.size()) && (msgid[i] != '>'); i++) {
     if (isspace(msgid[i]) || iscntrl(msgid[i])) {
       msgid[i] = '.';
       removed_blanks = 1;
     }
+  }
 
   // Have we reached end of string?
   if (i == msgid.size()) {
@@ -1313,14 +1314,14 @@ MAILSTREAM* mailbox_open_create(MAILSTREAM* stream,
 // Returns NIL on failure.
 //
 //////////////////////////////////////////////////////////////////////////
-  bool o;
+  bool old_log_error;
   
-  o = log_error;
+  old_log_error = log_error;
   log_error = 0;
   if (create)
     mail_create(stream, nccs(fullboxname));       // creates new if not
                                                   // existent, fails otherwise
-  log_error = o;
+  log_error = old_log_error;
   stream = mail_open(stream, nccs(fullboxname), c_client_options);
   return stream;
 }
@@ -1637,6 +1638,11 @@ int main(int argc, char** argv) {
    
     storea_stream = mailbox_open_create(storea_stream, storea, *box, 0, CREATE);
     if (! storea_stream) break;
+    /* hacking here: tpo
+    if ( contains_subdirs(storea) {
+      fprintf("Warning: 
+    }
+    */
     if (! fetch_message_ids(storea_stream, storea.tag, msgidpos_a))
       exit(1);
     if (mode==mode_sync) {
@@ -1739,8 +1745,9 @@ int main(int argc, char** argv) {
         // strangely enough, following Mark Crispin, if you write into an open
         // stream then it'll mark new messages as seen.
         //
-        // So if we want to write to a remote mailbox we have to HALF_OPEN the stream
-        // and if we're working on a local mailbox then we have to use a NIL stream.
+        // So if we want to write to a remote mailbox we have to HALF_OPEN the
+        // stream and if we're working on a local mailbox then we have to use
+        // a NIL stream.
 
         if (debug) printf(" Copying messages from store \"%s\" to store \"%s\"\n",
                           storea.tag.c_str(), storeb.tag.c_str() );
@@ -1820,13 +1827,17 @@ int main(int argc, char** argv) {
     thistime[*box] = msgids_now;
 
     if (!no_expunge) {
-      if (!storea.isremote)   // reopen the stream if it was closed before - needed for expunge
+      if (!storea.isremote) { // reopen the stream in write mode if it was
+                              // closed before - needed for expunge
         storea_stream = mailbox_open_create(NIL, storea, *box, 0, NOCREATE);
+      }
       current_context_passwd = &(storea.passwd);
       if (!simulate) mail_expunge(storea_stream);
       if (storeb_stream) {
-        if (!storeb.isremote)   // reopen the stream in write mode it was closed before - needed for expunge
+        if (!storeb.isremote) { // reopen the stream in write mode it was
+                                // closed before - needed for expunge
           storeb_stream = mailbox_open_create(NIL, storeb, *box, 0, NOCREATE);
+        }
         current_context_passwd = &(storeb.passwd);
         if (!simulate) mail_expunge(storeb_stream);
       }
@@ -1927,7 +1938,7 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
   
   if( debug) {
     fputs ("  ", stdout);
-    if (stream&&stream->mailbox)
+    if (stream && stream->mailbox)
       fputs (stream->mailbox, stdout);
     if (name) fputs(name, stdout);
     if (attributes & LATT_NOINFERIORS) fputs (", leaf",stdout);
@@ -1938,6 +1949,7 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
   }
 
   if (!match_pattern_store) {
+    fprintf(stderr, "Error: match_pattern_store is NULL?!");
     // Internal error
     abort();
   }

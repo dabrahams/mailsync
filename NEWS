@@ -1,3 +1,7 @@
+New in 4.5.4:
+
+ * removed acinclude.m4 (Krelin's code-beautycenter)
+
 New in 4.5.3:
 
  * automatic detection whether -fno-operator-names is necessary
