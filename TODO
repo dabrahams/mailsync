@@ -1,0 +1,18 @@
+* unless run wit -D a once existent folder will allways be
+  recreated because mailsync remembers it in it's .minfo store.
+  How to reproduce:
+  * create folder F
+  * store some file there
+  * sync
+  * remove F on both sites
+  * sync
+  * F will be recreated on one site :-/
+
+* Better error handling (if there's an IMAP error mailsync just
+  quits)
+
+* clean up
+
+* integrate current_context_passwd better with c-client calls
+
+* refuse to run if .mailsync contains password and permissions are wrong

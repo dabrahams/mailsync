@@ -1,0 +1,31 @@
+Mailsync is a way of synchronizing a collection of mailboxes.  The
+algorithm is a 3-way diff.  Two mailboxes are simultaneously compared
+to a record of the state of both mailboxes at last sync.  New messages
+and message deletions are propagated between the two mailboxes.  If
+you're familiar with CVS, it's the same principle, except there's no
+opportunity for conflicts.
+
+Mailsync can be used for many things.  I wrote it for synchronizing
+my desktop mail with my laptop.  You can also use it if your mail is
+kept on an IMAP server, but your favorite mail client doesn't totally
+grok IMAP---for instance, I use VM under Emacs, and VM keeps a copy of 
+my mail in my home directory, and I synchronize that with the IMAP
+server.  You can keep your mail in arbitrarily many places and keep it 
+all consistent.
+
+Mailsync is based on the "c-client" library developed at the
+University of Washington.  C-client was designed for writing IMAP
+clients, but it also can access local mailbox files in many formats,
+with a nearly consistent API.  Mailsync's mailboxes can be on IMAP
+servers, on the local filesystem in UNIX, MH, or any other format
+c-client supports.
+
+What about "detached client" mode in an IMAP client?  Mailsync
+attempts to solve the same problem in a different way.  The "detached
+client" idea assumes that there's a master server and a
+periodically-connected client.  Mailsync does not designate a server
+or a client.  (In fact, it acts sort of like a client that arbitrates
+between two servers.)
+
+Currently, the concept of message identity is based entirely on the
+Message-ID field.  This may change.
