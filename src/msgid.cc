@@ -81,7 +81,7 @@ MsgId::MsgId(ENVELOPE *envelope)
         char addr[4096];
 
         if (envelope->date)
-          str = string(envelope->date);
+          str = string((char*)envelope->date);
         if (envelope->subject)
           str += string(envelope->subject);
         if (envelope->message_id)

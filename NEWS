@@ -18,6 +18,7 @@ New in 5.1.2:
  * we require automake > 1.6 or else we'll complain (thanks Michael, Akkana, Eric!)
  * added HACKING file
  * more verbose error message when c-client is linked against kerberos, but kerberos is not installed
+ * small compilation fixes (thanks Heiko)
  * NOT YET RELEASED
  
 New in 5.1.1:
