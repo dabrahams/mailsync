@@ -276,8 +276,10 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
     }
     else
     {
-      printf( "%lu duplicates deleted from %s/%s\n",
-              nduplicates, this->stream->mailbox, name.c_str() );
+      printf( "%lu duplicate%s deleted from %s\n",
+              nduplicates,
+              nduplicates==1 ? "" : "s",
+              name.c_str() );
     }
     fflush(stdout);
   }
