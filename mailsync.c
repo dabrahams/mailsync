@@ -67,6 +67,8 @@
 // "linux/mailsync". Each of those mailboxes has had two mails in it,
 // whose message-ids can be seen above.
 //
+// Take care - mailboxes with *empty* names *are* allowed.
+//
 //////////////////////////////////////////////////////////////////////////
 //
 #define VERSION "4.5"
@@ -195,10 +197,9 @@ struct Channel {
   string msinfo;
   Passwd passwd;
   unsigned long sizelimit;
-  string version;
 
   void clear() {
-    tag = store[0] = store[1] = msinfo = version = "";
+    tag = store[0] = store[1] = msinfo = "";
     passwd.clear();
     sizelimit = 0;
     return;
@@ -426,7 +427,6 @@ void usage() {
   printf("\n");
   return;
 }
-
 
 //--------------------- Configuration Parsing ----------------------------
 
@@ -755,7 +755,7 @@ bool read_lasttime_seen(Channel channel,
   ENVELOPE* envelope;
   unsigned long msgno;
   unsigned long k;
-  string* currentbox = NULL;    // the box whose msg-id's we're currently reading
+  string currentbox = "";    // the box whose msg-id's we're currently reading
   char* text;
   unsigned long textlen;
 
@@ -779,15 +779,12 @@ bool read_lasttime_seen(Channel channel,
       fprintf(stderr,"       Aborting!\n");
       return 0;
     }
-    // Make sure that the mail is from mailsync and read the mailsync version
+    // Make sure that the mail is from mailsync 
     if (strncmp(envelope->from->mailbox, "mailsync", 8)) {
       // This is not an email describing a mailsync channel!
       fprintf(stderr,"Info: The msinfo box %s contains the non-mailsync mail: \"From: %s\"\n",
               channel.msinfo.c_str(), envelope->from->mailbox );
       continue;
-    }
-    else {
-      channel.version = &envelope->from->mailbox[8];
     }
 
     // The subject line contains the name of the channel
@@ -807,30 +804,27 @@ bool read_lasttime_seen(Channel channel,
       // I.e. we transform the text body into c-strings, where
       // each string is either a mailbox or a message id
       for (k=0; k<textlen; k++) {
-        if (text[k] == '\n' || text[k] == '\r')
+        if (text[k] == '\n')    // can we assume that newlines are allways \n?
           text[k] = '\0';
       }
+      bool instring = 0;
       // Check each box against `boxes'
       for (k=0;k<textlen;) {
-        if (text[k] == '\0') { // skip nulls
-          k++;
+        if(!instring && text[k] == '\0') { // skip nulls, empty mailbox names
+          k++;                             // are allowed so we have to check'em
+          instring = 1;                    // <- here
           continue;
         }
-        if (text[k] != '<') {     // is it a mailbox name?
-          delete(currentbox);
-          if (boxes.count(&text[k])) { // is the mailbox allready known?
-            currentbox = new string(&text[k]);
-          } else {
-            currentbox = NULL;
-            extra.insert(&text[k]);
-          }
+        if ( text[k] != '<') {
+          currentbox = &text[k];
+          if (! boxes.count(currentbox))     // if the mailbox is unknown
+            extra.insert(currentbox);
         }
-        else {                    // it's a message-id
-          if (currentbox)
-            mids_per_box[*currentbox].insert(&text[k]);
-          else {}; // box has been deleted since last sync
+        else {                             // it's a message-id
+          mids_per_box[currentbox].insert(&text[k]);
         }
         for(;k<textlen && text[k]; k++); // fastforward to next string
+        instring = 0;
       }
 
       free(text);
