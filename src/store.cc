@@ -84,6 +84,7 @@ void Store::get_delim( )
 //////////////////////////////////////////////////////////////////////////
 {
   Store store_tmp;
+  store_tmp.stream = this->stream;
   store_tmp.server = this->server;
   store_tmp.ref    = this->ref;
   store_tmp.passwd = this->passwd;
