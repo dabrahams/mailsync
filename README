@@ -25,7 +25,7 @@ Mailsync-4
 1. Compiling mailsync
 ---------------------
 
-I've only compiled mailsync-4 on Linux and on SGI-Irix 6.5.  With a
+Mailsync has been built on Linux, FreeBSD and on SGI-Irix 6.5. With a
 little coaxing, though, it should compile on any unix-like system on
 which c-client compiles.  On a non-unix-like system, you may have to
 come up with alternatives to a few functions like stat() and getenv().
@@ -37,7 +37,16 @@ come up with alternatives to a few functions like stat() and getenv().
    link it to Mailsync.  Just get c-client.h from either the latest IMAP
    distribution or from http://mailsync.sourceforge.net.
 
+If you're building mailsync from CVS you'll need an automake version later
+than 1.6. The following should do the deal:
+
+2. ./autogen.sh
+
+After that the build procedure is the same as building from a released
+source package:
+
 2. ./configure && make && make install
+
 
 
 2. Configuring mailsync-4
