@@ -26,8 +26,8 @@ AC_DEFUN(AC_WITH_CCLIENT,[
   dnl
   dnl Looking for headers c-client headers
   dnl
-  for p in `eval "echo {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/include/c-client,/include}"` ; do
    AC_MSG_CHECKING([for c-client.h in $p])
+  for p in `eval "echo {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/include/c-client,/include}"` ; do
    if test -r "${p}/c-client.h" -a -r "${p}/linkage.h" -a -r "${p}/linkage.c" ; then
     CCLIENT_INCLUDES="-I${p}"
     CCLIENT_LINKAGE_H="${p}/linkage.h"
@@ -60,9 +60,9 @@ AC_DEFUN(AC_WITH_CCLIENT,[
    else
 
     dnl
-    dnl Checking whether c-client was built with kerberos support
+    dnl Checking whether c-client was built with kerberos gssapi support
     dnl
-    AC_MSG_CHECKING([whether c-client built with kerberos support])
+    AC_MSG_CHECKING([whether c-client built with kerberos gssapi support])
     AC_EGREP_HEADER(auth_gss,${CCLIENT_LINKAGE_H},
      [
       need_krb=yes
@@ -72,11 +72,11 @@ AC_DEFUN(AC_WITH_CCLIENT,[
       AC_MSG_RESULT([no])
      ]
     )
-    if test "${need_krb}" = "yes" -a "${HAVE_KRB5}" != "yes" ; then
+    if test "${need_krb}" = "yes" -a "${HAVE_KRB5_GSSAPI}" != "yes" ; then
      ifelse([$2], , :, [$2])
     else
      if test "${need_krb}" = "yes" ; then
-      CCLIENT_LIBS="${CCLIENT_LIBS} ${KRB5_LDFLAGS}"
+      CCLIENT_LIBS="${CCLIENT_LIBS} ${KRB5_GSSAPI_LIBS}"
      fi
      
      dnl

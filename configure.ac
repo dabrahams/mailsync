@@ -19,9 +19,10 @@ AC_FUNC_STAT
 AC_CHECK_FUNCS([getpass memset strchr strdup strerror strtoul])
 
 AC_SO_PREFERENCE([yes])
-AC_WITH_OPENSSL()
-AC_WITH_KRB5()
-AC_WITH_PAM()
+AC_WITH_OPENSSL
+AC_WITH_KRB5
+AC_KRB5_GSSAPI
+AC_WITH_PAM
 
 AC_WITH_CCLIENT(,[
  AC_MSG_ERROR([a working c-client installation is required for building mailsync])

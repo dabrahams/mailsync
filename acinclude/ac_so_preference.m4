@@ -12,8 +12,10 @@ AC_DEFUN(AC_SO_PREFERENCE,[
  )
  if test "${PREFER_SO}" = "shared" -o "${PREFER_SO}" = "so" -o "${PREFER_SO}" = "yes" ; then
   PREFER_SO="yes"
+  ifelse([$2], , :, [$2])
  else
   PREFER_SO="no"
+  ifelse([$3], , :, [$3])
  fi
  AM_CONDITIONAL(PREFER_SO,[test "${PREFER_SO}" = "yes"])
 ])
