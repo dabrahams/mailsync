@@ -1,12 +1,12 @@
-/* set tab to 8 */
+/* Set tab to 8 */
 
-#define VERSION "4.3.1"
+#define VERSION "4.4.1"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <errno.h>
-extern int errno;		/* just in case */
-#include <sys/stat.h>           /* stat() */
+extern int errno;		/* Just in case */
+#include <sys/stat.h>           /* Stat() */
 
 #include <string>
 #include <set>
@@ -24,9 +24,28 @@ using std::make_pair;
 
 #define DEFAULT_DELIMITER '/'
 
+/*
+ * Options
+ */
+int log_chatter = 0;
+int show_summary = 1;    /* 1 line of output per mailbox */
+int show_from = 0;       /* 1 line of output per message */
+int show_message_id = 0; /* Implies show_from */
+int no_expunge = 0;
+enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
+int delete_empty_mailboxes = 0;
+int debug = 0;
+
+/*
+ * Mandatory options
+ */
+int kill_duplicates = 1;
+int log_error = 1;
+int log_warn = 0;
+
 typedef set<string> StringSet;
 
-int critical = NIL;		/* flag saying in critical code */
+int critical = NIL;		/* Flag saying in critical code */
 char *getpass();
 
 void save(const StringSet& set, FILE* f, const string& delim) {
@@ -34,8 +53,10 @@ void save(const StringSet& set, FILE* f, const string& delim) {
     fprintf(f, "%s%s", i->c_str(), delim.c_str());
 }
 
-/* c-client doesn't declare anything const */
-/* If you're paranoid, you can allocate a new char[] here */
+/*
+ * C-Client doesn't declare anything const
+ * If you're paranoid, you can allocate a new char[] here
+ */
 char* nccs(const string& s) {
   return (char*) s.c_str();
 }
@@ -65,16 +86,19 @@ struct Passwd {
     text = passwd;
   }
 };
-/* the password for the current context
- * required, because in the c-client callback functions we don't know
- * in which context (store1, store2, channel) we are */
+
+/*
+ * The password for the current context
+ * Required, because in the c-client callback functions we don't know
+ * in which context (store1, store2, channel) we are
+ */
 Passwd * current_context_passwd = NULL;
 
 struct Store {
-  string tag, server, prefix;
+  string tag, server, prefix;	/* Tag == store name */
   string ref, pat;
   Passwd passwd;
-  int isremote;     /* i.e. allows OP_HALFOPEN */
+  int isremote;     /* I.e. allows OP_HALFOPEN */
   int delim;
 
   void clear() {
@@ -107,7 +131,7 @@ struct Store {
 };
 
 struct Channel {
-  string tag;
+  string tag;		/* Tag == channel name */
   string store[2];
   string msinfo;
   Passwd passwd;
@@ -153,179 +177,254 @@ void Configitem_print(Configitem& conf, FILE* f) {
     conf.channel->print(f);
 }
 
+/*
+ * A token is a [space|newline|tab] delimited chain of characters which
+ * represents a syntactic element
+ */
 struct Token {
   string buf;
   int eof;
   int line;
 };
 
+/*
+ * Fatal error while parsing the config file
+ * Display error message and quit
+ */
 void parse_error_fatal(Token* t) {
   if (t->eof) {
-    fprintf(stderr,"Parse error, at EOF; quitting\n");
+    fprintf(stderr, "Error: Unexpected EOF while parsing configuration file");
   } else {
-    fprintf(stderr,"Parse error, line %d, reading \"%s\"; quitting\n",t->line,t->buf.c_str());
+    fprintf(stderr, "Error: While parsing line %-4d:\n\n", t->line);
+    fprintf(stderr, "       \"%s\"\n\n", t->buf.c_str());
   }
+  fprintf(stderr, "Quitting!\n");
+
   assert(0);
   exit(1);
 }
 
+/* 
+ * Read a token from the config file
+ */
 void get_token(FILE* f, Token* t) {
   int c;
   t->buf = "";
   t->eof = 0;
   while (1) {
     if (t->buf.size() > MAILTMPLEN) {
-      /* token too long */
+      /* Token too long */
+      fprintf(stderr, "Error: Line too long\n");
       parse_error_fatal(t);
       return;
     }
     c = getc(f);
-    // ignore comments
+   
+    /* Ignore comments */
     if ( t->buf.size() == 0 && c=='#') {
       while( c != '\n' && c !=EOF) {
 	c = getc(f);
       }
     }
+    
+    /* Skip newline */
     if (c=='\n')
       t->line++;
+
+    /* We're done reading the config file */
     if (c==EOF) {
       t->eof = 1;
       break;
+
+    /* We've reached a token boundary */
     } else if (isspace(c)) {
+      /* The token is non empty so we've acquired something and can return */
       if (t->buf.size()) {
 	break;
+      /* Ignore spaces */
       } else {
 	continue;
       }
+    /* Continue on next line... */
     } else if (c=='\\') {
       t->buf += (char)getc(f);
+    /* Add to token */
     } else {
       t->buf += (char)c;
     }
   }
-  //printf("get_token(%s)\n",t->buf.c_str());
+  if (debug) printf("\t%s\n",t->buf.c_str());
   return;
 }
 
-void Configitem_parse(FILE* f, map<string, Configitem>& confmap) {
+/* 
+ * Parse config file
+ */
+void Config_parse(FILE* f, map<string, Configitem>& confmap) {
   Token token;
   Token *t;
 
+  if (debug) printf(" Parsing config...\n\n");
+
   t = &token;
   t->line = 0;
-  while (1) {  /* read an item from the file */
+
+  /* Read items from file */
+  while (1) {
     Configitem* conf = new Configitem();
     string tag;
     conf->is_Store = -1;
 
+    /* Acquire one item */
     get_token(f, t);
+
+    /* End of config file reached */
     if (t->eof)
       break;
+    
+    /* Parse store */
     if (t->buf == "store") {
       conf->is_Store = 1;
       conf->store = new Store();
-      /* Read tag */
+      /* Read tag (store name) */
       get_token(f, t);
-      if (t->eof) parse_error_fatal(t);
+      if (t->eof) {
+	fprintf(stderr,"Error: Store name missing\n");
+        parse_error_fatal(t);
+      }
       tag = t->buf;
       conf->store->tag = t->buf;
       /* Read "{" */
       get_token(f, t);
-      if (t->eof || t->buf != "{")
+      if (t->eof || t->buf != "{") {
+	fprintf(stderr,"Error: Expected \"{\" while parsing store\n");
 	parse_error_fatal(t);
-      /* Read name/value pairs */
+      }
+      /* Read store configuration (name/value pairs) */
       while (1) {
 	get_token(f, t);
+	/* End of store config */
 	if (t->buf == "}")
 	  break;
 	else if (t->eof) {
-	  fprintf(stderr,"Unclosed store\n");
+	  fprintf(stderr,"Error: Expected \"{\" while parsing store: unclosed store\n");
 	  parse_error_fatal(t);
-	} else if (t->buf == "server") {
+	}
+	else if (t->buf == "server") {
 	  get_token(f, t);
 	  conf->store->server = t->buf;
-	} else if (t->buf == "prefix") {
+	}
+	else if (t->buf == "prefix") {
 	  get_token(f, t);
 	  conf->store->prefix = t->buf;
-	} else if (t->buf == "ref") {
+	}
+	else if (t->buf == "ref") {
 	  get_token(f, t);
 	  conf->store->ref = t->buf;
-	} else if (t->buf == "pat") {
+	}
+	else if (t->buf == "pat") {
 	  get_token(f, t);
 	  conf->store->pat = t->buf;
-	} else if (t->buf == "passwd") {
+	}
+	else if (t->buf == "passwd") {
 	  get_token(f, t);
 	  conf->store->set_passwd(t->buf);
-	} else {
-	  fprintf(stderr,"Unknown store field\n");
+	}
+	else {
+	  fprintf(stderr,"Error: Unknown store field\n");
 	  parse_error_fatal(t);
 	}
       }
       if (conf->store->server == "") {
 	conf->store->isremote = 0;
-      } else {
+      }
+      else {
 	conf->store->isremote = 1;
       }
-    } else if (t->buf == "channel") {
+
+    /* Parse a channel */
+    }
+    else if (t->buf == "channel") {
       conf->is_Store = 0;
       conf->channel = new Channel;
-      /* Read tag */
+      /* Read tag (channel name) */
       get_token(f, t);
-      if (t->eof) parse_error_fatal(t);
+      if (t->eof) {
+	fprintf(stderr,"Error: Channel name missing\n");
+	parse_error_fatal(t);
+      }
       tag = t->buf;
       conf->channel->tag = t->buf;
       /* Read stores */
       get_token(f, t);
-      if (t->eof) parse_error_fatal(t);
+      if (t->eof) {
+	fprintf(stderr,"Error: Expected a store name while parsing channel\n");
+	parse_error_fatal(t);
+      }
       conf->channel->store[0] = t->buf;
       get_token(f, t);
-      if (t->eof) parse_error_fatal(t);
+      if (t->eof) {
+	fprintf(stderr,"Error: Expected a store name while parsing channel\n");
+	parse_error_fatal(t);
+      }
       conf->channel->store[1] = t->buf;
       /* Read "{" */
       get_token(f, t);
-      if (t->eof || t->buf != "{")
+      if (t->eof || t->buf != "{") {
+	fprintf(stderr,"Error: Expected \"{\" while parsing channel\n");
 	parse_error_fatal(t);
-      /* Read name/value pairs */
+      }
+      /* Read channel config (name/value pairs) */
       while (1) {
 	get_token(f, t);
 	if (t->buf == "}")
 	  break;
 	else if (t->eof) {
-	  fprintf(stderr,"Unclosed channel\n");
+	  fprintf(stderr,"Error: Unclosed channel\n");
 	  parse_error_fatal(t);
-	} else if (t->buf == "msinfo") {
+	}
+	else if (t->buf == "msinfo") {
 	  get_token(f, t);
 	  conf->channel->msinfo = t->buf;
-	} else if (t->buf == "passwd") {
+	}
+	else if (t->buf == "passwd") {
 	  get_token(f, t);
 	  conf->channel->set_passwd(t->buf);
-	} else {
-	  fprintf(stderr,"Unknown channel field\n");
+	}
+	else {
+	  fprintf(stderr,"Error: Unknown channel field\n");
 	  parse_error_fatal(t);
 	}
       }
       if (conf->channel->msinfo == "") {
-	fprintf(stderr,"%s: missing msinfo\n", conf->channel->tag.c_str());
+	fprintf(stderr,"Error: %s: missing msinfo\n", conf->channel->tag.c_str());
 	exit(1);
       }
-    } else {
+    }
+    else {
+      fprintf(stderr,"Error: unknow configuration element\n");
       parse_error_fatal(t);
     }
     if (confmap.count(tag)) {
-      fprintf(stderr,"Tag used twice: %s\n", tag.c_str());
+      fprintf(stderr,"Error: Tag (store or channel name) used twice: %s\n", tag.c_str());
       exit(1);
     }
     confmap.insert(make_pair(tag, *conf));
     delete conf;
   }
+
+  if (debug) printf(" End parsing config. Config is OK\n\n");
+
   return;
 }
 
-/* Given the name of a mailbox on a Store, return its full IMAP name. */
+/* 
+ * Given the name of a mailbox on a Store, return its full IMAP name.
+ */
 string Store_mailbox(Store s, const string& box) {
   string boxname = box;
   string fullbox;
-  /* replace our DEFAULT_DELIMITER by the one of the Store */
+  /* Replace our DEFAULT_DELIMITER by the respective store delimiter */
   for (unsigned int i=0; i<boxname.size(); i++)
     if( boxname[i] == DEFAULT_DELIMITER) boxname[i] = s.delim;
   fullbox = s.server + s.prefix + boxname;
@@ -334,6 +433,7 @@ string Store_mailbox(Store s, const string& box) {
 
 static StringSet*   tdc_mail_list_dest;
 static Store*       tdc_mail_list_store;
+
 void tdc_mail_list(MAILSTREAM *stream, Store& store, StringSet& list) {
   tdc_mail_list_store = &store;
   tdc_mail_list_dest = &list;
@@ -343,22 +443,8 @@ void tdc_mail_list(MAILSTREAM *stream, Store& store, StringSet& list) {
   tdc_mail_list_dest = NULL;
 }
 
-/* Options */
-int log_chatter = 0;
-int show_summary = 1;    /* 1 line of output per mailbox */
-int show_from = 0;       /* 1 line of output per message */
-int show_message_id = 0; /* implies show_from */
-int no_expunge = 0;
-enum { mode_unknown, mode_sync, mode_list, mode_diff } mode = mode_unknown;
-int delete_empty_mailboxes = 0;
-int debug = 0;
-
-/* mandatory options */
-int kill_duplicates = 1;
-int log_error = 1;
-int log_warn = 0;
-
-/* some print formats */
+/* Some print formats
+ */
 char lead_format[] = "  %-10s %s  ";
 char mid_format[] = "%-65s";
 char from_format[] = "%-61s";
@@ -406,7 +492,7 @@ void get_delim(MAILSTREAM*& stream, Store& store_in) {
 }
 
 /*
- * find out what we've seen the last time we
+ * Find out what we've seen the last time we
  */
 int read_lasttime(Channel channel,
 		  StringSet& boxes, 
@@ -424,13 +510,13 @@ int read_lasttime(Channel channel,
   stream = tdc_mail_open_create_if_nec(NULL, nccs(channel.msinfo), 
 				       OP_READONLY);
   if (!stream) {
-    fprintf(stderr,"?Couldn't open lasttime box %s\n", channel.msinfo.c_str());
+    fprintf(stderr,"Error: Couldn't open lasttime box %s\n", channel.msinfo.c_str());
     return 0;
   }
 
   for (j=1; j<=stream->nmsgs; j++) {
     envelope = mail_fetchenvelope(stream, j);
-    /* the subject line contains the name of the channel */
+    /* The subject line contains the name of the channel */
     if (channel.tag == envelope->subject) {
       /* Found our lasttime */
       int instring;
@@ -448,7 +534,7 @@ int read_lasttime(Channel channel,
 	  instring = 0;
 	} else {
 	  if (!instring) {
-	    /* do nothing in particular */
+	    /* Do nothing in particular */
 	  }
 	  instring = 1;
 	}
@@ -461,7 +547,7 @@ int read_lasttime(Channel channel,
 	} else {
 	  if (!instring) {
 	    if (text[k] != '<') {
-	      /* mailbox name */
+	      /* Mailbox name */
 	      if (boxes.count(&text[k])) {
 		currentbox = string(&text[k]);
 	      } else {
@@ -469,7 +555,7 @@ int read_lasttime(Channel channel,
 		extra.insert(&text[k]);
 	      }
 	    } else {
-	      /* message-id */
+	      /* Message-id */
 	      if (currentbox != "") {
 		mids[currentbox].insert(&text[k]);
 	      }
@@ -479,7 +565,7 @@ int read_lasttime(Channel channel,
 	}
       }
       free(text);
-      break; /* stop searching for message */
+      break;	/* Stop searching for message */
     }
   }
   
@@ -501,7 +587,7 @@ int fetch_message_ids(MAILSTREAM*& stream, Store& store,
   current_context_passwd = &(store.passwd);
   stream = tdc_mail_open_create_if_nec(stream, fullboxname, 0);
   if (!stream) {
-    fprintf(stderr,"?Couldn't open %s\n", fullboxname.c_str());
+    fprintf(stderr,"Error: Couldn't open %s\n", fullboxname.c_str());
     return 0;
   }
   int n = stream->nmsgs;
@@ -582,7 +668,7 @@ int copy_message(MAILSTREAM*& storea_stream, Store& storea,
   }
 
   elt = mail_elt(storea_stream, msgno);
-  assert(elt->valid); /* should be valid because of fetchenvelope() */
+  assert(elt->valid); /* Should be valid because of fetchenvelope() */
 
   memset(flags, 0, MAILTMPLEN);
   if (elt->seen) strcat (flags," \\Seen");
@@ -618,7 +704,7 @@ int remove_message(MAILSTREAM*& stream, Store& store,
   envelope = mail_fetchenvelope(stream, msgno);
   if (!(envelope->message_id)) {
     printf("Error: no message-id, so I won't kill the message.\n");
-    /* possibly indicates concurrent access? */
+    /* Possibly indicates concurrent access? */
     ok = 0;
   } else {
     msgid_fetched = envelope->message_id;
@@ -716,7 +802,7 @@ int main(int argc, char** argv) {
       if (home) {
 	config_file = string(home) + "/.mailsync";
       } else {
-	fprintf(stderr,"?Can't get home directory. Use `-f file'.\n");
+	fprintf(stderr,"Error: Can't get home directory. Use `-f file'.\n");
 	return 1;
       }
     }
@@ -724,20 +810,11 @@ int main(int argc, char** argv) {
       struct stat st;
       stat(config_file.c_str(), &st);
       if (S_ISDIR(st.st_mode) || !(config=fopen(config_file.c_str(),"r"))) {
-	fprintf(stderr,"?Can't open config file %s\n",config_file.c_str());
+	fprintf(stderr,"Error: Can't open config file %s\n",config_file.c_str());
 	return 1;
       }
     }
-    Configitem_parse(config, confmap);
-
-    if( debug) {
-      fprintf(stderr, "----- I have parsed and understood ----\n");
-      fprintf(stderr, "----- the following configuration  ----\n");
-      for (map<string, Configitem>::iterator j=confmap.begin();
-	   j!=confmap.end(); j++) 
-	Configitem_print(j->second, stderr);
-      fprintf(stderr, "----- end of parsed configuration ----- \n");
-    }
+    Config_parse(config, confmap);
 
     /* Search for the desired store or channel; determine mode. */
     
@@ -746,7 +823,7 @@ int main(int argc, char** argv) {
 
     for (unsigned i=0; i<args.size(); i++) {
       if (confmap.count(args[i])==0) {
-	fprintf(stderr, "Unknown item %s\n", args[i].c_str());
+	fprintf(stderr, "Error: A channel or store named \"%s\" has not been configured\n", args[i].c_str());
 	return 1;
       }
       Configitem* p = &(confmap[args[i]]);
@@ -760,9 +837,13 @@ int main(int argc, char** argv) {
     if (channels.size() == 1 && stores.size() == 0) {
       mode = mode_sync;
       channel = channels[0];
-      if (confmap[channel.store[0]].is_Store != 1
-	  || confmap[channel.store[1]].is_Store != 1) {
-	fprintf(stderr,"Malconfigured channel\n");
+      if (confmap[channel.store[0]].is_Store != 1 ||
+	  confmap[channel.store[1]].is_Store != 1) {
+	fprintf(stderr,"Error: Malconfigured channel %s\n", channel.tag.c_str());
+	if(confmap[channel.store[0]].is_Store != 1)
+	  fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[0].c_str());
+	else
+	  fprintf(stderr,"The configuration doesn't contain a store named \"%s\"\n", channel.store[1].c_str());
 	return 1;
       }
       storea = *confmap[channel.store[0]].store;
@@ -781,7 +862,7 @@ int main(int argc, char** argv) {
       } else if (channel.store[1] == storea.tag) {
 	storeb = *confmap[channel.store[1]].store;
       } else {
-	fprintf(stderr,"Diff mode: channel %s doesn't involve store %s.\n",
+	fprintf(stderr,"Diff mode: channel %s doesn't contain store %s.\n",
 		channel.tag.c_str(), argv[optind+1]);
 	return 1;
       }
@@ -806,7 +887,7 @@ int main(int argc, char** argv) {
     current_context_passwd = &(storea.passwd);
     storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN);
     if (!storea_stream) {
-      fprintf(stderr,"?Can't contact first server %s\n",storea.server.c_str());
+      fprintf(stderr,"Error: Can't contact first server %s\n",storea.server.c_str());
       return 1;
     }
   } else {
@@ -817,7 +898,7 @@ int main(int argc, char** argv) {
     current_context_passwd = &(storeb.passwd);
     storeb_stream = mail_open(NIL, nccs(storeb.server), OP_HALFOPEN);
     if (!storeb_stream) {
-      fprintf(stderr,"?Can't contact second server %s\n",storeb.server.c_str());
+      fprintf(stderr,"Error: Can't contact second server %s\n",storeb.server.c_str());
       return 1;
     }
   } else {
@@ -921,33 +1002,33 @@ int main(int argc, char** argv) {
 
       switch (abl) {
 
-      case 0x100:  // new message on a
+      case 0x100:  /* New message on a */
 	copy_a_b.insert(*i);
 	now.insert(*i);
 	break;
 
-      case 0x010:  // new message on b
+      case 0x010:  /* New message on b */
 	copy_b_a.insert(*i);
 	now.insert(*i);
 	break;
 
-      case 0x111:  // kept message
-      case 0x110:  // new message, no copying necessary
+      case 0x111:  /* Kept message */
+      case 0x110:  /* New message, no copying necessary */
 	now.insert(*i);
 	break;
 
-      case 0x101:  // deleted on b
+      case 0x101:  /* Deleted on b */
 	remove_a.insert(*i);
 	break;
 
-      case 0x011:  // deleted on a
+      case 0x011:  /* Deleted on a */
 	remove_b.insert(*i);
 	break;
 
-      case 0x001:  // deleted on both
+      case 0x001:  /* Deleted on both */
 	break;
 
-      case 0x000:  // shouldn't happen
+      case 0x000:  /* Shouldn't happen */
       default:
 	assert(0);
 	break;
@@ -1120,7 +1201,7 @@ int write_lasttime(Channel channel,
     rewind(f);
     INIT(&CCstring, file_string, (void*) f, flen);
     if (!mail_append(stream, nccs(channel.msinfo), &CCstring)) {
-      fprintf(stderr,"?Can't append lasttime to %s\n",channel.msinfo.c_str());
+      fprintf(stderr,"Error: Can't append lasttime to %s\n",channel.msinfo.c_str());
       fclose(f);
       mail_close(stream);
       return 0;
@@ -1212,7 +1293,7 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
       name++;
     }
 
-    /* make sure that name doesn't contain default delimiter and replace
+    /* Make sure that name doesn't contain default delimiter and replace
      * all occurences of the Store delimiter by our default delimiter */
     string name_copy = name;
     if (delimiter != DEFAULT_DELIMITER) {
@@ -1239,23 +1320,23 @@ void mm_status (MAILSTREAM *stream,char *mailbox,MAILSTATUS *status) { }
 
 void mm_notify (MAILSTREAM *stream,char *s,long errflg)
 {
-  mm_log (s,errflg);	/* just do mm_log action */
+  mm_log (s,errflg);	/* Just do mm_log action */
 }
 
 void mm_log (char *string,long errflg)
 {
   switch (errflg) {  
   case BYE:
-  case NIL:			/* no error */
+  case NIL:			/* No error */
     if (log_chatter)
       fprintf (stderr,"[%s]\n",string);
     break;
-  case PARSE:			/* parsing problem */
-  case WARN:			/* warning */
+  case PARSE:			/* Parsing problem */
+  case WARN:			/* Warning */
     if (log_warn) 
       fprintf (stderr,"%%%s\n",string);
     break;
-  case ERROR:			/* error */
+  case ERROR:			/* Error */
   default:
     if (log_error)
       fprintf (stderr,"?%s\n",string);
@@ -1285,12 +1366,12 @@ void mm_login (NETMBX *mb,char *username,char *password,long trial)
 
 void mm_critical (MAILSTREAM *stream)
 {
-  critical = T;			/* note in critical code */
+  critical = T;			/* Note in critical code */
 }
 
 void mm_nocritical (MAILSTREAM *stream)
 {
-  critical = NIL;		/* note not in critical code */
+  critical = NIL;		/* Note not in critical code */
 }
 
 long mm_diskerror (MAILSTREAM *stream,long errcode,long serious)

@@ -1,12 +1,16 @@
-New in mailsync-4.2.3:
+New in 4.4.1:
+
+ * more explicit error messages and more sensible debug output
+
+New in 4.2.3 to 4.3.1:
 
  * bugfixes, docu fixes - see debian/changelog
 
-New in mailsync-4.2.2:
+New in 4.2.2:
 
  * password can be set in stores/channel
 
-New in mailsync-4.2.1:
+New in 4.2.1:
 
  * recursive copying should work now
 
@@ -14,26 +18,25 @@ New in mailsync-4.2.1:
 
  * minor bugfixes and cleanups
 
-New in mailsync-4:
+New in 4:
 
  * If the same new message is in both stores, it's left alone.
-(mailsync-3 would copy it in both directions, wasting bandwidth and
-creating duplicates).
+   (mailsync-3 would copy it in both directions, wasting bandwidth and
+   creating duplicates).
 
  * Now makes a single pass through each mailbox instead of two.  This
-reduces network bandwidth (though probably only a little, not by 50%).
+   reduces network bandwidth (though probably only a little, not by 50%).
 
  * Can handle either or both stores being empty.
 
  * List mode ("mailsync store") and diff mode ("mailsync store
-channel") fixed.  Diff mode no longer removes duplicates.
+   channel") fixed.  Diff mode no longer removes duplicates.
 
  * The per-mailbox summary lines ("foo: 1 deleted, 30 remain") now
-appear before the copying & deleting are done.  So if you see 
-"foo: 4384 copied local->remote" you can hit ^C sooner.
+   appear before the copying & deleting are done.  So if you see 
+   "foo: 4384 copied local->remote" you can hit ^C sooner.
 
  * Now mailsync is a C++ program.  Reduced from 2000 lines of code to
-1200.  Data formats (.mailsync and msinfo) remain unchanged.  Fewer
-memory leaks and less opportunity for buffer overflows (though I don't
-know of any in mailsync-3).
-
+   1200.  Data formats (.mailsync and msinfo) remain unchanged.  Fewer
+   memory leaks and less opportunity for buffer overflows (though I don't
+   know of any in mailsync-3).

@@ -16,3 +16,8 @@
 * integrate current_context_passwd better with c-client calls
 
 * refuse to run if .mailsync contains password and permissions are wrong
+
+* %Warning: replaced blanks with . in <3D523C9E00175E83@mta11n.bluewin.ch>.(added.by.postmaster@bluewin.ch)
+
+* on the first run the inbox on the remote machine is deleted?
+  test with tpo2!
