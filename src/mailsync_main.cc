@@ -119,9 +119,8 @@ int main(int argc, char** argv)
   // Get list of all mailboxes from first store
   //
   if (debug) printf( " Items in store \"%s\":\n", store_a.name.c_str() );
-  if (! store_a.acquire_mail_list() ) {
-    printf( " Store pattern doesn't match any selectable mailbox");
-    exit(1);
+  if (! store_a.acquire_mail_list() && options.log_warn) {
+    printf( " Store pattern doesn't match any selectable mailbox\n");
   }
   if (store_a.delim == '!') {
     store_a.get_delim();
@@ -185,10 +184,9 @@ int main(int argc, char** argv)
 
     if (debug) printf( " Items in store \"%s\":\n", store_b.name.c_str() );
     // Get a list of mailboxes from the second store
-    if (! store_b.acquire_mail_list() )
+    if (! store_b.acquire_mail_list() && options.log_warn )
     {
-      printf( " Pattern doesn't match any selectable mailbox");
-      exit(1);
+      printf( " Store pattern doesn't match any selectable mailbox\n");
     }
     // Display which drivers we're using for accessing the second store
     if (debug) store_b.display_driver();
