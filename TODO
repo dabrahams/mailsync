@@ -30,3 +30,12 @@
 * mailsync can't handle mailboxes that contain messages _and_ submailboxes
 
 * why do some errors go to stderr and some to stdout
+
+* ideally sanitize_message_id should not have a side effect, but just
+  return 1 or 0 if the message had to be modified or it should have
+  enough information to print a sufficient error message, i.e. the
+  mailbox where the message is originating from
+
+* I'm not sure whether extra mailboxes in read_lasttime_seen and delete_boxes in write_lasttime is consistent
+
+* make naming of read_lasttime_seen and of write_lasttime consistent
