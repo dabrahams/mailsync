@@ -4,11 +4,28 @@ dnl AC_DEFINE: HAVE_MD5
 AC_DEFUN(AC_WITH_MD5,[
  AC_MSG_CHECKING([if c-client includes md5 support])
  AC_LANG_PUSH(C)
+  xCFLAGS="${CFLAGS}"
+  xLIBS="${LIBS}"
+  CFLAGS="${CFLAGS} ${CCLIENT_INCLUDES}"
+  LIBS="${LIBS} ${CCLIENT_LIBS}"
   AC_LINK_IFELSE(
    AC_LANG_SOURCE([
     #include <stdio.h>
     #include "c-client.h"
     #include "linkage.h"
+
+    #define MD5BLKLEN 64           /* MD5 block length */
+
+    typedef struct {
+      unsigned long chigh;         /* high 32bits of byte count */
+      unsigned long clow;          /* low 32bits of byte count */
+      unsigned long state[4];      /* state (ABCD) */
+      unsigned char buf[MD5BLKLEN];        /* input buffer */
+      unsigned char *ptr;          /* buffer position */
+    } MD5CONTEXT;
+
+    void md5_init (MD5CONTEXT *ctx);
+
     main(int argc,char **argv) {
      #include "linkage.c"
      md5_init(NULL);
@@ -35,4 +52,6 @@ AC_DEFUN(AC_WITH_MD5,[
     AC_MSG_RESULT([no])
    ]
   )
+  CFLAGS="${xCFLAGS}"
+  LIBS="${xLIBS}"
 ])
