@@ -2,7 +2,7 @@ New in 5.1.2:
 
  * shoving around of code for better comprehension of the code
  * fixed fix from 5.1.1
- * mailsync shouldn't be possibly messing with flags at all if the
+ * mailsync shouldn't possibly be messing with flags at all if the
    mailbox (IMAP f.ex) allows it.
  * support for Linux-lib64 by Heiko Rommel
  * fixed problem when retrieving delimiter
@@ -13,6 +13,10 @@ New in 5.1.2:
    (thanks Kunal Chavan for bugreport)
  * removed [] around config.h in configure.ac - this was causing problems for
    Akkana Peck for unknown reasons
+ * don't show message IDs by default
+ * don't delete duplicate messages with empty Message-IDs
+ * we require automake > 1.6 or else we'll complain (thanks Michael, Akkana, Eric!)
+ * added HACKING file
  * NOT YET RELEASED
  
 New in 5.1.1:
