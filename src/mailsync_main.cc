@@ -211,13 +211,16 @@ int main(int argc, char** argv)
   if (store_a.delim == '!') {  // this should not happen
     assert(0);
   }
-  else if (! store_a.delim ) {
-    // TODO: this won't happen for INBOXES
-    printf(" No delimiter found for store \"%s\"\n", store_a.name.c_str());
+  else if (debug) {
+    if ( ! store_a.delim ) {
+      // TODO: this won't happen for INBOXES
+      printf(" No delimiter found for store \"%s\"\n", store_a.name.c_str());
+    }
+    else {
+      printf( " Delimiter for store \"%s\" is '%c'\n",
+              store_a.name.c_str(), store_a.delim);
+    }
   }
-  else if (debug)
-    printf( " Delimiter for store \"%s\" is '%c'\n",
-            store_a.name.c_str(), store_a.delim);
 
 
   // Display which drivers we're using for accessing the first store
@@ -316,6 +319,28 @@ int main(int argc, char** argv)
     if ( box->second.done)
       continue;
     
+    // if mailbox doesn't exist in either store -> create
+    // if we fail, just continue with next mailbox
+    if ( store_a.boxes.find( box->first ) == store_a.boxes.end() )
+      if ( ! store_a.mailbox_create( box->first ) )
+        continue;
+    if ( store_b.boxes.find( box->first ) == store_b.boxes.end() )
+      if ( ! store_b.mailbox_create( box->first ) )
+        continue;
+      
+    box->second.done = true;
+
+    if ( store_a.boxes.find( box->first )->second.no_select ) {
+      if ( debug )
+        printf( "%s is not selectable: skipping\n", box->first.c_str() );
+      continue;
+    }
+    if ( store_b.boxes.find( box->first )->second.no_select ) {
+      if ( debug )
+        printf( "%s is not selectable: skipping\n", box->first.c_str() );
+      continue;
+    }
+
     if (options.show_from)
       printf("\n *** %s ***\n", box->first.c_str());
 

@@ -48,6 +48,10 @@ You're wellcome to implement any of these
 
 * escape '<' in mailbox names...
 
+* rename types.h -> store.h
+
+* extern msg_string in msgstring.h is ugly
+
 Nice to have
 ------------
 * it'd be nice to know which driver c-client will use for accessing mail
@@ -57,3 +61,10 @@ Nice to have
 * synchronize Status
 
 * move CLI options into config file
+
+* move from map to hash_map
+
+* calculate (direction == ...) immediately in copy_message
+
+* provide an integrated function for print_lead, print_...
+

@@ -1,10 +1,21 @@
+New in 5.0.0:
+
+ * completely reengineered:
+   - really object oriented
+   - grouped sources together that belong together
+   - simplified a lot of things
+ * it should be possible to sync stores which contain messages and/or
+   submailboxes. However if two stores are incompatible creating subfolders
+   will fall by the wayside in favour of syncing the folder
+
 New in 4.5.4:
 
  * removed acinclude.m4 (Krelin's code-beautycenter, me)
  * checking right at the start if we've found any boxes to sync
- * added courier example with foldername with spaces
+ * added courier example with foldername including spaces
    (upon Gonzalo G. Agulló's confusion)
- * splited up sources
+ * splitted up sources
+ * removed forward references in code
 
 New in 4.5.3:
 

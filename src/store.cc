@@ -132,6 +132,36 @@ MAILSTREAM* Store::mailbox_open( const string& boxname,
 
 //////////////////////////////////////////////////////////////////////////
 //
+bool Store::mailbox_create( const string& boxname )
+//
+// Creates the mailbox "boxname" in the store
+//
+// Returns false on failure.
+//
+//////////////////////////////////////////////////////////////////////////
+{
+  string fullboxname = this->full_mailbox_name(boxname);
+  current_context_passwd = &passwd;
+  
+  if ( options.simulate ) { // just fail if simulating
+    printf( "Creating %s in %s\n", boxname.c_str(), this->name.c_str());
+    return false;
+  }
+  
+  bool res;
+  bool error_tmp = options.log_error;
+  options.log_error = false;
+  res = mail_create( this->stream, nccs( fullboxname.c_str() ) );
+  options.log_error = error_tmp;
+  
+  if ( options.debug && res )
+    printf( "Created %s in %s\n", boxname.c_str(), this->name.c_str());
+
+  return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 bool Store::fetch_message_ids(MsgIdPositions& mids)
 //
 // Fetch all the message ids that the currently open mailbox contains.
@@ -211,7 +241,7 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
     else
     {
       printf( "%lu duplicates deleted from %s/%s\n",
-              nduplicates, name.c_str(), this->stream->mailbox);
+              nduplicates, this->stream->mailbox, name.c_str() );
     }
     fflush(stdout);
   }

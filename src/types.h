@@ -22,7 +22,18 @@ typedef struct MailboxProperties {
                        done(false) {};
 };
 
-typedef map<string, MailboxProperties> MailboxMap;
+// STL - Stranger Than Lunacy
+// we sort our mailboxes by length. That way longer mailboxes and their
+// submailboxes (!!) will be traversed first
+struct longer
+{
+  bool operator()(const string s1, const string s2) const
+  {
+    return s1.length() > s2.length();
+  }
+};
+
+typedef map<string, MailboxProperties, longer> MailboxMap;
 typedef set<string>  MsgIdSet;
 typedef map<string, unsigned long> MsgIdPositions;  // Map message ids to
                                                     // positions within a
