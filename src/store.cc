@@ -125,6 +125,10 @@ MAILSTREAM* Store::store_open( long c_client_options)
 {
   current_context_passwd = &passwd;
 
+  if (options.debug)
+    printf("Opening %s with options %ld\n",
+            this->server.c_str(), 
+            c_client_options | ( options.debug_imap ? OP_DEBUG : 0 ));
   stream = mail_open( this->stream, nccs(this->server),
                       c_client_options | ( options.debug_imap ? OP_DEBUG : 0 ));
   if (! this->stream) {
@@ -149,6 +153,10 @@ MAILSTREAM* Store::mailbox_open( const string& boxname,
   string fullboxname = this->full_mailbox_name(boxname);
   current_context_passwd = &passwd;
   
+  if (options.debug)
+    printf("Opening %s with options %ld\n",
+            fullboxname.c_str(), 
+            c_client_options);
   stream = ::mailbox_open( this->stream, fullboxname, c_client_options);
   if (! this->stream) {
     fprintf( stderr, "Error: Couldn't open %s\n", fullboxname.c_str());
@@ -469,6 +477,9 @@ int Store::mailbox_expunge( string mailbox_name )
 //////////////////////////////////////////////////////////////////////////
 {
   expunged_mails = 0; // is manipulated by the c-client callback mm_expunge
+  if (options.debug)
+    printf("Opening %s with options 0\n",
+            mailbox_name.c_str());
   this->mailbox_open( mailbox_name, 0);
   mail_expunge( this->stream );
   return expunged_mails;
