@@ -1,4 +1,4 @@
-New in 5.1.2:
+New in 5.2:
 
  * shoving around of code for better comprehension of the code
  * fixed fix from 5.1.1
@@ -24,7 +24,8 @@ New in 5.1.2:
  * -n has a new meaning: do not delete messages
  * move c-client.h to its own include file, so that we can clean up the
    mess it makes in a single place (idea Michael)
- * NOT YET RELEASED
+ * since there were so many changes, renaming as 5.2
+ * BETA RELEASED
  
 New in 5.1.1:
 
