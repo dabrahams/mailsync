@@ -111,11 +111,13 @@ store local-oliver {
 #
 # Let's synchronize our local inbox with the cyrus inbox. The
 # synchronization info is kept on the remote cyrus server and
-# "secret" is used for authentification
+# "secret" is used for authentication. When synchronizing
+# mailsync will gladly skip all messages bigger than 80k
 #
 channel inbox-local-cyrus  local-inbox cyrus-inbox {
 	msinfo	{debian.org/user=tpo}INBOX.mailsync
 	passwd  secret
+	sizelimit 81920
 }
 
 #

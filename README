@@ -137,7 +137,7 @@ Two mailboxes on different stores will be synchronized if and only if
 they have the same "boxname".  Finally, the full c-client name is formed
 by <server><prefix><boxname>.
 
-`passwd' is the password to use when accessing the box. If you ommit it and
+`passwd' is the password to use when accessing the box. If you omit it and
 the store will require a password then mailsync will ask you for it.
 
 If you want to use MH files, or some other format, you should check
@@ -179,9 +179,20 @@ The message is formed without a message-id, so you can even put the
 delete the `msinfo' message.  (This may change, though.  Better to
 keep it separate from the stores.)
 
-As for stores `passwd' can be ommited and in case it's required mailsync
+As for stores `passwd' can be omitted and in case it's required mailsync
 will ask for it.
 
+In the channel specification you can optionally set message size limit.
+Messages with size exceeding the limit (in bytes) will be skipped when
+synchronizing:
+
+channel uw-cyrus netscape-or-uw cyrus {
+	msinfo {imap.cs.unc.edu/user=culver}msinfo
+	passwd secret
+	sizelimit 81920
+}
+
+The example above will not synchronize messages bigger than 80k.
 
 
 3. How does mailsync work?
@@ -297,7 +308,7 @@ message-id assumption doesn't quite hold.
    and everything will work.
 
 Another limitation is that when a message is moved from one mailbox to 
-another, mailsync interpets this by a deletion from one box and a new
+another, mailsync interprets this by a deletion from one box and a new
 message in the other.  This simplifies the algorithm a lot, but wastes 
 some network bandwidth if you move large messages around between
 syncs.  Workaround: try to put large messages in their final resting
@@ -393,5 +404,5 @@ Mailsync's author is Tim Culver <fullcity@sourceforge.net>.
 Since version 4.2 Tomas Pospisek <tpo_deb@sourcepole.ch> maintains
 the code.  Mailsync is copylefted under the GNU General Public
 License: http://www.gnu.org/copyleft/gpl.html
-Debian license zealotry addendum: linking with openssl is fine!
+Linking with openssl is explicitly permitted!
 
