@@ -37,6 +37,8 @@ void usage()
   printf("  -M       also show message-ids (turns on -m)\n");
   printf("  -s       simulate\n");
   printf("  -d       show debug info\n");
+  printf("  -di      debug/log IMAP protocol telemetry\n");
+  printf("  -dc      debug configuration\n");
   printf("  -v       show imap chatter\n");
   printf("  -vb      show warning about braindammaged message ids\n");
   printf("  -vw      show warnings\n");
@@ -102,7 +104,12 @@ bool read_commandline_options( const int argc,
       options.delete_empty_mailboxes = 1;
       break;
     case 'd':
-      options.debug = 1;
+      if (argv[optind][2] == 'i')
+        options.debug_imap = 1;
+      else if (argv[optind][2] == 'c')
+        options.debug_config = 1;
+      else
+        options.debug = 1;
       break;
     case 'c':
       if (argv[optind][2] == 'd')

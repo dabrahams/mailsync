@@ -112,7 +112,7 @@ void get_token( FILE* f, Token* t )
       t->buf += (char)c;
     }
   }
-  if (options.debug) printf("\t%s\n",t->buf.c_str());
+  if (options.debug_config) printf("\t%s\n",t->buf.c_str());
   return;
 }
 
@@ -127,7 +127,7 @@ void parse_config(FILE* f, map<string, ConfigItem>& confmap)
   Token token;
   Token *t;
 
-  if (options.debug) printf(" Parsing config...\n\n");
+  if (options.debug_config) printf(" Parsing config...\n\n");
 
   t = &token;
   t->line = 0;
@@ -268,7 +268,7 @@ void parse_config(FILE* f, map<string, ConfigItem>& confmap)
     confmap.insert( make_pair(name, config_item) );
   }
 
-  if (options.debug) printf( " End parsing config. Config is OK\n\n" );
+  if (options.debug_config) printf( " End parsing config. Config is OK\n\n" );
 
   return;
 }

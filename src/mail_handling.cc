@@ -140,5 +140,7 @@ MAILSTREAM* mailbox_open( MAILSTREAM* stream,
 //
 //////////////////////////////////////////////////////////////////////////
 {
-  return stream = mail_open( stream, nccs(fullboxname), c_client_options );
+  return stream = mail_open( stream, nccs(fullboxname),
+                             c_client_options
+                             | ( options.debug_imap ? OP_DEBUG : 0 ) );
 }

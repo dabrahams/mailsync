@@ -21,6 +21,8 @@ typedef struct options_t {
   bool no_expunge;
   bool delete_empty_mailboxes;
   bool debug;
+  bool debug_imap;
+  bool debug_config;
   bool report_braindammaged_msgids;
   bool copy_deleted_messages;
   bool simulate;
@@ -39,6 +41,8 @@ typedef struct options_t {
                no_expunge(0),
                delete_empty_mailboxes(0),
                debug(0),
+               debug_imap(0),
+               debug_config(0),
                report_braindammaged_msgids(0),
                copy_deleted_messages(0),
                simulate(0),

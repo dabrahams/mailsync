@@ -42,6 +42,7 @@ class Store
                          char * place);
     MAILSTREAM* mailbox_open( const string& boxname,
                                      long c_client_options);
+    MAILSTREAM* store_open( long c_client_options);
     bool mailbox_create( const string& boxname );
     void display_driver();
     void print_error(const char * cause, const string& mailbox);

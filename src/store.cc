@@ -22,6 +22,7 @@ void Store::clear() {
   pat      = "";
   isremote = 0;
   delim    = '!';
+  stream   = NIL;
   passwd.clear();
 }
 
@@ -51,6 +52,7 @@ void Store::print(FILE* f) {
 }
 
 //////////////////////////////////////////////////////////////////////////
+//
 size_t Store::acquire_mail_list()
 //
 // Acquire mailbox list for store corresponding to it's pattern
@@ -104,6 +106,28 @@ string Store::full_mailbox_name(const string& box)
     if( boxname[i] == DEFAULT_DELIMITER) boxname[i] = delim;
   fullbox = server + prefix + boxname;
   return fullbox;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+MAILSTREAM* Store::store_open( long c_client_options)
+//
+// Opens the store with "c_client_options" options.
+//
+// The function will complain to STDERR on error.
+//
+// Returns NIL on failure.
+//
+//////////////////////////////////////////////////////////////////////////
+{
+  current_context_passwd = &passwd;
+  
+  stream = mail_open( this->stream, nccs(this->server),
+                      c_client_options | ( options.debug_imap ? OP_DEBUG : 0 ));
+  if (! this->stream) {
+    fprintf( stderr, "Error: Can't contact server %s\n", this->server.c_str());
+  }
+  return this->stream;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -339,7 +363,7 @@ bool Store::remove_message( unsigned long msgno, const MsgId& msgid,
   {
     if( msgid_fetched != msgid )
     {
-      printf( "Error: message-ids %s and %s don't match,"
+      printf( "Error: message-ids %s and %s don't match, "
               "so I won't delete the message.\n",
               msgid_fetched.c_str(), msgid.c_str() );
       success = 0;

@@ -163,15 +163,8 @@ int main(int argc, char** argv)
 
   // open the connection to the first store
   if ( store_a.isremote ) {
-    current_context_passwd = &store_a.passwd;
-    store_a.stream = mail_open( NIL, nccs(store_a.server),
-                               OP_HALFOPEN | OP_READONLY);
-    if (! store_a.stream) {
-      fprintf( stderr, 
-               "Error: Can't contact first server %s\n",
-               store_a.server.c_str() );
+    if (! store_a.store_open( OP_HALFOPEN | OP_READONLY) )
       return 1;
-    }
   }
   else
   {
@@ -181,15 +174,8 @@ int main(int argc, char** argv)
   // open the connection to the second store
   if (operation_mode == mode_sync && store_b.isremote)
   {
-    current_context_passwd = &(store_b.passwd);
-    store_b.stream = mail_open( NIL, nccs(store_b.server),
-                               OP_HALFOPEN | OP_READONLY);
-    if (!store_b.stream) {
-      fprintf( stderr,
-               "Error: Can't contact second server %s\n",
-               store_b.server.c_str() );
+    if (! store_b.store_open( OP_HALFOPEN | OP_READONLY) )
       return 1;
-    }
   }
   else
   {
@@ -524,7 +510,7 @@ int main(int argc, char** argv)
           mail_close( store_b.stream );
           store_b.stream = NIL;
         } else {
-          store_b.stream = store_b.mailbox_open( box->first, 0);
+          store_b.stream = store_b.mailbox_open( box->first, 0 );
         }
         unsigned long copied_a_b = 0;
         for ( MsgIdSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++)
@@ -546,7 +532,7 @@ int main(int argc, char** argv)
 
         if (!store_b.isremote) { // reopen the stream if it was closed before
           store_b.stream = NIL;
-          store_b.stream = store_b.mailbox_open( box->first, OP_READONLY);
+          store_b.stream = store_b.mailbox_open( box->first, OP_READONLY );
         }
         if (!store_a.isremote) { // close the stream for writing
                                  // (sic - the beauty of c-client!) !!
@@ -556,7 +542,7 @@ int main(int argc, char** argv)
           mail_close(store_a.stream);
           store_a.stream = NIL;
         } else 
-          store_a.stream = store_a.mailbox_open( box->first, 0);
+          store_a.stream = store_a.mailbox_open( box->first, 0 );
         unsigned long copied_b_a = 0;
         for ( MsgIdSet::iterator i = copy_b_a.begin() ;
               i != copy_b_a.end() ;
@@ -656,8 +642,8 @@ int main(int argc, char** argv)
 
     if (store_a.isremote)
     {
-      current_context_passwd = &store_a.passwd;
-      store_a.stream = mail_open(NIL, nccs(store_a.server), OP_HALFOPEN);
+      store_a.stream = NIL;
+      store_a.store_open( OP_HALFOPEN );
     }
     else
     {
@@ -665,8 +651,8 @@ int main(int argc, char** argv)
     }
     if (store_b.isremote)
     {
-      current_context_passwd = &(store_b.passwd);
-      store_b.stream = mail_open(NIL, nccs(store_b.server), OP_HALFOPEN);
+      store_b.stream = NIL;
+      store_b.store_open( OP_HALFOPEN );
     }
     else
     {

@@ -290,7 +290,8 @@ bool Channel::copy_message( unsigned long msgno,
                                 &flags[1], mail_date(msgdate,elt), 
                                 &CCstring );
   if (options.show_from) {
-    print_lead( success ? "copied" : "copyfail", direction ? "->" : "<-" );
+    print_lead( success ? "copied" : "copyfail",
+                direction == a_to_b ? "->" : "<-" );
     print_from( store_from.stream, msgno );
     if (options.show_message_id)
       print_msgid( msgid.c_str() );

@@ -58,11 +58,22 @@ MsgId::MsgId(ENVELOPE *envelope)
   switch( options.msgid_type) {
 
    case (HEADER_MSGID) :
-        if (envelope->message_id) 
+        if ( envelope->message_id
+             && strcmp( envelope->message_id, "") != 0 
+             && strcmp( envelope->message_id, "<>") != 0 )
           *this = envelope->message_id;
         else
-          *this = "";
+          *this = "<>";         // empty message-id
         sanitize_message_id();
+        // some software produces empty Message-IDs f.ex. for draft emails
+        // which makes us unable to differentiaty between such messages
+        if ( *this == "<>") {
+          printf( "Warning: empty Message-ID header in message From: \"%s\" "
+                  "Subject: \"%s\" - please consult the README\n",
+                  (envelope->from && envelope->from->mailbox)
+                  ? envelope->from->mailbox : "",
+                  envelope->subject ? envelope->subject : "");
+        }
         break;
 #ifdef HAVE_MD5
    case (MD5_MSGID) :
