@@ -9,12 +9,11 @@ New in 5.2:
  * not exiting any more on stores without subdirs
  * lasttimes were not computed correctly - this could result in a message
    being retransmitted if deleted on one side
- * not deleting duplicate messages with empty Message-IDs
+ * don't delete duplicate messages with empty Message-IDs
    (thanks Kunal Chavan for bugreport)
  * removed [] around config.h in configure.ac - this was causing problems for
    Akkana Peck for unknown reasons
  * don't show message IDs by default
- * don't delete duplicate messages with empty Message-IDs
  * we require automake > 1.6 or else we'll complain (thanks Michael, Akkana, Eric!)
  * added HACKING file
  * more verbose error message when c-client is linked against kerberos, but kerberos is not installed
