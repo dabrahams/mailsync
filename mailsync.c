@@ -136,10 +136,12 @@ struct Channel {
   string store[2];
   string msinfo;
   Passwd passwd;
+  unsigned long sizelimit;
 
   void clear() {
     tag = store[0] = store[1] = msinfo = "";
     passwd.clear();
+    sizelimit = 0;
     return;
   }
 
@@ -156,11 +158,13 @@ struct Channel {
       fprintf(f,"\n\tpasswd ");
       print_with_escapes(f,passwd.text);
     }
+    if(sizelimit) fprintf(f,"\n\tsizelimit %lu",sizelimit);
     fprintf(f,"\n}\n");
     return;
   }
 
   void set_passwd(string password) { passwd.set_passwd(password);}
+  void set_sizelimit(const string& sizelim) { sizelimit=strtoul(sizelim.c_str(),NULL,10); }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -569,6 +573,10 @@ void parse_config(FILE* f, map<string, ConfigItem>& confmap) {
           get_token(f, t);
           conf->channel->set_passwd(t->buf);
         }
+	else if (t->buf == "sizelimit") {
+          get_token(f, t);
+	  conf->channel->set_sizelimit(t->buf);
+	}
         else
           die_with_fatal_parse_error(t, "Unknown channel field");
       }
@@ -918,7 +926,7 @@ bool fetch_message_ids(MAILSTREAM*& mailbox_stream, string store_tag,
 bool copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda, 
                  unsigned long msgno, const string& msgid,
                  MAILSTREAM*& mailboxb_stream, Passwd& passwdb,
-                 string fullboxbname, char * direction) {
+                 string fullboxbname, char * direction, const Channel& channel) {
 //
 // Copies the message "msgno" with "msgid" from the stream "mailboxa_stream"
 // which is connected to the mailboxa to the respective "mailboxb_stream".
@@ -993,6 +1001,13 @@ bool copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
 
   md.stream = mailboxa_stream;
   md.msgno = msgno;
+  if( channel.sizelimit && elt->rfc822_size > channel.sizelimit ) {
+    printf(lead_format, "skipped" , direction);
+    printf(from_format, summary(mailboxa_stream, msgno).c_str());
+    if (show_message_id) printf(msgid_format, msgid.c_str());
+    printf("\n");
+    return 0;
+  }
   INIT (&CCstring, msg_string, (void*) &md, elt->rfc822_size);
   current_context_passwd = &passwdb;
 
@@ -1677,7 +1692,7 @@ int main(int argc, char** argv) {
         unsigned long copied_a_b = 0;
         for (StringSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++) {
           success = copy_message(storea_stream, storea.passwd, msgidpos_a[*i], *i,
-                                storeb_stream, storeb.passwd, fullboxnameb, "->");
+                                storeb_stream, storeb.passwd, fullboxnameb, "->", channel);
           if (success)
             copied_a_b++;
           else                    // we've failed to copy the message over
@@ -1700,7 +1715,7 @@ int main(int argc, char** argv) {
         unsigned long copied_b_a = 0;
         for (StringSet::iterator i=copy_b_a.begin(); i!=copy_b_a.end(); i++) {
           success = copy_message(storeb_stream, storeb.passwd, msgidpos_b[*i], *i,
-                                 storea_stream, storea.passwd, fullboxnamea, "<-");
+                                 storea_stream, storea.passwd, fullboxnamea, "<-", channel);
           if (success)
             copied_b_a++;
           else
