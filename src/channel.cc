@@ -98,6 +98,12 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
       return 0;
     }
     // Make sure that the mail is from mailsync 
+    if ( ! ( envelope->from || envelope->from->mailbox || envelope->subject) ) {
+      // Mail with missing headers
+      fprintf( stderr, "Info: The msinfo box %s contains a message with"
+                       " missing \"From\" or \"Subject\" header information\n");
+      continue;
+    }
     if ( strncmp( envelope->from->mailbox, "mailsync", 8) ) {
       // This is not an email describing a mailsync channel!
       fprintf( stderr, "Info: The msinfo box %s contains the non-mailsync"

@@ -53,12 +53,15 @@ MsgId::MsgId(ENVELOPE *envelope)
 //
 //////////////////////////////////////////////////////////////////////////
 {
- string str;
+  string str;
 
   switch( options.msgid_type) {
 
    case (HEADER_MSGID) :
-        *this = envelope->message_id;
+        if (envelope->message_id) 
+          *this = envelope->message_id;
+        else
+          *this = "";
         sanitize_message_id();
         break;
 #ifdef HAVE_MD5
