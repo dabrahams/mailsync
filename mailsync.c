@@ -817,10 +817,11 @@ bool read_lasttime_seen(Channel channel,
           continue;
         }
         if (text[k] != '<') {     // is it a mailbox name?
+          delete(currentbox);
           if (boxes.count(&text[k])) { // is the mailbox allready known?
             currentbox = new string(&text[k]);
           } else {
-            delete(currentbox);
+            currentbox = NULL;
             extra.insert(&text[k]);
           }
         }
