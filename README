@@ -8,11 +8,14 @@ Mailsync-4
 2.3 Channels
 3. How does mailsync work?
 4. Running mailsync-4
+4.1 Verbosity
 5. Limitations
-5.1 Problems wit "New" messages (Mutt)
+5.1 Problems with concurrent mailbox access
+5.2 Problems wit "New" messages (Mutt)
 6. More about the algorithm
 7. History
-8. Author, disclaimer, etc.
+8. Further reading
+9. Author, disclaimer, etc.
 
 
 
@@ -25,14 +28,14 @@ which c-client compiles.  On a non-unix-like system, you may have to
 come up with alternatives to a few functions like stat() and getenv().
 
 1. Download, unpack, and compile the c-client from
-ftp://ftp.cac.washington.edu/imap.  Currently I'm using
-imap-2000.BETA, which allows linking from a C++ program.  If you
-already have an older version of c-client installed, you can still
-link it to Mailsync.  Just get c-client.h from either the latest IMAP
-distribution or from http://mailsync.sourceforge.net.
+   ftp://ftp.cac.washington.edu/imap.  Currently I'm using
+   imap-2002.RC8, which allows linking from a C++ program.  If you
+   already have an older version of c-client installed, you can still
+   link it to Mailsync.  Just get c-client.h from either the latest IMAP
+   distribution or from http://mailsync.sourceforge.net.
 
-2. Makefile: modify line `imapdir = imap-2000.BETA' to point to the
-place where you put c-client.
+2. Makefile: modify line `imapdir = ../imap-2002.RC8' to point to the
+   place where you put c-client.
 
 3. make
 
@@ -180,6 +183,7 @@ As for stores `passwd' can be ommited and in case it's required mailsync
 will ask for it.
 
 
+
 3. How does mailsync work?
 --------------------------
 
@@ -254,6 +258,20 @@ mailboxes will be deleted.  Your choice.
 
 
 
+4.1 Verbosity
+-------------
+
+Mailsync knowns a series of log_levels. If you encounter problem with
+mailsync you should enable those to let mailsync tell you more about
+what's going on. Run:
+
+    mailsync --help
+
+to see what logging options mailsync offers. The different log levels
+are described in the c-client documentation "internal.txt" under mm_log.
+
+
+
 5. Limitations
 --------------
 
@@ -262,21 +280,21 @@ If it isn't, then it won't work.  Here are some situations where the
 message-id assumption doesn't quite hold.
 
 1. Two different messages in the same mailbox with the same
-message-id.  Mailsync will delete the one that comes later in the
-mailbox.
+   message-id.  Mailsync will delete the one that comes later in the
+   mailbox.
 
 2. Two different messages in different mailboxes with the same
-message-id.  Mailsync will never notice; everything works.
+   message-id.  Mailsync will never notice; everything works.
 
 3. A message with no message-id.  Mailsync prints a warning and leaves 
-the message alone.  It will never be copied to any other store, nor
-deleted for any reason.
+   the message alone.  It will never be copied to any other store, nor
+   deleted for any reason.
 
 4. A message that resides on both stores which is then edited on one
-store.  The edit will not be propagated to the other store.  A
-workaround is to edit the message-id when you edit the message.  This
-will be interpreted by mailsync as a delete and a new message, and
-everything will work.
+   store.  The edit will not be propagated to the other store.  A
+   workaround is to edit the message-id when you edit the message.
+   This will be interpreted by mailsync as a delete and a new message,
+   and everything will work.
 
 Another limitation is that when a message is moved from one mailbox to 
 another, mailsync interpets this by a deletion from one box and a new
@@ -287,7 +305,17 @@ place before you run mailsync.
 
 
 
-5.1 Problems wit "New" messages (Mutt)
+5.1 Problems with concurrent mailbox access
+-------------------------------------------
+
+Mailsync is not coded with concurrent access in mind. It shouldn't
+break in a horrible way, since it tries to double-check before it
+deletes something, but it is not really fit for the task either.
+Efforts to make it concurrency capable are certainly appreciated.
+
+
+
+5.2 Problems wit "New" messages (Mutt)
 --------------------------------------
 
 The mail header line "Status: O" is interpreted differently depending
@@ -302,6 +330,7 @@ Mutt and possibly some other clients interpet only a mail with
 Explanation: c-clients mail_expunge function will run through all the
 mails and mark them as "Status: O" ("seen"). There's not much I can do
 about that. If someone knows a workaround for this, please mail me.
+
 
 
 6. More about the algorithm
@@ -342,14 +371,27 @@ Mailsync-4 is a C++ program based on mailsync-3.  I was able to remove
 a lot of cruft and make things a little more sensible, safe, and
 efficient. 
 
+Mailsync-4.2 and on has seen extended documentation and some
+reengineering efforts to make it easier to read, patch and understand.
 
 
-8. Author, disclaimer, etc.
+
+8. Further reading
+------------------
+
+RFC 2076 - Common Internet Message Headers
+RFC 1176 - IMAP v2
+RFC 1203 - IMAP v3
+RFC 2060 - Internet Message Access Protocol - Version 4rev1
+
+
+
+9. Author, disclaimer, etc.
 ---------------------------
 
-Mailsync's author is Tim Culver <fullcity@sourceforge.net>.  At
-Version 4.2 Tomas Pospisek <tpo_deb@sourcepole.ch> picked up
-maintenance.  Mailsync is copylefted under the GNU General Public
+Mailsync's author is Tim Culver <fullcity@sourceforge.net>.  
+Since version 4.2 Tomas Pospisek <tpo_deb@sourcepole.ch> maintains
+the code.  Mailsync is copylefted under the GNU General Public
 License: http://www.gnu.org/copyleft/gpl.html
 Debian license zealotry addendum: linking with openssl is fine!
 

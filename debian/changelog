@@ -1,3 +1,26 @@
+mailsync (4.4.4-1) unstable; urgency=high
+
+  * new upstream
+  * new upsteam features:
+    * gentler failure
+    * more log options
+  * closes: #167826
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 06 Nov 2002 12:00:25 +0100
+
+mailsync (4.4.3-1) unstable; urgency=high
+
+  * new upstream
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 16 Oct 2002 14:13:35 +0200
+
+mailsync (4.4.2-1) unstable; urgency=high
+
+  * new upstream
+  * fixes problem with new messages not getting marked as "new" in mutt
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 16 Oct 2002 14:13:35 +0200
+
 mailsync (4.4.1-1) unstable; urgency=high
 
   * new upstream

@@ -39,3 +39,5 @@
 * it'd be nice which driver c-client will use for accessing mail
 
 * simulate option would be nice
+
+* sometimes msgno is unsigned long, sometimes int ... :-/

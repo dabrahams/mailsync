@@ -2,6 +2,7 @@
 
 # path to c-client headers
 C = /usr/include/c-client
+#C = ../../libs/imap-2002.RC5/c-client/
 ##C = /usr/include/c-client -I/usr/include/g++-v3/
 
 # path to c-client library
@@ -18,7 +19,7 @@ CC = g++
 CFLAGS = -g  -O2 -Wall -I$(C)
 
 # required libraries
-LDFLAGS = -lm -lssl
+LDFLAGS = -lm -lssl -lgssapi_krb5
 # if your system requires pam to access crypt() you have to link pam in
 #LDFLAGS = -lm -lssl -lpam
 

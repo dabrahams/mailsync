@@ -1,3 +1,12 @@
+New in 4.4.4:
+
+ * Check every fetch operation for success
+ * documented the fact that mailsync is not really fit for concurrent
+   mailbox access
+ * extended loging
+ * reengineering - clearer naming of variables (I hope)
+                 - int msgno -> unsigned long msgno (as in c-client)
+
 New in 4.4.3:
 
  * do not copy deleted mails
