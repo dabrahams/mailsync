@@ -3,10 +3,13 @@ mailsync (4.5-1) unstable; urgency=high
   * new upstream features:
     * simulate option
     * size limit (contributed by Michael Krelin)
+    * better error handling
+    * reading in c-client config
+    * #mh examples
+    * bugfixes (Michael & me)
   * debian changes:
     * removed libkrb-dev and libssl-dev from depends since that's pulled
       in by libc-client2002-dev now (thanks Jaldhar)
-  * NOT RELEASED
   
  -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 12 Nov 2002 14:16:32 +0100
 
