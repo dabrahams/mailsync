@@ -23,7 +23,7 @@ class Channel
     Passwd passwd;
     unsigned long sizelimit;
 
-    Channel() {};
+    Channel(): name(), msinfo(), passwd(), sizelimit(0) {};
 
     void print(FILE* f);
 
