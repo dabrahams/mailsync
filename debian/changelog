@@ -1,4 +1,12 @@
-mailsync (4.5-1) unstable; urgency=high
+mailsync (4.5.3-2) unstable; urgency=high
+
+  * debian changes:
+    * fixed bug in rules script (thanks for report C.T.Steigies)
+                                                            closes: #180745
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 12 Feb 2003 16:03:08 +0100
+
+mailsync (4.5.3-1) unstable; urgency=high
 
   * new upstream features:
     * simulate option
@@ -9,9 +17,14 @@ mailsync (4.5-1) unstable; urgency=high
     * bugfixes (Michael & me)
   * debian changes:
     * removed libkrb-dev and libssl-dev from depends since that's pulled
-      in by libc-client2002-dev now (thanks Jaldhar)
+      in by libc-client2002-dev now (thanks Jaldhar, C.Watson, M.Zimmermann,
+      W.Verhelst)
+    * changed order in which libc-client apears in order to pull in
+      openssl0.9.6 (thanks S.Frost for pointing put the problem)
+                                                            closes: #179999
+    * added mh store to mailsync config example in docu     closes: #150393
   
- -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 12 Nov 2002 14:16:32 +0100
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Wed, 12 Feb 2003 09:55:17 +0100
 
 mailsync (4.4.4-2) unstable; urgency=high
 
