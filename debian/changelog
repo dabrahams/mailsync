@@ -1,6 +1,14 @@
-mailsync (5.2-1) unstable; urgency=low
+mailsync (5.2.1-2) unstable; urgency=low
 
-  * new in upstream:
+  * debian:
+    * remove build-dependency on the automake1.5 package, which is no
+      more existant. (Thanks Lamont!)                       closes: #257379
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Sat, 03 Jul 2004 15:35:28 +0200
+
+mailsync (5.2.1-1) unstable; urgency=low
+
+  * new in upstream:                                        closes: #256832
     * #mh folders should work better
     * mailsync shouldn't possibly be messing with flags at all if the
       mailbox (IMAP f.ex) allows it. Check the "-n" option for most
