@@ -1,0 +1,337 @@
+Mailsync-4
+----------
+
+1. Compiling mailsync
+2. Configuring mailsync-4
+2.1 Mailbox specification
+2.2 Stores
+2.3 Channels
+3. How does mailsync work?
+4. Running mailsync-4
+5. Limitations
+6. More about the algorithm
+7. History
+8. Author, disclaimer, etc.
+
+
+
+1. Compiling mailsync
+---------------------
+
+I've only compiled mailsync-4 on Linux and on SGI-Irix 6.5.  With a
+little coaxing, though, it should compile on any unix-like system on
+which c-client compiles.  On a non-unix-like system, you may have to
+come up with alternatives to a few functions like stat() and getenv().
+
+1. Download, unpack, and compile the c-client from
+ftp://ftp.cac.washington.edu/imap.  Currently I'm using
+imap-2000.BETA, which allows linking from a C++ program.  If you
+already have an older version of c-client installed, you can still
+link it to Mailsync.  Just get c-client.h from either the latest IMAP
+distribution or from http://mailsync.sourceforge.net.
+
+2. Makefile: modify line `imapdir = imap-2000.BETA' to point to the
+place where you put c-client.
+
+3. make
+
+
+
+2. Configuring mailsync-4
+-------------------------
+
+To use mailsync, you first have to make a configuration file, which by
+default is `$HOME/.mailsync'.  The config file specifies two kinds of
+things: "stores" and "channels".  
+
+Lines in the mailsync configuration file starting with a `#' are
+regarded as comments and are being ignored.
+
+A "store" describes a mailbox and which parts of that mailbox you want
+to have synchronized.  A channel is a pair of stores which you want to
+get synchronized along with a file where mailsync can save
+synchronization info.
+
+
+
+2.1 Mailbox specification
+-------------------------
+
+Mailsync uses the c-client library for manipulation of mailboxes.  Please
+have a look at the c-client library documentation for details of the
+format of a mailbox specification.  Especially have a look at
+docs/naming.txt and docs/drivers.txt from it's documentation.
+
+Briefly, a mailbox specification looks like this:
+
+ {imap.unc.edu/user=culver}           refers to INBOX by default
+ {imap.unc.edu/user=culver}INBOX.foo  a mailbox on a Cyrus server
+ {imap.unc.edu/user=culver}foo        a mailbox on a UW or Netscape server
+ mbox                                 the file $HOME/mbox
+ Mail/foo                             a mailbox in $HOME/Mail
+ /tmp/foo                             some other file
+
+
+
+2.2 Stores
+----------
+
+A store is a collection of mail folders.  Exactly what kind of
+collection you can use depends on your IMAP server, but one thing that
+always works is a bunch of folders in a single directory.
+Unfortunately there is no general, concise way to specify even this
+kind of store.  I have settled on a fairly general but redundant
+method.
+
+Here are examples of store specifiers that work with some servers I
+have access to.
+
+store cyrus {
+	server	{imap.unc.edu/user=culver}
+	ref	{imap.unc.edu}
+	pat	INBOX.sync.%
+	prefix	INBOX.sync.
+	passwd  secret
+}
+store netscape-or-uw {
+	server	{imap.cs.unc.edu/user=culver}
+	ref	{imap.cs.unc.edu}
+	pat	sync/%
+	prefix	sync/
+}
+store localdirectory {
+	pat	Mail/%
+	prefix	Mail/
+}
+
+To test a store specification, put it in your .mailsync and run
+
+  mailsync <storename>
+
+Mailsync will list the mailboxes it thinks are in the store.  (In this
+mode, it will not touch anything or even open the mailboxes.)  The
+names it returns should be stripped of any store-specific information.
+
+`Pat' describes the pattern of the boxes you want to synchronize.  It
+matches names exactly except for:
+
+* the delimiter character which is used to delimit hierarchies (folders)
+  in your mailbox and which depends on the mailstore you use (unix
+  filesystems use `/', Cyrus, UW and Netscape use `.').
+  
+* `%' is a globing operator.  It will match all the items in a hierarchy
+  (folder) but it will not descend down the hierarchy (into folders).
+  
+* `*' acts like `%' but descends into the hierarchy.  Be careful with `*'
+  as it can take a lot of time to traverse a deep hierarchy.
+
+If you omit the `prefix' specification, you will see full mailbox
+names.  Whatever you specify in `prefix' is stripped off of these
+names to form what I shall call a "boxname".
+
+Two mailboxes on different stores will be synchronized if and only if
+they have the same "boxname".  Finally, the full c-client name is formed
+by <server><prefix><boxname>.
+
+`passwd' is the password to use when accessing the box. If you ommit it and
+the store will require a password then mailsync will ask you for it.
+
+If you want to use MH files, or some other format, you should check
+out the "docs/" directory in the imap distribution, particularly
+naming.txt, drivers.txt, and formats.txt.
+
+
+
+2.3 Channels
+------------
+
+A channel just specifies two stores that are to be synchronized, and
+one c-client mailbox `msinfo' which is used by mailsync to remember
+what messages it has seen (it stores there sets of message-ids in
+between runs).  Any c-client mailbox specification is fine.  If one
+or both of the stores is a local file, then you might as well use a
+local file for `msinfo':
+
+channel local-cyrus localdirectory cyrus {
+	msinfo	.msinfo
+}
+
+The message-id list is kept as a message in the mailbox, with the
+channel tag ("local-cyrus") as the subject.  So you can use the same
+`msinfo' file for many channels, as long as the channels have
+different names.
+
+If, on the other hand, both stores are on remote imap servers, you may 
+consider putting `msinfo' on one or on the other server:
+
+channel uw-cyrus netscape-or-uw cyrus {
+	msinfo	{imap.cs.unc.edu/user=culver}msinfo
+	passwd secret
+}
+
+The `msinfo' mailbox stores a bunch of message-ids in a mail message.
+The message is formed without a message-id, so you can even put the
+`msinfo' inside the store if you like, and mailsync will not copy or
+delete the `msinfo' message.  (This may change, though.  Better to
+keep it separate from the stores.)
+
+As for stores `passwd' can be ommited and in case it's required mailsync
+will ask for it.
+
+
+3. How does mailsync work?
+--------------------------
+
+First, it loads the state of the store at the last sync.  
+
+If a "lasttime" mailbox doesn't exist, it is assumed empty.  This is
+the right thing to do.
+
+Then it iterates through every mailbox on either store.  In each
+mailbox, it applies the following 3-way diff algorithm.
+
+  If a message exists on both stores, it is left alone.
+
+  If a message exists on one store but not the other, and it is a
+  "new" message (it's not recorded in `msinfo'), it is copied to the
+  other store.
+
+  If a message exists on one store but not the other, and it is an 
+  "old" message (it was recorded in `msinfo' at last synchronization), 
+  it is assumed that the message was deliberately deleted from one
+  store, and is removed from the other.
+
+Finally, it saves the set of remaining messages to the `msinfo' file.
+
+
+
+4. Running mailsync-4
+---------------------
+
+There are three modes.
+
+
+"Sync" mode:
+
+    mailsync [options] <channel>
+
+Synchronizes the two stores specified by the channel,
+doing a 3-way diff with the message-ids stashed in the channel's
+msinfo box.
+
+
+"List" mode:
+
+    mailsync [options] <store>
+
+Simply list the boxnames specified by the given store.  Don't change
+or write anything.  Useful when writing the .mailsync config file.
+
+
+"Diff" mode:
+
+    mailsync [options] <channel> <store>
+ or mailsync [options] <store> <channel> 
+
+Compare the messages in the store to the information in the channel's
+msinfo file.  This mode does not disturb any mail.  This is useful if,
+for instance, <store> is local, <channel>'s msinfo is a local file,
+but <channel>'s other store is remote and you're not dialed up.
+Mailsync will tell you how many new messages and deletions would be
+propagated away from <store> through <channel>.  It also reports
+duplicate messages (without deleting them).
+
+The options change from time to time, and are described if you just
+type "mailsync".
+
+The `-D' option deletes empty mailboxes after synchronizing (and works 
+only in "Sync" mode).  Mailsync doesn't differentiate between empty
+and missing mailboxes.  Suppose you delete a mailbox on store A but
+not on store B.  Without `-D', mailsync will delete all messages on B, 
+but it will also resurrect the mailbox on A.  With `-D', both
+mailboxes will be deleted.  Your choice.
+
+
+
+5. Limitations
+--------------
+
+Mailsync assumes that the message-id is a global unique identifier.
+If it isn't, then it won't work.  Here are some situations where the
+message-id assumption doesn't quite hold.
+
+1. Two different messages in the same mailbox with the same
+message-id.  Mailsync will delete the one that comes later in the
+mailbox.
+
+2. Two different messages in different mailboxes with the same
+message-id.  Mailsync will never notice; everything works.
+
+3. A message with no message-id.  Mailsync prints a warning and leaves 
+the message alone.  It will never be copied to any other store, nor
+deleted for any reason.
+
+4. A message that resides on both stores which is then edited on one
+store.  The edit will not be propagated to the other store.  A
+workaround is to edit the message-id when you edit the message.  This
+will be interpreted by mailsync as a delete and a new message, and
+everything will work.
+
+Another limitation is that when a message is moved from one mailbox to 
+another, mailsync interpets this by a deletion from one box and a new
+message in the other.  This simplifies the algorithm a lot, but wastes 
+some network bandwidth if you move large messages around between
+syncs.  Workaround: try to put large messages in their final resting
+place before you run mailsync.
+
+
+
+6. More about the algorithm
+---------------------------
+
+The sync operation is symmetric---it doesn't matter which store you
+specify first.  This is fundamentally different from the IMAP
+disconnected-mode mail reading model, where there is a primary store,
+and a client is responsible for synchronizing its local copy with the
+primary store.  There is no limitation to the number of stores you
+sync with each other.  Think of the stores as nodes of a graph, and
+put links between the stores you want to sync between.  If there are
+no cycles, then everything will work.  If there are cycles, some weird
+things can happen that I haven't totally worked out yet: I think that
+a message could be passed back as a new message to a store which
+deleted it, for example.
+
+Since both stores can be local, and in different formats, you can also
+use mailsync as a method for keeping all of your messages accessible
+by two MUAs, even if neither is IMAP-aware.  So mailsync could help
+you transition between MUAs.
+
+
+
+7. History
+----------
+
+Mailsync-1 was a bunch of shell scripts.  Mail was parsed using awk
+and transferred using ftp.
+
+Mailsync-2 was a Java program that suffered from the Second System
+Effect.  It was never completed.
+
+Mailsync-3 was written in C over the c-client library.  I used it for
+over a year without any surprises.
+
+Mailsync-4 is a C++ program based on mailsync-3.  I was able to remove 
+a lot of cruft and make things a little more sensible, safe, and
+efficient. 
+
+
+
+8. Author, disclaimer, etc.
+---------------------------
+
+Mailsync's author is Tim Culver <fullcity@sourceforge.net>.  At
+Version 4.2 Tomas Pospisek <tpo_deb@sourcepole.ch> picked up
+maintenance.  Mailsync is copylefted under the GNU General Public
+License: http://www.gnu.org/copyleft/gpl.html
+Debian license zealotry addendum: linking with openssl is fine!
+
