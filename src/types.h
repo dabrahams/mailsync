@@ -27,7 +27,7 @@ typedef struct MailboxProperties {
 // submailboxes (!!) will be traversed first
 struct longer
 {
-  bool operator()(const string s1, const string s2) const
+  bool operator()(const string& s1, const string& s2) const
   {
     return s1.length() > s2.length();
   }

@@ -4,9 +4,11 @@ New in 5.0.0:
    - really object oriented
    - grouped sources together that belong together
    - simplified a lot of things
- * it should be possible to sync stores which contain messages and/or
-   submailboxes. However if two stores are incompatible creating subfolders
-   will fall by the wayside in favour of syncing the folder
+ * it should be possible to sync stores which contain folders with messages
+   _and_ submailfolders. However if two stores do not _both_ allow messages
+   _and_ subfolders in folders at the same time, submailboxes will
+   be created first and messages in folders that contain subfolders will
+   no be synchronized! (Detlef Vollmann helped with C++ quirks)
  * build fixes by Michael
  * documented diff mode
  
