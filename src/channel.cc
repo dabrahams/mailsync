@@ -307,6 +307,9 @@ bool Channel::copy_message( unsigned long msgno,
   // Copy message over with all the flags that the original has
   memset( flags, 0, MAILTMPLEN );
   if (elt->seen)     strcat (flags," \\Seen");
+  // why doesn't the following work?
+  // else
+  //                   strcat (flags," \\New");
   if (elt->deleted)  strcat (flags," \\Deleted");
   if (elt->flagged)  strcat (flags," \\Flagged");
   if (elt->answered) strcat (flags," \\Answered");
