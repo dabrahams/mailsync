@@ -12,6 +12,7 @@ mailsync_SOURCES=mailsync_main.cc \
                  types.cc types.h \
                  mail_handling.cc mail_handling.h \
                  c-client_callbacks.cc \
+                 c-client-header.h \
                  utils.cc utils.h \
                  store.cc store.h \
                  channel.cc channel.h \

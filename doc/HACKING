@@ -66,3 +66,32 @@ synchronized through the standard method, by using Message-IDs to uniquely
 identify messages and the second one is using md5 checksums.
 
 Take care - mailboxes with *empty* names *are* allowed.
+
+RELEASE PROCESS
+---------------
+1. * release CVS tarballs
+2. as soon as it seems stable:
+   * make note in NEWS about alpha release
+   * release alpha
+   * make dist and upload
+3. after some downloads without complaints:
+   * verify that problems that the release was supposed to
+     fix are actually fixed with the people that had them
+   * update version number to beta in configure.ac
+   * make note in NEWS about beta release
+   * release beta
+   * make dist and upload
+4. after enough time:
+   * update version number in configure.ac
+   * make note in NEWS about release and beta period
+   * tag CVS with new release number
+   * release
+   * make dist
+   * double check that the tarball doesn't contain any crap
+   * upload
+   * go through bugs and tag them as closed in debian/changelog
+   * make debian package with:
+     dpkg-buildpackage -iCVS/*\|.cvsignore -rfakeroot -kFC992520
+   * double check that the diff doesn't contain any crap
+   * upload
+

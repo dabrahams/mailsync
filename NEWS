@@ -1,3 +1,9 @@
+New in 5.2.1:
+
+ * c-client-header.h was not contained in the tarball, strange I got no
+   feedback!?
+ * added some more #mh howto by Michael
+ 
 New in 5.2:
 
  * shoving around of code for better comprehension of the code
