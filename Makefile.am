@@ -4,6 +4,7 @@ AUTOMAKE_OPTIONS=foreign
 EXTRA_DIST=THANKS autogen.sh doc debian acinclude
 
 # remove CVS files from examples, debian and acinclude
+# add link from THANKS to AUTHORS
 dist-hook:
 	rm -rf `find $(distdir) -name CVS`
 
