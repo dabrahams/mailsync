@@ -12,6 +12,7 @@ New in 4.5:
  * msinfo format documented
  * a little simpler msinfo parsing
  * added #mh mail format example
+ * added Michael Krelin's #mh over ssh example
 
 New in 4.4.4:
 

@@ -12,7 +12,10 @@
 # [1] /usr/share/doc/mailsync/README
 # [2] /usr/share/doc/libc-client-ssl2001/naming.txt.gz
 # [3] rfc2060
-#
+
+######################################################
+#               Store declarations
+######################################################
 
 #
 # Get all mail from the "debian.org" IMAPS (IMAP over SSL)
@@ -72,6 +75,27 @@ store netscape-or-uw-store {
 }
 
 #
+# accessing an MH inbox over ssh
+#
+# c-client will try to exec the following to
+# get to the mails:
+#
+#       ssh example.org exec /etc/rimapd
+#
+# That means that you need to point /etc/imapd
+# to s.th. sensible on the remote machine - i.e.:
+#
+# ln -s /usr/sbin/imapd /etc/rimapd
+#
+# See the c-client FAQ for more information
+#
+store mh-over-ssh-inbox {
+        server {example.org/user=me/secure}
+        ref {example.org}
+        pat #mh/inbox
+}
+
+#
 # local mail on a unix box contained
 # in $HOME/Mail/localcopy
 #
@@ -91,7 +115,7 @@ store hacker {
 #
 # local mail on a unix box contained
 # in $HOME/mail/
-#                              ^^^^
+#          ^^^^
 #
 store local-directory-mail {
 	pat	mail/%
@@ -115,6 +139,10 @@ store local-oliver {
 	pat	mail/oliver
 	prefix  mail/
 }
+
+######################################################
+#               Cannel declarations
+######################################################
 
 #
 # Let's synchronize our local inbox with the cyrus inbox. The
