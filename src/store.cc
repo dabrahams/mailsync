@@ -1,9 +1,9 @@
-
 #include "options.h"
 #include "utils.h"
 #include "store.h"
 #include "mail_handling.h"
 
+#include <iostream>     // only for debuging
 
 extern Store*        match_pattern_store;
 extern Passwd*       current_context_passwd;
@@ -124,7 +124,7 @@ MAILSTREAM* Store::store_open( long c_client_options)
 //////////////////////////////////////////////////////////////////////////
 {
   current_context_passwd = &passwd;
-  
+
   stream = mail_open( this->stream, nccs(this->server),
                       c_client_options | ( options.debug_imap ? OP_DEBUG : 0 ));
   if (! this->stream) {
@@ -242,7 +242,12 @@ bool Store::fetch_message_ids(MsgIdPositions& mids)
       if ( options.expunge_duplicates ) {
         char seq[30];
         sprintf( seq, "%lu", msgno);
-        if (! options.simulate ) mail_setflag( this->stream, seq, "\\Deleted" );
+        if (! options.simulate )
+          if ( msgid.empty() )
+            fprintf( stderr, "Not deleting duplicate message with empty "
+                             "Message-ID - see README");
+          else
+            mail_setflag( this->stream, seq, "\\Deleted" );
       }
       nduplicates++;
       if ( options.show_from ) print_lead( "duplicate", "");
@@ -396,19 +401,48 @@ bool Store::flag_message_for_removal( unsigned long msgno,
 
 //////////////////////////////////////////////////////////////////////////
 //
-void Store::display_driver()
+char* Store::driver_name()
 //
-// Display which drivers we're using for accessing a store
+// Return the name of the driver we're using for accessing a store.
+//
+// The store must contain at least one valid mailbox name, otherwise the call
+// will return NULL.
+//
+// Returns NULL if no valid driver was found
 //
 //////////////////////////////////////////////////////////////////////////
 {
   DRIVER* drv;
+  char* full_name; 
 
-  drv = mail_valid( this->stream,
-                    nccs( full_mailbox_name( boxes.begin()->first) ),
-                    NIL);
+  if ( boxes.size() == 0 ) // boxes list is empty (no box with that name
+                           // exists)
+    drv = mail_valid( this->stream, "", NIL);
+  else
+    drv = mail_valid( this->stream,
+                      nccs( full_mailbox_name( boxes.begin()->first) ),
+                      NIL);
   if (drv)
-    printf( "Using driver %s for store %s\n", drv->name, nccs( name));
+    return drv->name;
+  else
+    return NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+void Store::display_driver()
+//
+// Display which drivers we're using for accessing a store
+//
+// The store must contain at least one valid mailbox name, otherwise the call
+// will return NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+{
+  char* the_driver_name = driver_name();
+
+  if (the_driver_name)
+    printf( "Using driver %s for store %s\n", the_driver_name, nccs( name));
   else
     printf( "No driver for store %s found\n");
 }

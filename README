@@ -366,6 +366,15 @@ using the Message-ID header. If you need to synchronize such messages you
 should use the md5 message id algorithm. You can achieve this by passing
 "-t md5" to mailsync.
 
+Mailsync deletes duplicate messages by default - assuming that they're the
+same. However if it finds multiple messages with empty Message-IDs it will
+display the message:
+
+        "Not deleting duplicate message with empty Message-ID - see README"
+
+and leave that message alone, supposing that this is just another email
+produced by weird software.
+
 
 
 6. More about the algorithm

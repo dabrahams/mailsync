@@ -22,6 +22,7 @@ class MsgId : public string
     void sanitize_message_id();
     string to_msinfo_format();
     string from_msinfo_format();
+    bool empty();
 };
 
 #define __MAILSYNC_MSGID__

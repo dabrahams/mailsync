@@ -44,6 +44,7 @@ class Store
                                      long c_client_options);
     MAILSTREAM* store_open( long c_client_options);
     bool mailbox_create( const string& boxname );
+    char* driver_name();
     void display_driver();
     void print_error(const char * cause, const string& mailbox);
     int mailbox_expunge(string mailbox_name);
