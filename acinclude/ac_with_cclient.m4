@@ -27,7 +27,7 @@ AC_DEFUN(AC_WITH_CCLIENT,[
   dnl Looking for headers c-client headers
   dnl
    AC_MSG_CHECKING([for c-client.h])
-  for p in `eval "echo {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/include/c-client,/include}"` ; do
+  for p in `eval "echo {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/include/c-client,/include,/include/imap}"` ; do
    if test -r "${p}/c-client.h" -a -r "${p}/linkage.h" -a -r "${p}/linkage.c" ; then
     CCLIENT_INCLUDES="-I${p}"
     CCLIENT_LINKAGE_H="${p}/linkage.h"

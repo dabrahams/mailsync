@@ -12,7 +12,8 @@ LaMont Jones            build problems
 Alain Tesio             typo -> segfault, doh!
 Aly Dharshi             RH build
 Andre Srinivasan        not automatically setting -m when listing contents
-Wolfgang Sailer         forgot to adapt README to autoconf build procedure
+Wolfgang Sailer         forgot to adapt README to autoconf build procedure,
+                        RH imap location
 
 Current maintainer
 ------------------
