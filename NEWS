@@ -1,3 +1,10 @@
+New in 5.1.2:
+
+ * shoving around of code for better comprehension of the code
+ * fixed fix from 5.1.1
+ * mailsync shouldn't be possibly messing with flags at all if the
+   mailbox (IMAP f.ex) allows it.
+ 
 New in 5.1.1:
 
  * not properly expunging emails fixed (Michael fix, Bob testing)

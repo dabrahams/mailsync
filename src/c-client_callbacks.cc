@@ -26,6 +26,9 @@ extern Passwd*     current_context_passwd;
 // Flag saying in critical code
 int critical = NIL;
 
+// Number of expunged mails
+int expunged_mails = 0;
+
 //////////////////////////////////////////////////////////////////////////
 //
 void mm_list ( MAILSTREAM *stream, int delimiter, char *name_nc,
@@ -120,9 +123,12 @@ void mm_exists (MAILSTREAM *stream,unsigned long number) { }
 
 //////////////////////////////////////////////////////////////////////////
 //
-void mm_expunged (MAILSTREAM *stream,unsigned long number) { }
+void mm_expunged (MAILSTREAM *stream,unsigned long number)
 //
 //////////////////////////////////////////////////////////////////////////
+{
+  expunged_mails++;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

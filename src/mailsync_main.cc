@@ -1,75 +1,6 @@
 /// Please use spaces instead of tabs
 
-//////////////////////////////////////////////////////////////////////////
-// ATTENTION: The terminus "mailbox" is used throughout the code in
-//            accordance with c-client speak.
-//
-//            What c-client calls "mailbox" is commonly referred to as a
-//            mail FOLDER.
-//            
-//            In mailsync a box containing multiple folders is described
-//            by a "Store" - have a look below at the definition of "Store".
-//
-//////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////
-// MSINFO format description
-//
-// ATTENTION: the msinfo format might change without warning!
-//
-// The msinfo file contains synchronization information for channels as
-// defined in the configuration file. Each channel contains the mailboxes
-// associated with it and the message ids of all the mails that have been
-// seen in those mailboxes the last time a sync was done.
-// 
-// The msinfo file is a normal mailbox.
-//
-// Each email therein represents a channel. The channel is identified by
-// the "Subject: " email header.
-//
-// The body of an email contains a series of mailbox synchronization
-// entries. Each such entry starts with the name of the mailbox followed
-// by all the message ids that were seen and synchronized. Message ids
-// have the format <xxx@yyy>
-//
-// Example:
-//
-// From tpo@petertosh Fri Oct  4 12:18:13 2002 +0200
-// From: mailsync
-// Subject: all
-// Status: O
-// X-Status:
-// X-Keywords:
-// X-UID: 2095
-//
-// linux/apt
-// <1018460459.4617.23.camel@mpav>
-// <1027985024.1352.19.camel@server1>
-// linux/mailsync
-// <001001c1d37a$39ee3d70$e349428e@ludwig>
-// <002b01c1e95c$94957390$e349428e@ludwig>
-//
-// From tpo@petertosh Sat Nov 30 18:21:55 2002 +0100
-// Status:
-// X-Status:
-// X-Keywords:
-// From: mailsync
-// Subject: inbox
-//
-// INBOX
-// <.AAA-25623050-05908,3118.1037623416@mail-ems-103.amazon.com>
-// <000001c28e4d$da22e0a0$3201a8c0@BALROG>
-// 
-// We have here two channels. The first is use for synchronization
-// of all my mailboxes and the second one solely for my inbox.
-//
-// The first channel contains the mailboxes "linux/apt" and
-// "linux/mailsync". Each of those mailboxes has had two mails in it,
-// whose message-ids can be seen above.
-//
-// Take care - mailboxes with *empty* names *are* allowed.
-//
-//////////////////////////////////////////////////////////////////////////
+// See the documentation: "HACKING" and "ABSTRACT"
 
 #include "config.h"             // include autoconf settings
 
@@ -161,7 +92,7 @@ int main(int argc, char** argv)
   // initialize c-client environment (~/.imparc etc.)
   env_init( getenv("USER"), getenv("HOME"));
 
-  // open the connection to the first store
+  // open a read only the connection to the first store
   if ( store_a.isremote ) {
     if (! store_a.store_open( OP_HALFOPEN | OP_READONLY) )
       return 1;
@@ -171,7 +102,8 @@ int main(int argc, char** argv)
     store_a.stream = NULL;
   }
 
-  // open the connection to the second store
+  // in case we want to sync - open a read only the connection
+  // to the second store
   if (operation_mode == mode_sync && store_b.isremote)
   {
     if (! store_b.store_open( OP_HALFOPEN | OP_READONLY) )
@@ -184,6 +116,7 @@ int main(int argc, char** argv)
 
   
   // Get list of all mailboxes from first store
+  //
   if (debug) printf( " Items in store \"%s\":\n", store_a.name.c_str() );
   if (! store_a.acquire_mail_list() ) {
     printf( " Store pattern doesn't match any selectable mailbox");
@@ -196,14 +129,12 @@ int main(int argc, char** argv)
     assert(0);
   }
   else if (debug) {
-    if ( ! store_a.delim ) {
-      // TODO: this won't happen for INBOXES
+    // store_b.delim can be '' for INBOXes
+    if ( ! store_a.delim )
       printf(" No delimiter found for store \"%s\"\n", store_a.name.c_str());
-    }
-    else {
+    else
       printf( " Delimiter for store \"%s\" is '%c'\n",
-              store_a.name.c_str(), store_a.delim);
-    }
+              store_a.name.c_str(), store_a.delim );
   }
 
 
@@ -214,18 +145,18 @@ int main(int argc, char** argv)
 
   ///////////////////////////// mode_list //////////////////////////////
 
-  // Display listing of the mail store if user requested it
+  // Display listing of the first mail store in case we're in list mode
   if ( operation_mode == mode_list ) {
     if ( options.show_from | options.show_message_id ) {
-      for ( MailboxMap::iterator box = store_a.boxes.begin() ; 
-            box != store_a.boxes.end() ;
-            box++ )
+      for ( MailboxMap::iterator curr_mbox = store_a.boxes.begin() ; 
+            curr_mbox != store_a.boxes.end() ;
+            curr_mbox++ )
       {
-        printf("\nMailbox: %s\n", box->first.c_str());
-        if( box->second.no_select )
+        printf("\nMailbox: %s\n", curr_mbox->first.c_str());
+        if( curr_mbox->second.no_select )
           printf("  not selectable\n");
         else {
-          store_a.stream = store_a.mailbox_open( box->first, 0);
+          store_a.stream = store_a.mailbox_open( curr_mbox->first, 0);
           if (! store_a.stream) break;
           if (! store_a.list_contents() )
             exit(1);
@@ -238,11 +169,15 @@ int main(int argc, char** argv)
    exit(0);
   }
 
-  //////////////////////// mode_diff or mode_sync //////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////// from this point on we are only dealing with /////////////
+  ////////////////// mode_diff or mode_sync ////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 
   ///////////////////////////// mode_sync //////////////////////////////
 
-  // Sync two stores
+  // Get list of all mailboxes and delimiter from second store
+  //
   if ( operation_mode == mode_sync ) {
 
     store_b.boxes.clear();
@@ -260,13 +195,16 @@ int main(int argc, char** argv)
     // Making sure we get ahold of the mailbox-hierarchy delimiter
     if (store_b.delim == '!')
       store_b.get_delim();
-    if (! store_b.delim || store_b.delim == '!') {
-      printf(" No delimiter found for store \"%s\"\n", store_b.name.c_str());
-      exit(1);
+    if (store_a.delim == '!') {  // this should not happen
+      assert(0);
     }
-    else if (debug)
-      printf( " Delimiter for store \"%s\" is '%c'\n",
-              store_b.name.c_str(), store_b.delim);
+    else if (debug) {
+      if (! store_b.delim )
+        printf(" No delimiter found for store \"%s\"\n", store_b.name.c_str());
+      else
+        printf( " Delimiter for store \"%s\" is '%c'\n",
+                store_b.name.c_str(), store_b.delim);
+    }
   }
 
 
@@ -292,55 +230,58 @@ int main(int argc, char** argv)
   // Iterate over all mailboxes and sync or diff each
   //
   // our comparison operator for our stores compares lenghts
-  // that means that we're tracersing the store from longest to
+  // that means that we're traversing the store from longest to
   // shortest mailbox name - this makes sure that we'll first see
-  // and create all submailboxes
+  // and create mailboxes with longer "path"names that means 
+  // submailboxes first
   success = 1; // TODO: this is bogus isn't it?
-  for ( MailboxMap::iterator box = store_a.boxes.begin(); 
-        box != store_b.boxes.end();
-        box++ )
+  for ( MailboxMap::iterator curr_mbox = store_a.boxes.begin(); 
+        curr_mbox != store_b.boxes.end();
+        curr_mbox++ )
   {
-    if ( box == store_a.boxes.end()) { // if we're done with store_a
-      box = store_b.boxes.begin();     // continue with store_b
+    if ( curr_mbox == store_a.boxes.end()) { // if we're done with store_a
+      curr_mbox = store_b.boxes.begin();     // continue with store_b
       continue;
     }
 
-    // skip if the box has allready been treated
-    if ( box->second.done)
+    // skip if the current mailbox has allready been synched
+    if ( curr_mbox->second.done)
       continue;
     
-    // if mailbox doesn't exist in either store -> create it
-    if ( store_a.boxes.find( box->first ) == store_a.boxes.end() )
-      if ( ! store_a.mailbox_create( box->first ) )
+    // if mailbox doesn't exist in either one of the stores -> create it
+    if ( store_a.boxes.find( curr_mbox->first ) == store_a.boxes.end() )
+      if ( ! store_a.mailbox_create( curr_mbox->first ) )
         continue;
-    if ( store_b.boxes.find( box->first ) == store_b.boxes.end() )
-      if ( ! store_b.mailbox_create( box->first ) )
+    if ( store_b.boxes.find( curr_mbox->first ) == store_b.boxes.end() )
+      if ( ! store_b.mailbox_create( curr_mbox->first ) )
         continue;
 
-    // when traversing store_a's boxes we don't need to care about
-    // duplicates. It's not unless we're in store_b that it matters
-    // whether the box has been traversed in store_a allready
-    store_b.boxes.find(box->first)->second.done = true;
+    // when traversing store_a's boxes we don't need to worry about
+    // whether it has been synched yet or not.  It isn't unless we're
+    // in store_b that it matters whether the current mailbox has been
+    // traversed in store_a allready
+    store_b.boxes.find(curr_mbox->first)->second.done = true;
 
-    if ( store_a.boxes.find( box->first )->second.no_select ) {
+    // skip unselectable (== can't contain mails) boxes
+    if ( store_a.boxes.find( curr_mbox->first )->second.no_select ) {
       if ( debug )
-        printf( "%s is not selectable: skipping\n", box->first.c_str() );
+        printf( "%s is not selectable: skipping\n", curr_mbox->first.c_str() );
       continue;
     }
-    if ( store_b.boxes.find( box->first )->second.no_select ) {
+    if ( store_b.boxes.find( curr_mbox->first )->second.no_select ) {
       if ( debug )
-        printf( "%s is not selectable: skipping\n", box->first.c_str() );
+        printf( "%s is not selectable: skipping\n", curr_mbox->first.c_str() );
       continue;
     }
 
     if (options.show_from)
-      printf("\n *** %s ***\n", box->first.c_str());
+      printf("\n *** %s ***\n", curr_mbox->first.c_str());
 
-    MsgIdSet msgids_lasttime( lasttime[box->first] ), msgids_union, msgids_now;
+    MsgIdSet msgids_lasttime( lasttime[curr_mbox->first] ), msgids_union, msgids_now;
     MsgIdPositions msgidpos_a, msgidpos_b;
 
     if (options.show_summary) {
-      printf("%s: ",box->first.c_str());
+      printf("%s: ",curr_mbox->first.c_str());
       fflush(stdout);
     }
     else {
@@ -355,25 +296,29 @@ int main(int argc, char** argv)
     //            streamx_stream is connected to _one_ specific
     //            mailbox.
    
-    store_a.stream = store_a.mailbox_open( box->first, 0 );
+    // open and fetch message ID's from the mailbox in the first store
+    store_a.stream = store_a.mailbox_open( curr_mbox->first, 0 );
     if (! store_a.stream)
     {
-      store_a.print_error( "opening and writing", box->first);
+      store_a.print_error( "opening and writing", curr_mbox->first);
       continue;
     }
     if (! store_a.fetch_message_ids( msgidpos_a) )
     {
-      store_a.print_error( "fetching of mail ids", box->first);
+      store_a.print_error( "fetching of mail ids", curr_mbox->first);
       continue;
     }
+
+    // if we're in sync mode open and fetch message IDs from the
+    // mailbox in the second store
     if( operation_mode == mode_sync ) {
-      store_b.stream = store_b.mailbox_open( box->first, 0);
+      store_b.stream = store_b.mailbox_open( curr_mbox->first, 0);
       if (! store_b.stream) {
-        store_b.print_error( "fetching of mail ids", box->first);
+        store_b.print_error( "fetching of mail ids", curr_mbox->first);
         continue;
       }
       if (! store_b.fetch_message_ids( msgidpos_b )) {
-        store_b.print_error( "fetching of mail ids", box->first);
+        store_b.print_error( "fetching of mail ids", curr_mbox->first);
         continue;
       }
     } else if( operation_mode == mode_diff ) {
@@ -385,7 +330,12 @@ int main(int argc, char** argv)
       }
     }
 
-    // u = union(msgids_lasttime, a, b)
+    // Create the set of all seen message IDs in a mailbox:
+    // + message IDs seen the last time
+    // + message IDs seen in the mailbox from store_a
+    // + message IDs seen in the mailbox from store_b
+    // 
+    // msgids_union = union(msgids_lasttime, msgids_a, msgids_b)
     msgids_union = msgids_lasttime;
     for( MsgIdPositions::iterator i = msgidpos_a.begin();
          i != msgidpos_a.end() ;
@@ -399,13 +349,19 @@ int main(int argc, char** argv)
     {
       msgids_union.insert(i->first);
     }
+
+    // Messages that should be copied from store_a to store_b,
+    // from store_b to store_a, that should be removed in store_a and
+    // finally that should be removed in store_b
     MsgIdSet copy_a_b, copy_b_a, remove_a, remove_b;
 
-
+    // Iterate over all messages that were seen in a mailbox last time,
+    // in store_a and in store_b
     for ( MsgIdSet::iterator i=msgids_union.begin();
           i!=msgids_union.end();
           i++ )
     {
+      // determine first what to do with a message
       bool in_a = msgidpos_a.count(*i);
       bool in_b = msgidpos_b.count(*i);
       bool in_l = msgids_lasttime.count(*i);
@@ -455,133 +411,106 @@ int main(int argc, char** argv)
     unsigned long now_n = msgids_now.size();
 
     switch (operation_mode) {
-    case mode_sync:
+    
+     /////////////////////////// mode_sync ///////////////////////////
+    
+     case mode_sync:
       {
         bool success;
+        unsigned long removed_a = 0, removed_b = 0, copied_a_b = 0,
+                      copied_b_a = 0;
 
-        // we're first removing messages
-        // if we'd first copy and the remove, mailclient would add a
-        // "Status: 0" line to each mail. We don't want this wrt to
-        // MUA's who interpret such a line as "not new" (in particular
-        // mutt!)
+        //////////////////// removing messages ///////////////////////
+        
+        // We're first flagging messages for removal. If we'd first copy
+        // and then remove, c-client would add a "Status: 0" line to each
+        // mail. We don't want this because of MUA's who interpret such
+        // a line as "not new" (in particular mutt!)
 
-        if (debug) {
-          printf( " Removing messages from store \"%s\"\n",
-                  store_a.name.c_str() );
-        }
-        unsigned long removed_a = 0;
-        for ( MsgIdSet::iterator i = remove_a.begin() ;
-              i != remove_a.end() ;
-              i++)
-        {
-          success = store_a.remove_message( msgidpos_a[*i], *i, "< ");
+        if (debug) printf( " Removing messages from store \"%s\"\n",
+                           store_a.name.c_str() );
+
+        for( MsgIdSet::iterator i =remove_a.begin(); i !=remove_a.end(); i++) {
+          success = store_a.flag_message_for_removal( msgidpos_a[*i], *i, "< ");
           if (success) removed_a++;
         }
 
-        if (debug) {
-          printf( " Removing messages from store \"%s\"\n",
-                  store_b.name.c_str() );
-        }
+        if (debug) printf( " Removing messages from store \"%s\"\n",
+                           store_b.name.c_str() );
 
-        unsigned long removed_b = 0;
-        for ( MsgIdSet::iterator i = remove_b.begin();
-              i != remove_b.end();
-              i++ )
-        {
-          success = store_b.remove_message( msgidpos_b[*i], *i, "> ");
+        for( MsgIdSet::iterator i =remove_b.begin(); i !=remove_b.end(); i++) {
+          success = store_b.flag_message_for_removal( msgidpos_b[*i], *i, "> ");
           if (success) removed_b++;
         }
 
-        string fullboxname_a = store_a.full_mailbox_name(box->first);
-        string fullboxname_b = store_b.full_mailbox_name(box->first);
-
-        // strangely enough, following Mark Crispin, if you write into
-        // an open stream then it'll mark new messages as seen.
-        //
-        // So if we want to write to a remote mailbox we have to
-        // HALF_OPEN the stream and if we're working on a local
-        // mailbox then we have to use a NIL stream.
-
-        if (debug) {
+        //////////////////// copying messages ///////////////////////
+        
+        if (debug)
           printf( " Copying messages from store \"%s\" to store \"%s\"\n",
                   store_a.name.c_str(), store_b.name.c_str() );
-        }
-        // TODO: the following line is ugly as a cross between Bush and Saddam
-        if (! (options.simulate||options.no_expunge) ) {
-          mail_expunge(store_b.stream);
-	}
-        if (! store_b.isremote) {
-          mail_close( store_b.stream );
-          store_b.stream = NIL;
-        } else {
-          store_b.stream = store_b.mailbox_open( box->first, 0 );
-        }
-        unsigned long copied_a_b = 0;
-        for ( MsgIdSet::iterator i=copy_a_b.begin(); i!=copy_a_b.end(); i++)
-        {
+
+        for ( MsgIdSet::iterator i =copy_a_b.begin(); i !=copy_a_b.end(); i++) {
           success = channel.copy_message( msgidpos_a[*i], *i,
-                                          fullboxname_b, a_to_b );
-          if (success)
-            copied_a_b++;
-          else                    // we've failed to copy the message over
-            msgids_now.erase(*i); // as we should've had. So let's just assume
-                                  // that we haven't seen it at all. That way
-                                  // mailsync will have to rediscover and resync
-                                  // the same message again next time
+                                          curr_mbox->first, a_to_b );
+          if (success) copied_a_b++;
+          else         msgids_now.erase(*i);
+          // if we've failed to copy the message over we'll pretend that we
+          // haven't seen it at all. That way mailsync will have to rediscover
+          // and resync the same message again next time
         }
 
         if (debug)
           printf( " Copying messages from store \"%s\" to store \"%s\"\n",
                   store_b.name.c_str(), store_a.name.c_str() );
 
-        if (!store_b.isremote) { // reopen the stream if it was closed before
-          store_b.stream = NIL;
-          store_b.stream = store_b.mailbox_open( box->first, OP_READONLY );
-        }
-        // TODO: ditto
-        if (! (options.simulate||options.no_expunge) ) {
-          mail_expunge(store_a.stream);
-	}
-        if (!store_a.isremote) { // close the stream for writing
-                                 // (sic - the beauty of c-client!) !!
-          mail_close(store_a.stream);
-          store_a.stream = NIL;
-        } else 
-          store_a.stream = store_a.mailbox_open( box->first, 0 );
-        unsigned long copied_b_a = 0;
-        for ( MsgIdSet::iterator i = copy_b_a.begin() ;
-              i != copy_b_a.end() ;
-              i++)
-        {
+        for ( MsgIdSet::iterator i=copy_b_a.begin(); i !=copy_b_a.end(); i++) {
           success = channel.copy_message( msgidpos_b[*i], *i,
-                                          fullboxname_a, b_to_a );
-          if (success)
-            copied_b_a++;
-          else
-            msgids_now.erase(*i);
+                                          curr_mbox->first, b_to_a );
+          if (success) copied_b_a++;
+          else         msgids_now.erase(*i);
         }
         
         printf("\n");
-        if (copied_a_b)
-          printf( "%lu copied %s->%s.\n", copied_a_b,
-                  store_a.name.c_str(), store_b.name.c_str() );
-        if (copied_b_a)
-          printf( "%lu copied %s->%s.\n", copied_b_a,
-                  store_b.name.c_str(), store_a.name.c_str() );
-        if (removed_a)
-          printf( "%lu deleted on %s.\n", removed_a, store_a.name.c_str() );
-        if (removed_b)
-          printf( "%lu deleted on %s.\n", removed_b, store_b.name.c_str() );
+        if (copied_a_b) printf( "%lu copied %s->%s.\n", copied_a_b,
+                                store_a.name.c_str(), store_b.name.c_str() );
+        if (copied_b_a) printf( "%lu copied %s->%s.\n", copied_b_a,
+                                store_b.name.c_str(), store_a.name.c_str() );
+        if (removed_a)  printf( "%lu deleted on %s.\n",
+                                removed_a, store_a.name.c_str() );
+        if (removed_b)  printf( "%lu deleted on %s.\n",
+                                removed_b, store_b.name.c_str() );
         if (options.show_summary) {
           printf( "%lu remain%s.\n", now_n, now_n != 1 ? "" : "s");
           fflush(stdout);
         } else {
-          printf( "%lu messages remain in %s\n", now_n, box->first.c_str() );
+          printf( "%lu messages remain in %s\n",
+                  now_n, curr_mbox->first.c_str() );
         }
-      }
+
+        //////////////////////// expunging emails /////////////////////////
+        
+        if (debug) printf( " Expunging messages\n" );
+
+        if (! (options.no_expunge || options.simulate) ) {
+          int n_expunged_a = store_a.mailbox_expunge( curr_mbox->first );
+          int n_expunged_b = store_b.mailbox_expunge( curr_mbox->first );
+          if (n_expunged_a) printf( "Expunged %d mail(s) in store %s\n"
+                                    , n_expunged_a, store_a.name.c_str() );
+          if (n_expunged_b) printf( "Expunged %d mail(s) in store %s\n"
+                                    , n_expunged_b, store_b.name.c_str() );
+        }
+
+        if (options.delete_empty_mailboxes) {
+          if (now_n == 0)
+            // add empty mailbox to empty_mailboxes
+            empty_mailboxes[ curr_mbox->first ] = MailboxProperties();
+        }
+      } // end case mode_sync
       break;
 
-    case mode_diff:
+     /////////////////////////// mode_diff ///////////////////////////
+    
+     case mode_diff:
       {
         if ( copy_a_b.size() )
           printf( "%d new, ", copy_a_b.size() );
@@ -592,46 +521,19 @@ int main(int argc, char** argv)
       }
       break;
 
-    default:
+     default:
       break;
     }
 
-    thistime[box->first] = msgids_now;
+    thistime[curr_mbox->first] = msgids_now;
 
-    if (! options.no_expunge ) {
-      if (! store_a.isremote ) { // reopen the stream in write mode if it was
-                                 // closed before - needed for expunge
-        store_a.stream = NIL;
-        store_a.stream = store_a.mailbox_open( box->first, 0);
-      }
-      current_context_passwd = &store_a.passwd;
-      if (! options.simulate )
-         mail_expunge( store_a.stream );
-      if (store_b.stream) {
-        if (!store_b.isremote) { // reopen the stream in write mode it was
-                                // closed before - needed for expunge
-          store_b.stream = NIL;
-          store_b.stream = store_b.mailbox_open( box->first, 0);
-        }
-        current_context_passwd = &store_b.passwd;
-        if (! options.simulate )
-	   mail_expunge( store_b.stream );
-      }
-      printf("Mails expunged\n");
-    }
-
+    // close local boxes
     if (!store_a.isremote)
       store_a.stream = mail_close(store_a.stream);
     if (store_b.stream && !store_b.isremote)
       store_b.stream = mail_close(store_b.stream);
 
-    if (options.delete_empty_mailboxes) {
-      if (now_n == 0) {
-        empty_mailboxes[ box->first ] = MailboxProperties();
-      }
-    }
-
-  }
+  } // end loop over all mailboxes
 
   if (store_a.isremote) store_a.stream = mail_close(store_a.stream);
   if (store_b.isremote) store_b.stream = mail_close(store_b.stream);
@@ -641,26 +543,20 @@ int main(int argc, char** argv)
   if (!success)
     return 1;
 
-  if ( options.delete_empty_mailboxes )
+  if ( options.delete_empty_mailboxes && operation_mode==mode_sync )
   {
     string fullboxname;
 
-    if (store_a.isremote)
-    {
+    if (store_a.isremote) {
       store_a.stream = NIL;
       store_a.store_open( OP_HALFOPEN );
-    }
-    else
-    {
+    } else {
       store_a.stream = NULL;
     }
-    if (store_b.isremote)
-    {
+    if (store_b.isremote) {
       store_b.stream = NIL;
       store_b.store_open( OP_HALFOPEN );
-    }
-    else
-    {
+    } else {
       store_b.stream = NULL;
     }
     for ( MailboxMap::iterator mailbox = empty_mailboxes.begin() ; 

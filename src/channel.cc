@@ -188,7 +188,7 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
 //
 bool Channel::copy_message( unsigned long msgno,
                             const MsgId& msgid,
-                            string fullboxbname,
+                            string mailbox_name,
                             enum direction_t direction)
 //
 // Copies the message "msgno" with "msgid" from one store to the other
@@ -216,6 +216,30 @@ bool Channel::copy_message( unsigned long msgno,
 
   Store& store_from = (direction == a_to_b) ? store_a : store_b;
   Store& store_to   = (direction == a_to_b) ? store_b : store_a;
+
+  if(! store_from.mailbox_open( mailbox_name, OP_READONLY ) ) {
+    fprintf( stderr,
+             "Error: Couldn't open mailbox %s in store %s\n",
+             mailbox_name.c_str(), store_from.name.c_str());
+    return 0;
+  }
+
+  // strangely enough, following Mark Crispin, if you write into
+  // an open stream then it'll mark new messages as seen.
+  //
+  // So if we want to write to a remote mailbox we have to
+  // HALF_OPEN the stream and if we're working on a local
+  // mailbox then we have to use a NIL stream.
+  if (store_to.isremote) {
+    if(! store_to.store_open( OP_HALFOPEN) ) {
+       fprintf( stderr, "Error: Couldn't open store %s\n",
+                        store_to.name.c_str());
+       return 0;
+    }
+  } else {
+    mail_close( store_to.stream );
+    store_to.stream = NIL;
+  }
 
   current_context_passwd = &store_from.passwd;
   envelope = mail_fetchenvelope(store_from.stream, msgno);
@@ -255,7 +279,7 @@ bool Channel::copy_message( unsigned long msgno,
   // we skip deleted messages unless copying deleted messages is explicitly
   // demanded
   if (elt->deleted & ! options.copy_deleted_messages) {
-    print_lead( "ign. del" , direction == a_to_b ? "->" : "<-" );
+    print_lead( "ign. del" , direction == a_to_b ? ">" : "<" );
     print_from( store_from.stream, msgno );
     print_msgid( msgid.c_str() );
     return 0;
@@ -286,7 +310,8 @@ bool Channel::copy_message( unsigned long msgno,
   current_context_passwd = &store_to.passwd;
 
   if (!options.simulate) 
-    success = mail_append_full( store_to.stream, nccs( fullboxbname ),
+    success = mail_append_full( store_to.stream,
+                                nccs( store_to.full_mailbox_name(mailbox_name)),
                                 &flags[1], mail_date(msgdate,elt), 
                                 &CCstring );
   if (options.show_from) {

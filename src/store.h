@@ -17,7 +17,7 @@ class Store
 //////////////////////////////////////////////////////////////////////////
 {
   public:
-    string name, server, prefix;   // Tag == store name
+    string name, server, prefix;
     string ref, pat;
     Passwd passwd;
     int isremote;                  // I.e. allows OP_HALFOPEN
@@ -38,14 +38,15 @@ class Store
     string full_mailbox_name(const string& box);
     bool fetch_message_ids(MsgIdPositions& mids);
     bool list_contents();
-    bool remove_message( unsigned long msgno, const MsgId& msgid,
-                         char * place);
+    bool flag_message_for_removal( unsigned long msgno, const MsgId& msgid,
+                                   char * place);
     MAILSTREAM* mailbox_open( const string& boxname,
                                      long c_client_options);
     MAILSTREAM* store_open( long c_client_options);
     bool mailbox_create( const string& boxname );
     void display_driver();
     void print_error(const char * cause, const string& mailbox);
+    int mailbox_expunge(string mailbox_name);
 };
 
 #define __MAILSYNC_STORE__

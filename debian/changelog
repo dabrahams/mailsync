@@ -1,3 +1,12 @@
+mailsync (5.1.2-1) unstable; urgency=high
+
+  * new in upstream:
+    * another try at fixing the #mh expunge problem
+    * mailsync shouldn't be possibly messing with flags at all if the
+      mailbox (IMAP f.ex) allows it.
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 19 Apr 2003 10:17:34 +0200
+
 mailsync (5.1.1-1) unstable; urgency=high
 
   * new in upstream:

@@ -1,3 +1,4 @@
+
 #include "options.h"
 #include "utils.h"
 #include "store.h"
@@ -8,6 +9,7 @@ extern Store*        match_pattern_store;
 extern Passwd*       current_context_passwd;
 extern enum operation_mode_t operation_mode;
 extern options_t options;
+extern int expunged_mails;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -334,8 +336,9 @@ bool Store::list_contents()
 
 //////////////////////////////////////////////////////////////////////////
 //
-bool Store::remove_message( unsigned long msgno, const MsgId& msgid,
-                            char * place)
+bool Store::flag_message_for_removal( unsigned long msgno,
+                                     const MsgId& msgid,
+                                     char * place)
 //
 // returns !0 on success
 //
@@ -420,4 +423,16 @@ void Store::print_error(const char * cause, const string& mailbox)
            mailbox.c_str(), name.c_str(), cause );       
   fprintf( stderr,
            "       Continuing with next mailbox\n");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+int Store::mailbox_expunge( string mailbox_name )
+//
+//////////////////////////////////////////////////////////////////////////
+{
+  expunged_mails = 0; // is manipulated by the c-client callback mm_expunge
+  this->mailbox_open( mailbox_name, 0);
+  mail_expunge( this->stream );
+  return expunged_mails;
 }
