@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   id="svg1124"
+   sodipodi:version="0.32"
+   inkscape:version="0.38.1"
+   width="21.000000cm"
+   height="29.699999cm"
+   sodipodi:docname="mail_open_close_flowchart_new2.svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   sodipodi:docbase="/home/tpo/src/projects/mailsync/mailsyncCVS/mailsync-5.1.2/doc">
+  <defs
+     id="defs1126" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.8577254"
+     inkscape:cx="287.24419"
+     inkscape:cy="201.98454"
+     inkscape:window-width="1257"
+     inkscape:window-height="918"
+     inkscape:window-x="15"
+     inkscape:window-y="0" />
+  <text
+     style="font-size:0.7;font-family:sans;"
+     x="1.8520349"
+     y="2.2670019"
+     id="text880"
+     transform="scale(12.07773,8.282075)">mailsync_main.cc</text>
+  <polygon
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="24.0232,36.2625 29.1088,38.8053 24.0232,41.3482 18.9375,38.8053 "
+     id="polygon881"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-278.1395)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.062721"
+     y="5.5221271"
+     id="text882"
+     transform="scale(12.07773,8.282075)">store_a.is_remote?</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="242.18305"
+     y="35.337337"
+     width="214.98374"
+     height="15.735927"
+     id="rect885" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="28.952015"
+     y="5.5170006"
+     id="text886"
+     transform="scale(12.07773,8.282075)">store_a.store_open( OP_HALFOPEN | OP_READONLY)</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="207.11333"
+     y1="43.249431"
+     x2="242.18305"
+     y2="43.205229"
+     id="line888" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="94.835391"
+     y="80.888667"
+     width="101.45299"
+     height="15.735927"
+     id="rect890" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.052055"
+     y="11.017001"
+     id="text891"
+     transform="scale(12.07773,8.282075)">store_a.stream = NULL</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="145.56161"
+     y1="80.888667"
+     x2="145.69072"
+     y2="64.309503"
+     id="line893" />
+  <polyline
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="40.9125,39.75 40.9125,47.85 24.0128,47.85 24.0128,48.1363 "
+     id="polyline894"
+     transform="matrix(12.07773,0.000000,0.000000,7.174745,-144.4557,-234.1900)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.72899830;"
+     x1="145.57011"
+     y1="121.79027"
+     x2="145.56161"
+     y2="96.390122"
+     id="line895" />
+  <polygon
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="24.0131,51.0225 29.1238,53.5778 24.0131,56.1332 18.9025,53.5778 "
+     id="polygon897"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-300.3441)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.052664"
+     y="17.613548"
+     id="text898"
+     transform="scale(12.07773,8.282075)">store_b.is_remote?</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="241.15709"
+     y="135.48044"
+     width="215.58765"
+     height="15.735927"
+     id="rect901" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="28.892019"
+     y="17.608421"
+     id="text902"
+     transform="scale(12.07773,8.282075)">store_b.store_open( OP_HALFOPEN | OP_READONLY)</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="207.29459"
+     y1="143.39264"
+     x2="241.15709"
+     y2="143.34836"
+     id="line904" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="93.808662"
+     y="181.03172"
+     width="102.05688"
+     height="15.735927"
+     id="rect906" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="11.992057"
+     y="23.108421"
+     id="text907"
+     transform="scale(12.07773,8.282075)">store_b.stream = NULL</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="144.83675"
+     y1="181.03172"
+     x2="145.57011"
+     y2="164.55658"
+     id="line909" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="40.8525,54.5225 40.8525,62.6225 23.9525,62.6225 23.9525,62.5975 "
+     id="polyline910"
+     transform="matrix(12.07773,0.000000,0.000000,7.054331,-144.4557,-233.4786)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.72909617;"
+     x1="145.56161"
+     y1="220.42178"
+     x2="144.83675"
+     y2="196.53315"
+     id="line911" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="62.156262"
+     y="220.86032"
+     width="165.46503"
+     height="17.806446"
+     id="rect913" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="11.996344"
+     y="28.042263"
+     id="text914"
+     transform="scale(12.07773,8.282075)">Get list of all mailboxes from first store a</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="62.337602"
+     y="247.02972"
+     width="166.06892"
+     height="17.806446"
+     id="rect917" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.036322"
+     y="31.202419"
+     id="text918"
+     transform="scale(12.07773,8.282075)">Get list of all mailboxes from first store b</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="145.37192"
+     y1="247.02972"
+     x2="144.88875"
+     y2="238.66586"
+     id="line920" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0381192;"
+     x="122.61388"
+     y="286.14381"
+     width="47.103180"
+     height="589.11662"
+     id="rect922" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="8.8963065"
+     y="33.714138"
+     id="text924"
+     transform="scale(12.07773,8.282075)">Loop over all mailboxes</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="144.73044"
+     y1="282.62793"
+     x2="145.37192"
+     y2="264.83756"
+     id="line926" />
+  <rect
+     style="fill:#ffffff;stroke:#000000;stroke-width:1.1374904;"
+     x="137.79222"
+     y="306.85834"
+     width="235.90305"
+     height="15.735927"
+     id="rect928" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="21.119099"
+     y="38.301052"
+     id="text929"
+     transform="scale(12.07773,8.282075)">store_a.mailbox_open( curr_mbox-&gt;first, OP_READONLY )</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="139.45392"
+     y="327.15021"
+     width="118.36183"
+     height="15.735927"
+     id="rect932" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.446358"
+     y="40.751003"
+     id="text933"
+     transform="scale(12.07773,8.282075)">store_a.fetch_message_ids</text>
+  <rect
+     style="fill:#ffffff;stroke:#000000;stroke-width:1.1418980;"
+     x="135.86180"
+     y="348.14542"
+     width="238.52199"
+     height="15.735927"
+     id="rect936" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="20.928374"
+     y="43.286160"
+     id="text937"
+     transform="scale(12.07773,8.282075)">store_b.mailbox_open( curr_mbox-&gt;first, OP_READONLY )</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="136.91722"
+     y="368.84946"
+     width="118.96573"
+     height="15.735927"
+     id="rect940" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.261296"
+     y="45.786160"
+     id="text941"
+     transform="scale(12.07773,8.282075)">store_b.fetch_message_ids</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="135.22615"
+     y="390.01163"
+     width="206.52933"
+     height="19.048750"
+     id="rect944" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="19.746344"
+     y="48.541042"
+     id="text945"
+     transform="scale(12.07773,8.282075)">Get all message ids in boxes on store a and store b</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="139.67804"
+     y="722.90528"
+     width="176.93887"
+     height="15.735927"
+     id="rect948" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="18.889894"
+     y="88.535773"
+     id="text949"
+     transform="scale(12.07773,8.282075)">mark messages on store a and b as removed</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="136.90015"
+     y="415.01422"
+     width="216.19151"
+     height="15.735927"
+     id="rect952" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="20.284882"
+     y="51.360001"
+     id="text953"
+     transform="scale(12.07773,8.282075)">channel.open_for_copying( curr_mbox-&gt;first, a_to_b)</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0601946;"
+     x="393.55235"
+     y="441.33948"
+     width="192.48894"
+     height="151.69560"
+     id="rect956" />
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="403.81883"
+     y="456.00974"
+     width="234.30817"
+     height="15.735927"
+     id="rect959" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="43.134917"
+     y="56.309933"
+     id="text960"
+     transform="scale(12.07773,8.282075)">store_from.mailbox_open( mailbox_name, OP_READONLY )</text>
+  <polygon
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="51.1232,99.4988 55.9838,101.929 51.1232,104.359 46.2625,101.929 "
+     id="polygon963"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="38.995577"
+     y="60.765282"
+     id="text964"
+     transform="scale(12.07773,8.282075)">store_to.isremote</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="471.30266"
+     y1="471.92114"
+     x2="470.97902"
+     y2="480.64935"
+     id="line966" />
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="557.81029"
+     y="493.31519"
+     width="155.80283"
+     height="15.735927"
+     id="rect968" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="52.634966"
+     y="60.814339"
+     id="text969"
+     transform="scale(12.07773,8.282075)">store_to.store_open( OP_HALFOPEN)</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="18.839653"
+     y="4.7696871"
+     id="text971"
+     transform="scale(12.07773,8.282075)">Y</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.639640"
+     y="8.7696881"
+     id="text973"
+     transform="scale(12.07773,8.282075)">N</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="18.804617"
+     y="16.573511"
+     id="text975"
+     transform="scale(12.07773,8.282075)">Y</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.604667"
+     y="20.573511"
+     id="text977"
+     transform="scale(12.07773,8.282075)">N</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="44.437529"
+     y="60.074364"
+     id="text979"
+     transform="scale(12.07773,8.282075)">Y</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="39.387484"
+     y="64.124146"
+     id="text981"
+     transform="scale(12.07773,8.282075)">N</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="529.68364"
+     y1="500.77551"
+     x2="557.81029"
+     y2="501.18286"
+     id="line983" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.85500973;"
+     x1="470.97902"
+     y1="520.76752"
+     x2="470.69988"
+     y2="534.65204"
+     id="line984" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="406.38573"
+     y="535.19025"
+     width="128.62790"
+     height="15.735927"
+     id="rect986" />
+  <text
+     style="fill:#0000db;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="38.972506"
+     y="65.870636"
+     id="text987"
+     transform="scale(12.07773,8.282075)">mail_close( store_to.stream );</text>
+  <polyline
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.10000000;"
+     points="64.7626,102.928 64.7626,109.445 51.0748,109.445"
+     id="polyline989"
+     transform="matrix(12.07773,0.000000,0.000000,11.54901,-146.4743,-679.4693)" />
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="138.91585"
+     y="590.06567"
+     width="118.78457"
+     height="15.735927"
+     id="rect991" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.419283"
+     y="72.496239"
+     id="text992"
+     transform="scale(12.07773,8.282075)">copy messages from a to b</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="138.31215"
+     y="611.47455"
+     width="216.19151"
+     height="15.735927"
+     id="rect995" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="20.401827"
+     y="75.081200"
+     id="text996"
+     transform="scale(12.07773,8.282075)">channel.open_for_copying( curr_mbox-&gt;first, a_to_b)</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="393.75636"
+     y="611.59930"
+     width="69.446991"
+     height="15.735927"
+     id="rect999" />
+  <text
+     style="fill:#009300;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="35.476775"
+     y="75.096352"
+     id="text1000"
+     transform="scale(12.07773,8.282075)">same as above</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="139.09705"
+     y="632.38629"
+     width="118.78457"
+     height="15.735927"
+     id="rect1003" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.434296"
+     y="77.606339"
+     id="text1004"
+     transform="scale(12.07773,8.282075)">copy messages from b to a</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="139.73399"
+     y="744.71760"
+     width="118.78457"
+     height="15.735927"
+     id="rect1007" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.487049"
+     y="91.169364"
+     id="text1008"
+     transform="scale(12.07773,8.282075)">store_a.mailbox_expunge</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="139.73399"
+     y="766.91431"
+     width="118.78457"
+     height="15.735927"
+     id="rect1015" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.487049"
+     y="93.849326"
+     id="text1016"
+     transform="scale(12.07773,8.282075)">store_b.mailbox_expunge</text>
+  <polygon
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     points="29.5607,125.949 34.2713,128.304 29.5607,130.66 24.85,128.304 "
+     id="polygon1023"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="17.600210"
+     y="98.189383"
+     id="text1024"
+     transform="scale(12.07773,8.282075)">store_a.isremote</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="294.26837"
+     y="803.23133"
+     width="189.01662"
+     height="15.735927"
+     id="rect1027" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="32.189564"
+     y="98.234313"
+     id="text1028"
+     transform="scale(12.07773,8.282075)">store_a.stream = mail_close(store_a.stream);</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="269.46503"
+     y1="810.73463"
+     x2="294.26837"
+     y2="811.09913"
+     id="line1030" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="23.089529"
+     y="97.484313"
+     id="text1033"
+     transform="scale(12.07773,8.282075)">N</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="215.54343"
+     y1="322.18030"
+     x2="215.39250"
+     y2="327.48911"
+     id="line1033" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="216.14694"
+     y1="343.30014"
+     x2="215.99620"
+     y2="348.60700"
+     id="line1034" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="215.99620"
+     y1="363.51471"
+     x2="215.99620"
+     y2="369.31259"
+     id="line1035" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="215.39250"
+     y1="384.63474"
+     x2="215.39250"
+     y2="390.43247"
+     id="line1036" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.59758"
+     y1="648.01194"
+     x2="212.59758"
+     y2="662.99159"
+     id="line1037" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="211.99408"
+     y1="408.76807"
+     x2="211.99408"
+     y2="414.56638"
+     id="line1038" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.59758"
+     y1="430.71582"
+     x2="212.83872"
+     y2="589.77564"
+     id="line1039" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="211.99408"
+     y1="605.88483"
+     x2="211.99408"
+     y2="611.68103"
+     id="line1040" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="210.78606"
+     y1="626.87128"
+     x2="210.78606"
+     y2="632.66736"
+     id="line1041" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="213.40807"
+     y1="739.08509"
+     x2="213.40807"
+     y2="744.88300"
+     id="line1042" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.80466"
+     y1="760.61854"
+     x2="212.80466"
+     y2="766.41651"
+     id="line1043" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.20013"
+     y1="782.56641"
+     x2="212.57111"
+     y2="791.22132"
+     id="line1044" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.57111"
+     y1="830.23878"
+     x2="212.32993"
+     y2="837.64179"
+     id="line1045" />
+  <polygon
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     points="29.5407,131.554 34.2513,133.909 29.5407,136.265 24.83,133.909 "
+     id="polygon1047"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="17.580256"
+     y="103.79437"
+     id="text1048"
+     transform="scale(12.07773,8.282075)">store_a.isremote</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="294.02731"
+     y="849.65125"
+     width="189.01662"
+     height="15.735927"
+     id="rect1051" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="32.169548"
+     y="103.83933"
+     id="text1052"
+     transform="scale(12.07773,8.282075)">store_a.stream = mail_close(store_a.stream);</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="269.22299"
+     y1="857.14613"
+     x2="294.02731"
+     y2="857.51923"
+     id="line1054" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="23.069513"
+     y="103.08933"
+     id="text1057"
+     transform="scale(12.07773,8.282075)">N</text>
+  <polyline
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="44.15,129.299 44.15,131.107 29.5507,131.107 "
+     id="polyline1057"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="44.13,134.904 44.13,136.761 29.5453,136.761 "
+     id="polyline1058"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="212.32993"
+     y1="876.65028"
+     x2="212.44202"
+     y2="884.89167"
+     id="line1059" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="470.69164"
+     y1="443.44107"
+     x2="470.47313"
+     y2="456.18546"
+     id="line1060" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="41.3625,92.0488 51.0994,92.0488 51.0994,93.5061 "
+     id="polyline1062"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <polygon
+     style="fill:#000000;"
+     points="50.6994,93.5061 51.0994,94.3061 51.4994,93.5061 "
+     id="polygon1063"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="42.2125,92.9988 42.3625,92.9988 42.3625,112.306 51.0494,112.306 51.0494,111.306 "
+     id="polyline1064"
+     transform="matrix(12.07773,0.000000,0.000000,9.113288,-146.4743,-420.6592)" />
+  <polygon
+     style="fill:#000000;"
+     points="42.2125,92.5988 41.4125,92.9988 42.2125,93.3988 "
+     id="polygon1065"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="354.50368"
+     y1="615.40863"
+     x2="383.49001"
+     y2="615.49908"
+     id="line1066" />
+  <polygon
+     style="fill:#000000;"
+     points="43.8776,116.181 44.6794,115.785 43.8813,115.381 "
+     id="polygon1067"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="393.75636"
+     y1="623.40088"
+     x2="364.77001"
+     y2="623.30866"
+     id="line1068" />
+  <polygon
+     style="fill:#000000;"
+     points="42.3312,116.324 41.5294,116.72 42.3275,117.124 "
+     id="polygon1069"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9994,73.558 23.9994,74.7219 29.7444,74.7219 29.7444,75.8858 "
+     id="polyline1078"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-145.1286,-321.2029)" />
+  <ellipse
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     cx="23.9694"
+     cy="139.394"
+     rx="0.325"
+     ry="0.325"
+     id="ellipse1080"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9694,139.069 23.9694,137.915 29.5453,137.915 29.5453,136.761 "
+     id="polyline1081"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <ellipse
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     cx="51.0994"
+     cy="94.6811"
+     rx="0.325"
+     ry="0.325"
+     id="ellipse1083"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-343.4075)" />
+  <ellipse
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     cx="51.0494"
+     cy="110.981"
+     rx="0.325"
+     ry="0.325"
+     id="ellipse1085"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-146.4743,-327.2587)" />
+  <ellipse
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     cx="23.9994"
+     cy="73.233"
+     rx="0.325"
+     ry="0.325"
+     id="ellipse1087"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-145.1286,-321.2029)" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="222.33836"
+     y="925.39838"
+     width="189.01662"
+     height="15.735927"
+     id="rect1089" />
+  <text
+     style="fill:#0000db;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="26.233938"
+     y="112.98531"
+     id="text1090"
+     transform="scale(12.07773,8.282075)">store_a.stream = mail_close(store_a.stream);</text>
+  <polygon
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9351,140.795 28.6457,143.15 23.9351,145.506 19.2244,143.15 "
+     id="polygon1093"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="11.974662"
+     y="113.03536"
+     id="text1094"
+     transform="scale(12.07773,8.282075)">store_a.isremote</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="145.04073"
+     y1="905.26508"
+     x2="144.62685"
+     y2="914.17719"
+     id="line1096" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="201.51996"
+     y1="933.68195"
+     x2="222.33836"
+     y2="933.26771"
+     id="line1097" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="17.163931"
+     y="112.28143"
+     id="text1098"
+     transform="scale(12.07773,8.282075)">Y</text>
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="222.33836"
+     y="973.44373"
+     width="189.01662"
+     height="15.735927"
+     id="rect1101" />
+  <text
+     style="fill:#0000db;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;fill-opacity:1.0000000;"
+     x="26.233938"
+     y="118.78633"
+     id="text1102"
+     transform="scale(12.07773,8.282075)">store_a.stream = mail_close(store_a.stream);</text>
+  <polygon
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9567,146.651 28.7247,148.953 23.9567,151.255 19.1887,148.953 "
+     id="polygon1105"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="11.996209"
+     y="118.83834"
+     id="text1106"
+     transform="scale(12.07773,8.282075)">store_a.isremote</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="202.47411"
+     y1="981.74281"
+     x2="222.33836"
+     y2="981.31165"
+     id="line1108" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="17.163931"
+     y="118.08347"
+     id="text1111"
+     transform="scale(12.07773,8.282075)">Y</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="144.62685"
+     y1="953.18617"
+     x2="144.88815"
+     y2="962.67609"
+     id="line1111" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9459,146.078 38.1944,146.078 38.1944,144.05 "
+     id="polyline1112"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <polyline
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="23.9756,152.186 38.1944,152.186 38.1944,149.851 "
+     id="polyline1113"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="144.88815"
+     y1="1000.8075"
+     x2="145.34338"
+     y2="1016.2367"
+     id="line1114" />
+  <rect
+     style="fill:#ffffff;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x="23.961603"
+     y="1016.2367"
+     width="242.76254"
+     height="15.735927"
+     id="rect1116" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="12.033927"
+     y="123.95333"
+     id="text1117"
+     transform="scale(12.07773,8.282075)">remote:reopen (HALF_OPEN) or local:NIL </text>
+  <ellipse
+     style="fill:#ffffff;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     cx="23.9994"
+     cy="156.488"
+     rx="0.325"
+     ry="0.325"
+     id="ellipse1120"
+     transform="matrix(12.07773,0.000000,0.000000,8.282075,-144.4557,-251.8977)" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="145.34338"
+     y1="1031.9724"
+     x2="145.40331"
+     y2="1041.4554"
+     id="line1121" />
+  <rect
+     style="fill:#ffffff;stroke:#000000;stroke-width:0.91827130;"
+     x="421.53603"
+     y="563.39514"
+     width="100.28580"
+     height="15.735927"
+     id="rect1024" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="39.053565"
+     y="69.194885"
+     id="text1025"
+     transform="scale(12.07773,8.282075)">store_to.stream = NIL</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.77301490;"
+     x1="469.60848"
+     y1="551.17389"
+     x2="469.32933"
+     y2="562.52307"
+     id="line1031" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.70529062;"
+     x1="470.60848"
+     y1="579.37567"
+     x2="470.60848"
+     y2="588.82336"
+     id="line1032" />
+  <rect
+     style="fill:#ffffff;stroke:#000000;stroke-width:1.0001433;"
+     x="141.01630"
+     y="663.65215"
+     width="253.56860"
+     height="15.735927"
+     id="rect1029" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="21.783083"
+     y="81.300211"
+     id="text1030"
+     transform="scale(12.07773,8.282075)">store_a.stream = store_a.mailbox_open( curr_mbox-&gt;first, 0 );</text>
+  <rect
+     style="fill:#ffffff;stroke:#000000;stroke-width:1.0001433;"
+     x="141.01631"
+     y="693.25825"
+     width="253.56860"
+     height="15.735927"
+     id="rect1031" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.7;font-family:sans;font-style:normal;font-weight:normal;"
+     x="21.783084"
+     y="84.874930"
+     id="text1032"
+     transform="scale(12.07773,8.282075)">store_b.stream = store_b.mailbox_open( curr_mbox-&gt;first, 0 );</text>
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:0.95624816;"
+     x1="211.75031"
+     y1="679.31444"
+     x2="211.75031"
+     y2="692.00807"
+     id="line1046" />
+  <line
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.0001433;"
+     x1="210.41006"
+     y1="709.87787"
+     x2="210.41006"
+     y2="722.57147"
+     id="line1047" />
+</svg>

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   id="svg7358"
+   sodipodi:version="0.32"
+   inkscape:version="0.38.1"
+   width="210mm"
+   height="297mm"
+   sodipodi:docbase="/home/tpo/src/projects/mailsync/mailsyncCVS/mailsync-5.1.2/doc"
+   sodipodi:docname="mail_open_close_flowchart2.svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs
+     id="defs7360" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.0000000"
+     inkscape:cx="305.25953"
+     inkscape:cy="504.51324"
+     inkscape:window-width="738"
+     inkscape:window-height="840"
+     inkscape:window-x="0"
+     inkscape:window-y="95" />
+  <rect
+     style="fill:#ffffff;"
+     x="33.495836"
+     y="36.627576"
+     width="79.081099"
+     height="160.10702"
+     id="rect826" />
+  <rect
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.5085093;"
+     x="33.495836"
+     y="36.627576"
+     width="79.081099"
+     height="160.10702"
+     id="rect827" />
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="2.3821364"
+     y="1.5113412"
+     id="text829"
+     transform="scale(14.78151,15.39492)">read_lasttime_seen</text>
+  <polygon
+     style="fill:#ffffff;"
+     points="14.6813,165.5 39.696,165.5 38.1309,169.8 13.1162,169.8 "
+     id="polygon831"
+     transform="matrix(14.78151,0.000000,0.000000,15.39492,-149.7959,-2501.992)" />
+  <polygon
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="14.6813,165.5 39.696,165.5 38.1309,169.8 13.1162,169.8 "
+     id="polygon832"
+     transform="matrix(17.03038,0.000000,0.000000,15.39492,-179.1798,-2501.992)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="16.272110"
+     y="4.2296129"
+     id="text833"
+     transform="scale(14.78151,15.39492)">Open msinfo for reading of seen IDs</text>
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="18.047977"
+     y="5.5739875"
+     id="text837"
+     transform="scale(14.78151,15.39492)">msinfo_stream = mail_open( NULL, nccs( this-&gt;msinfo ), OP_READONLY )</text>
+  <polygon
+     style="fill:#ffffff;"
+     points="14.5701,170.395 34.1348,170.395 32.5697,174.695 13.005,174.695 "
+     id="polygon839"
+     transform="matrix(14.78151,0.000000,0.000000,15.39492,-149.7959,-2501.992)" />
+  <polygon
+     style="fill:none;fill-opacity:0;stroke-width:0.1;stroke:#000000;"
+     points="14.5701,170.395 34.1348,170.395 32.5697,174.695 13.005,174.695 "
+     id="polygon840"
+     transform="matrix(14.78151,0.000000,0.000000,15.39492,-149.7959,-2501.992)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="13.435928"
+     y="10.324568"
+     id="text841"
+     transform="scale(14.78151,15.39492)">mail_close (msinfo_stream)</text>
+  <rect
+     style="fill:#ffffff;"
+     x="80.430298"
+     y="281.97531"
+     width="98.297058"
+     height="73.125793"
+     id="rect851" />
+  <rect
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.5783936;"
+     x="40.246674"
+     y="272.26886"
+     width="78.664307"
+     height="100.03871"
+     id="rect852" />
+  <polygon
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     points="14.8097,179.6 45.2656,179.6 43.4093,184.7 12.9534,184.7 "
+     id="polygon855"
+     transform="matrix(17.40381,0.000000,0.000000,13.71329,-174.8796,-2177.559)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="19.567494"
+     y="19.791233"
+     id="text856"
+     transform="scale(14.78151,15.39492)">return stream = mail_open( stream, nccs(fullboxname),</text>
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="22.611838"
+     y="20.822700"
+     id="text859"
+     transform="scale(14.78151,15.39492)">                             c_client_options</text>
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="27.432049"
+     y="22.260421"
+     id="text862"
+     transform="scale(14.78151,15.39492)">                                                                       | ( options.debug_imap ? OP_DEBUG : 0 ) );</text>
+  <text
+     style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="2.2469011"
+     y="26.708552"
+     id="text864"
+     transform="scale(14.78151,15.39492)">MAILSTREAM* Store::store_open( long c_client_options)</text>
+  <rect
+     style="fill:#ffffff;"
+     x="37.647472"
+     y="420.40869"
+     width="76.309555"
+     height="76.204765"
+     id="rect866" />
+  <rect
+     style="fill:none;fill-opacity:0.0000000;stroke:#000000;stroke-width:1.8290503;"
+     x="37.744700"
+     y="420.64276"
+     width="84.865100"
+     height="100.73660"
+     id="rect867" />
+  <polygon
+     style="fill:#ffffff;fill-opacity:1.0000000;stroke-width:0.1;stroke:#000000;"
+     points="14.8464,186.775 42.2111,186.775 40.646,191.075 13.2813,191.075 "
+     id="polygon870"
+     transform="matrix(20.24897,0.000000,0.000000,14.26420,-207.1223,-2228.370)" />
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="18.627039"
+     y="29.564311"
+     id="text871"
+     transform="scale(14.78151,15.39492)">return stream = mail_open( this-&gt;stream, nccs(this-&gt;server),</text>
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="20.487470"
+     y="30.596025"
+     id="text874"
+     transform="scale(14.78151,15.39492)">                 c_client_options</text>
+  <text
+     style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+     x="31.480936"
+     y="30.502919"
+     id="text876"
+     transform="scale(14.78151,15.39492)">                                                          | ( options.debug_imap ? OP_DEBUG : 0 ));</text>
+  <g
+     id="g7415">
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="7.3088706"
+       y="13.238442"
+       id="text828"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="18.639932"
+       y="10.388572"
+       id="text835"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="18.639932"
+       y="11.188621"
+       id="text836"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="2.2660677"
+       y="14.929549"
+       id="text843"
+       transform="scale(14.78151,15.39492)">MAILSTREAM* = mailbox_open( MAILSTREAM* stream,</text>
+    <text
+       style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="4.6338907"
+       y="21.088524"
+       id="text845"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="14.105183"
+       y="15.961292"
+       id="text846"
+       transform="scale(14.78151,15.39492)">                                                  const string</text>
+    <text
+       style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="4.6338907"
+       y="22.688622"
+       id="text848"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:start;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="14.189748"
+       y="17.073989"
+       id="text849"
+       transform="scale(14.78151,15.39492)">                                                  long c_client_options)</text>
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="8.2588904"
+       y="25.213524"
+       id="text853"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="21.343361"
+       y="24.488442"
+       id="text858"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="21.343361"
+       y="26.088524"
+       id="text861"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="7.6650718"
+       y="32.113442"
+       id="text868"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="19.980079"
+       y="31.663458"
+       id="text873"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="16.296369"
+       y="-50.603393"
+       id="text923"
+       transform="scale(14.78151,15.39492)" />
+    <text
+       style="fill:#000000;text-anchor:middle;font-size:0.8;font-family:sans;font-style:normal;font-weight:normal;"
+       x="44.915058"
+       y="-53.966427"
+       id="text957"
+       transform="scale(14.78151,15.39492)" />
+  </g>
+</svg>
