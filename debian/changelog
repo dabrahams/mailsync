@@ -1,8 +1,22 @@
-mailsync (5.1.0-2) unstable; urgency=high
+mailsync (5.1.1-1) unstable; urgency=high
 
-  * dpkg-buildpackage -i excludes .deps which are needed. Sigh. Hyper-ugly
-    dpkg-buildpackage commandline (included) is now required for building
-    the package. (bugreport: Bdale/builddaemon)             closes: #186943
+  * new in upstream:
+    * not properly expunging emails fixed - visible with #mh folders
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 15 Apr 2003 09:21:34 +0200
+
+mailsync (5.1.0-3) unstable; urgency=high
+
+  * new in upstream:
+    * warn about empty Message-IDs when using the default msg id algorithm.
+    * -di debug/log IMAP telemetry/protocol
+    * -dc debug configuration
+    * fixed traversing some boxes twice
+  * debian:
+    * dpkg-buildpackage -i excludes .deps which are needed. Sigh. Hyper-ugly
+      dpkg-buildpackage commandline (included) is now required for building
+      the package. (bugreport: Bdale/builddaemon)           closes: #186943
+    * skipping 5.1.0-2 - upload of that version failed
 
  -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Thu, 03 Apr 2003 10:12:16 +0200
 

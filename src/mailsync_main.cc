@@ -506,10 +506,11 @@ int main(int argc, char** argv)
           printf( " Copying messages from store \"%s\" to store \"%s\"\n",
                   store_a.name.c_str(), store_b.name.c_str() );
         }
+        // TODO: the following line is ugly as a cross between Bush and Saddam
+        if (! (options.simulate||options.no_expunge) ) {
+          mail_expunge(store_b.stream);
+	}
         if (! store_b.isremote) {
-          // TODO: the following line is ugly as a cross between Bush and Saddam
-          if (! (options.simulate||options.no_expunge) )
-             mail_expunge(store_b.stream);
           mail_close( store_b.stream );
           store_b.stream = NIL;
         } else {
@@ -537,11 +538,12 @@ int main(int argc, char** argv)
           store_b.stream = NIL;
           store_b.stream = store_b.mailbox_open( box->first, OP_READONLY );
         }
+        // TODO: ditto
+        if (! (options.simulate||options.no_expunge) ) {
+          mail_expunge(store_a.stream);
+	}
         if (!store_a.isremote) { // close the stream for writing
                                  // (sic - the beauty of c-client!) !!
-          // TODO: dito
-          if (! (options.simulate||options.no_expunge) )
-            mail_expunge(store_a.stream);
           mail_close(store_a.stream);
           store_a.stream = NIL;
         } else 
