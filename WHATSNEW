@@ -1,10 +1,12 @@
 New in 4.4.1:
 
- * more explicit error messages and more sensible debug output
- * documented the code
+ * more explicit and consistent error messages, more sensible debug output
+ * documented the code and renamed stuff so that it makes sense
  * messages-ids are sanitized and saved in RFC822 format only.
  * warnings about spaces in the message id are now optional, see the "-bd"
    option
+ * fixed a bug that occured when files were copied over but could not be saved
+   for some reason
 
 New in 4.2.3 to 4.3.1:
 

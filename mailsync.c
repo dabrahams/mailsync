@@ -10,11 +10,6 @@
 //            In mailsync a box containing multiple folders is described
 //            by a "Store" - have a look below at the definition of "Store".
 //
-//            Once again:
-//                        c-client        "real life"
-//                        ---------------------------
-//                        mailbox    ->   mail folder
-//                        mailstream ->   mailbox
 //////////////////////////////////////////////////////////////////////////
 
 #define VERSION "4.4.1"
