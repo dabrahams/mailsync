@@ -4,6 +4,11 @@ mailsync (5.1.2-1) unstable; urgency=high
     * another try at fixing the #mh expunge problem
     * mailsync shouldn't be possibly messing with flags at all if the
       mailbox (IMAP f.ex) allows it.
+  * debian:
+    * depend on automake1.5|1.6|1.7 since 1.4 doesn't provide depcomp
+                                                            closes: #191221
+    * the package should be buildable on woody out of the box. Further docu
+      for compiling under woody is in  README.Debian (thanks Mike Crowe).
 
  -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 19 Apr 2003 10:17:34 +0200
 

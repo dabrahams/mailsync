@@ -1,5 +1,13 @@
+Configuration and docu
+----------------------
 Please see the README for a short introduction to the configuration of
 mailsync and the libc-client documentation for an in depth discussion of
 the format of a mailbox specification.
 
-Tomas Pospisek <tpo_deb@sourcepole.ch>, Tue, 21 Aug 2001 11:37:37 +0200
+Building under woody
+--------------------
+If you want to compile mailsync under woody, you preferably rerun ./configure
+from the top directory and remove the libkrb5-dev dependency from
+debian/control.
+
+Tomas Pospisek <tpo_deb@sourcepole.ch>, Mon, 05 May 2003 14:36:55 +0200
