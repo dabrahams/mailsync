@@ -1,9 +1,12 @@
 .deps
-Makefile Makefile.in
 aclocal.m4
 autom4te.cache
 config.h config.h.in
 config.log config.status configure
+install-sh
+mailsync mailsync.o mailsync-*.tar.gz
+Makefile Makefile.in
+missing
+mkinstalldirs
 stamp-h1
 
-mailsync-*.tar.gz
