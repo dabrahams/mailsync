@@ -1,18 +1,16 @@
 /* Message string driver for message stringstructs */
 /* by Mark Crispin */
 
-void msg_string_init (STRING *s,void *data,unsigned long size);
-char msg_string_next (STRING *s);
-void msg_string_setpos (STRING *s,unsigned long i);
-typedef struct msg_data {
-  MAILSTREAM *stream;		/* stream */
-  long msgno;			/* message number */
-} MSGDATA;
+#include <stdio.h>      // required by c-client.h
+#include <c-client.h>
+#include "msgstring.h"
+
 STRINGDRIVER msg_string = {
   msg_string_init,		/* initialize string structure */
   msg_string_next,		/* get next byte in string structure */
   msg_string_setpos		/* set position in string structure */
 };
+
 void msg_string_init (STRING *s,void *data,unsigned long size)
 {
   MSGDATA *md = (MSGDATA *) data;
@@ -26,12 +24,14 @@ void msg_string_init (STRING *s,void *data,unsigned long size)
 #endif
   SETPOS (s,0);
 }
+
 char msg_string_next (STRING *s)
 {
   char c = *s->curpos++;	/* get next byte */
   SETPOS (s,GETPOS (s));	/* move to next chunk */
   return c;			/* return the byte */
 }
+
 void msg_string_setpos (STRING *s,unsigned long i)
 {
   MSGDATA *md = (MSGDATA *) s->data;
