@@ -783,7 +783,7 @@ bool read_lasttime_seen(Channel channel,
     if (strncmp(envelope->from->mailbox, "mailsync", 8)) {
       // This is not an email describing a mailsync channel!
       fprintf(stderr,"Info: The msinfo box %s contains the non-mailsync mail: \"From: %s\"\n",
-              channel.msinfo.c_str(), envelope->from->mailbox, );
+              channel.msinfo.c_str(), envelope->from->mailbox );
       continue;
     }
     else {
