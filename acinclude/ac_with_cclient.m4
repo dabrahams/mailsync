@@ -84,6 +84,8 @@ AC_DEFUN(AC_WITH_CCLIENT,[
      if test "${need_krb}" = "yes" ; then
       AC_MSG_RESULT([yes])
       CCLIENT_LIBS="${CCLIENT_LIBS} ${KRB5_GSSAPI_LIBS}"
+     else
+      AC_MSG_RESULT([not required])
      fi
      
      dnl
