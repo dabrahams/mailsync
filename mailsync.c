@@ -12,6 +12,63 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+// MSINFO format description
+//
+// ATTENTION: the msinfo format might change without warning!
+//
+// The msinfo file contains synchronization information for channels as
+// defined in the configuration file. Each channel contains the mailboxes
+// associated with it and the message ids of all the mails that have been
+// seen in those mailboxes the last time a sync was done.
+// 
+// The msinfo file is a normal mailbox.
+//
+// Each email therein represents a channel. The channel is identified by
+// the "Subject: " email header.
+//
+// The body of an email contains a series of mailbox synchronization
+// entries. Each such entry starts with the name of the mailbox followed
+// by all the message ids that were seen and synchronized. Message ids
+// have the format <xxx@yyy>
+//
+// Example:
+//
+// From tpo@petertosh Fri Oct  4 12:18:13 2002 +0200
+// From: mailsync
+// Subject: all
+// Status: O
+// X-Status:
+// X-Keywords:
+// X-UID: 2095
+//
+// linux/apt
+// <1018460459.4617.23.camel@mpav>
+// <1027985024.1352.19.camel@server1>
+// linux/mailsync
+// <001001c1d37a$39ee3d70$e349428e@ludwig>
+// <002b01c1e95c$94957390$e349428e@ludwig>
+//
+// From tpo@petertosh Sat Nov 30 18:21:55 2002 +0100
+// Status:
+// X-Status:
+// X-Keywords:
+// From: mailsync
+// Subject: inbox
+//
+// INBOX
+// <.AAA-25623050-05908,3118.1037623416@mail-ems-103.amazon.com>
+// <000001c28e4d$da22e0a0$3201a8c0@BALROG>
+// 
+// We have here two channels. The first is use for synchronization
+// of all my mailboxes and the second one solely for my inbox.
+//
+// The first channel contains the mailboxes "linux/apt" and
+// "linux/mailsync". Each of those mailboxes has had two mails in it,
+// whose message-ids can be seen above.
+//
+//////////////////////////////////////////////////////////////////////////
+//
 #define VERSION "4.5"
 
 #include <ctype.h>
@@ -138,9 +195,10 @@ struct Channel {
   string msinfo;
   Passwd passwd;
   unsigned long sizelimit;
+  string version;
 
   void clear() {
-    tag = store[0] = store[1] = msinfo = "";
+    tag = store[0] = store[1] = msinfo = version = "";
     passwd.clear();
     sizelimit = 0;
     return;
@@ -678,6 +736,8 @@ bool read_lasttime_seen(Channel channel,
 // This function is used in order to determine which messages to transfer
 // or to expunge.
 //
+// See the msinfo format description for more info.
+//
 // arguments:
 //              channel      - the channel that is being synched
 //              boxes        - the mailboxes that will be synched
@@ -695,7 +755,7 @@ bool read_lasttime_seen(Channel channel,
   ENVELOPE* envelope;
   unsigned long msgno;
   unsigned long k;
-  string currentbox;
+  string* currentbox = NULL;    // the box whose msg-id's we're currently reading
   char* text;
   unsigned long textlen;
 
@@ -719,10 +779,20 @@ bool read_lasttime_seen(Channel channel,
       fprintf(stderr,"       Aborting!\n");
       return 0;
     }
+    // Make sure that the mail is from mailsync and read the mailsync version
+    if (strncmp(envelope->from->mailbox, "mailsync", 8)) {
+      // This is not an email describing a mailsync channel!
+      fprintf(stderr,"Info: The msinfo box %s contains the non-mailsync mail: \"From: %s\"\n",
+              channel.msinfo.c_str(), envelope->from->mailbox, );
+      continue;
+    }
+    else {
+      channel.version = &envelope->from->mailbox[8];
+    }
+
     // The subject line contains the name of the channel
     if (channel.tag == envelope->subject) {
       // Found our lasttime
-      int instring;
 
       text = mail_fetchtext_full(msinfo_stream, msgno, &textlen, FT_INTERNAL);
       if (text)
@@ -733,44 +803,35 @@ bool read_lasttime_seen(Channel channel,
         fprintf(stderr,"       Aborting!\n");
         return 0;
       }
-      instring = 0;
-      // Replace spaces with '\0'
+      // Replace newlines with '\0'
+      // I.e. we transform the text body into c-strings, where
+      // each string is either a mailbox or a message id
       for (k=0; k<textlen; k++) {
-        if (isspace(text[k])) {
+        if (text[k] == '\n' || text[k] == '\r')
           text[k] = '\0';
-          instring = 0;
-        } else {
-          if (!instring) {
-            // Do nothing in particular
-          }
-          instring = 1;
-        }
       }
       // Check each box against `boxes'
-      instring = 0;
-      for (k=0; k<textlen; k++) {
-        if (text[k] == '\0') {
-          instring = 0;
-        } else {
-          if (!instring) {
-            if (text[k] != '<') {
-              // Mailbox name
-              if (boxes.count(&text[k])) {
-                currentbox = string(&text[k]);
-              } else {
-                currentbox = "";
-                extra.insert(&text[k]);
-              }
-            } else {
-              // Message-id
-              if (currentbox != "") {
-                mids_per_box[currentbox].insert(&text[k]);
-              }
-            }
-          }
-          instring = 1;
+      for (k=0;k<textlen;) {
+        if (text[k] == '\0') { // skip nulls
+          k++;
+          continue;
         }
+        if (text[k] != '<') {     // is it a mailbox name?
+          if (boxes.count(&text[k])) { // is the mailbox allready known?
+            currentbox = new string(&text[k]);
+          } else {
+            delete(currentbox);
+            extra.insert(&text[k]);
+          }
+        }
+        else {                    // it's a message-id
+          if (currentbox)
+            mids_per_box[*currentbox].insert(&text[k]);
+          else {}; // box has been deleted since last sync
+        }
+        for(;k<textlen && text[k]; k++); // fastforward to next string
       }
+
       free(text);
       break;    // Stop searching for message
     }
@@ -786,6 +847,7 @@ bool read_lasttime_seen(Channel channel,
 
   mail_close(msinfo_stream);
   return 1;
+  exit(0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1886,7 +1948,6 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
   }
 
   // Delimiter
-
   match_pattern_store->delim = delimiter;
 
   // If the mailbox is "selectable", i.e. contains messages,
@@ -1901,7 +1962,7 @@ void mm_list (MAILSTREAM *stream,int delimiter,char *name_nc,long attributes)
 
     // Remove prefix if it matches specified prefix
     skip = match_pattern_store->prefix.c_str();
-    while (*skip==*name) {
+    while (*skip && *skip==*name) {
       skip++;
       name++;
     }

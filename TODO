@@ -42,6 +42,10 @@ You're wellcome to implement any of these
 
 * Displaying "=?iso-8859-1?Q?Susanne" in Subject or From: is nonsense
 
+* warn should be on by default
+
+* spaces should not be replaced by dots in msinfo
+
 Nice to have
 ------------
 * it'd be nice to know which driver c-client will use for accessing mail

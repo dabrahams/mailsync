@@ -3,6 +3,7 @@ mailsync (4.5-1) unstable; urgency=high
   * new upstream
   * new upstream features:
     * simulate option
+    * size limit (contributed by Michael Krelin)
   
  -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 12 Nov 2002 14:16:32 +0100
 
