@@ -130,6 +130,10 @@ store local-directory-Mail {
 #
 # local inbox in mh format
 #
+# Michale Krelin wrote:
+# I use `mark +inbox all -sequence beforesync' before mailsyncing and
+# `mark +inbox notbeforesync -add -sequence unseen` after.
+#
 store hacker {
         pat \#mh/inbox
         prefix \#mh/inbox
