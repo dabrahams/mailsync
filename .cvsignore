@@ -5,7 +5,7 @@ config.h config.h.in
 config.log config.status configure
 depcomp
 install-sh
-mailsync mailsync.o mailsync-*.tar.gz
+mailsync-*.tar.gz
 Makefile Makefile.in
 missing
 mkinstalldirs
