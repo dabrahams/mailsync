@@ -7,6 +7,8 @@
 #include "msgstring.h"
 #include <flstring.h>
 #include "msgid.h"
+#include <cassert>
+#include <errno.h>
 
 extern Passwd*     current_context_passwd;
 extern options_t options;
@@ -98,7 +100,7 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
       return 0;
     }
     // Make sure that the mail is from mailsync 
-    if ( ! ( envelope->from || envelope->from->mailbox || envelope->subject) ) {
+    if ( ! ( envelope->from && envelope->from->mailbox && envelope->subject) ) {
       // Mail with missing headers
       fprintf( stderr, "Info: The msinfo box %s contains a message with"
                        " missing \"From\" or \"Subject\" header information\n");
@@ -144,7 +146,7 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
           currentbox = &text[k];
           // if the mailbox is unknown
           if ( store_a.boxes.find(currentbox) == store_a.boxes.end()
-               || store_a.boxes.find(currentbox) == store_a.boxes.end()) {
+               || store_b.boxes.find(currentbox) == store_b.boxes.end()) {
             deleted_mailboxes[currentbox]; //-% creates a new MailboxProperties
           }
         }
@@ -387,6 +389,12 @@ bool Channel::write_lasttime_seen( const MailboxMap& deleted_mailboxes,
     // create temporary file containing the email
     f = tmpfile();
     fprintf( f, "From: mailsync\nSubject: %s\n\n", this->name.c_str() );
+    if (! f) {
+      fprintf( stderr, "Error: Can't create tmp file for new set of msgid's\n");
+      if (errno) perror( strerror(errno) );
+      mail_close(stream);
+      return 0;
+    }
 
     // for each box - if it's not a deleted mailbox:
     // * first write a line containing it's name

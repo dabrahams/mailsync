@@ -13,6 +13,7 @@ extern int errno;               // Just in case
 #include <set>
 #include <map>
 #include <vector>
+#include <cassert>
 using std::string;
 using std::set;
 using std::map;
@@ -241,7 +242,7 @@ int main(int argc, char** argv)
   {
     if ( curr_mbox == store_a.boxes.end()) { // if we're done with store_a
       curr_mbox = store_b.boxes.begin();     // continue with store_b
-      continue;
+      if ( curr_mbox == store_b.boxes.end()) break;
     }
 
     // skip if the current mailbox has allready been synched

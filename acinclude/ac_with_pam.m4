@@ -21,7 +21,7 @@ AC_DEFUN(AC_WITH_PAM,[
   ifelse([$2], , :, [$2])
  else
   AC_MSG_CHECKING([for pam library])
-  for p in `eval "echo {${PAMLOCATIONS}}{/lib,}"` ; do
+  for p in `eval "echo {${PAMLOCATIONS}}{/lib,/lib64}"` ; do
    if test -r "${p}/libpam.a" -o -r "${p}/libpam.so" ; then
     PAM_LDFLAGS="-L${p}"
     AC_MSG_RESULT([found in ${p}])

@@ -22,7 +22,7 @@ AC_DEFUN(AC_WITH_OPENSSL,[
   ifelse([$2], , :, [$2])
  else
   AC_MSG_CHECKING([for libssl])
-  for p in `eval "echo {${OPENSSLLOCATIONS}}{/lib,}"` ; do
+  for p in `eval "echo {${OPENSSLLOCATIONS}}{/lib,/lib64}"` ; do
    if test -r "${p}/libssl.a" -o -r "${p}/libssl.so" ; then
     OPENSSL_LDFLAGS="-L${p}"
     AC_MSG_RESULT([found in ${p}])

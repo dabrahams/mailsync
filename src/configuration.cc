@@ -301,8 +301,8 @@ bool read_configuration( const string& config_file_name,
   {
     struct stat st;
     stat( config_file.c_str(), &st );
-    if ( S_ISDIR( st.st_mode ) 
-         || !(config=fopen(config_file.c_str(),"r")) )
+    if ( ! S_ISREG( st.st_mode ) 
+         || !( config = fopen( config_file.c_str(), "r") ) )
     {
       fprintf( stderr,
                "Error: Can't open config file %s\n", config_file.c_str());

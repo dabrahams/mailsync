@@ -4,6 +4,7 @@ New in 5.1.2:
  * fixed fix from 5.1.1
  * mailsync shouldn't be possibly messing with flags at all if the
    mailbox (IMAP f.ex) allows it.
+ * support for Linux-lib64 by Heiko Rommel
  
 New in 5.1.1:
 

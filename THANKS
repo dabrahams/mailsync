@@ -5,6 +5,7 @@ Jaldhar H. Vyas         mailsync manpage and initial Debian package
 Michael Krelin          sizelimit option, bugfixes, docu corrections,
                         autoconf ...
 Bob Lindell             first md5 checksumms patch, testing
+Heiko Rommel @ SuSE     Linux-lib64 support, various bugfixes
 
 Good bugreports that helped fix problems
 ----------------------------------------
