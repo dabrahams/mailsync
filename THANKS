@@ -19,7 +19,8 @@ Andre Srinivasan        not automatically setting -m when listing contents
 Wolfgang Sailer         forgot to adapt README to autoconf build procedure,
                         RH imap location
 Kunal Chavan            don't delete duplicate messages with empty Message-IDs
-Akkana Peck             config.h quoted in configure.ac
+Akkana Peck             config.h quoted in configure.ac, automake dependency
+Eric S. Johansson       automake problem on Gentoo and testing
 
 Current maintainer
 ------------------
