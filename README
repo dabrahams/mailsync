@@ -35,11 +35,7 @@ come up with alternatives to a few functions like stat() and getenv().
    link it to Mailsync.  Just get c-client.h from either the latest IMAP
    distribution or from http://mailsync.sourceforge.net.
 
-2. Makefile: modify line `imapdir = ../imap-2002.RC8' to point to the
-   place where you put c-client.
-
-3. make
-
+2. ./configure && make && make install
 
 
 2. Configuring mailsync-4
