@@ -9,5 +9,5 @@ mailsync-*.tar.gz
 Makefile Makefile.in
 missing
 mkinstalldirs
-stamp-h1
+stamp-h1 stamp-h.in
 

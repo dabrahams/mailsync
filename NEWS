@@ -1,3 +1,7 @@
+New in 5.2.2:
+
+ * patches for a smooth Gentoo ebuildi by Michael
+ 
 New in 5.2.1:
 
  * c-client-header.h was not contained in the tarball, strange I got no
