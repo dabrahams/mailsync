@@ -48,8 +48,7 @@ AC_DEFUN(AC_WITH_CCLIENT,[
    dnl Looking for c-client libraries
    dnl
    AC_MSG_CHECKING([for c-client library])
-   for l in `eval "echo
-   {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/lib,/lib64}/{libc-client,libc-client4,c-client}{${SOP}}"` ; do
+   for l in `eval "echo {${CCLIENTLOCATIONS}}{,/c-client,/lib/c-client,/lib,/lib64}/{libc-client,libc-client4,c-client}{${SOP}}"` ; do
     if test -r "$l" ; then
      AC_MSG_RESULT([found ${l}])
      CCLIENT_LIBS="$l"
