@@ -1,3 +1,5 @@
+You're wellcome to implement any of these
+-----------------------------------------
 * unless run wit -D a once existent folder will allways be
   recreated because mailsync remembers it in it's .minfo store.
   How to reproduce:
@@ -30,6 +32,18 @@
 * I'm not sure whether extra mailboxes in read_lasttime_seen and delete_boxes
   in write_lasttime is consistent
 
+* mailsync is using '!'  as a hierarchy separator. This is unfortunate. IMAP 4rev1
+  says mailbox names should be encoded in "modified UTF-7" that is contain only
+  characters 0x20-0x7e. That means we should use a non-"modified UTF-7" character
+  as hierarchy separator for mailsync ideally a character that has special meaning
+  on all platforms as f.ex. newline?
+
+Nice to have
+------------
 * it'd be nice to know which driver c-client will use for accessing mail
 
+* simulate option would be nice
+
+* synchronize Status
+=======
 * no_expunge runtime/compile option don't mix?
