@@ -297,7 +297,10 @@ bool Channel::copy_message( unsigned long msgno,
   if (elt->deleted & ! options.copy_deleted_messages) {
     print_lead( "ign. del" , direction == a_to_b ? ">" : "<" );
     print_from( store_from.stream, msgno );
-    print_msgid( msgid.c_str() );
+    if ( options.show_message_id ) {
+      print_msgid( msgid.c_str() );
+    }
+    printf("\n");
     return 0;
   }
       
