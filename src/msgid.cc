@@ -4,7 +4,7 @@
 #include <string>
 #include "msgid.h"
 #include "options.h"
-#include <c-client.h>
+#include "c-client-header.h"
 #include <cassert>
 
 //////////////////////////////////////////////////////////////////////////

@@ -13,4 +13,4 @@ dist-hook:
 
 pkgdocdir=${prefix}/share/doc/@PACKAGE@
 
-pkgdoc_DATA=COPYING NEWS README THANKS TODO doc/ABSTRACT doc/examples/mailsync doc/mailsync.1
+pkgdoc_DATA=COPYING NEWS README THANKS TODO doc/ABSTRACT doc/examples/mailsync doc/mailsync.1 doc/mail_open_close_flowchart.dia doc/mail_open_close_flowchart.svg doc/mail_open_close_flowchart2.svg

@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
-#include <c-client.h>
+#include "c-client-header.h"
 #include "msgid.h"
 
 using namespace std;

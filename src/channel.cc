@@ -3,7 +3,7 @@
 #include "options.h"
 #include "types.h"
 #include "mail_handling.h"
-#include <c-client.h>
+#include "c-client-header.h"
 #include "msgstring.h"
 #include <flstring.h>
 #include "msgid.h"

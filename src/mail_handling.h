@@ -1,5 +1,5 @@
 #ifndef __MAILSYNC_MAILHANDLING__
-#include "c-client.h"
+#include "c-client-header.h"
 
 //------------------------- Helper functions -----------------------------
 

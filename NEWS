@@ -22,6 +22,8 @@ New in 5.1.2:
  * checking for and adding libcrypt to LIBS
  * added workflow diagrams showing when mail_open is used with what options
  * -n has a new meaning: do not delete messages
+ * move c-client.h to its own include file, so that we can clean up the
+   mess it makes in a single place (idea Michael)
  * NOT YET RELEASED
  
 New in 5.1.1:

@@ -13,7 +13,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>      // required by c-client.h
-#include <c-client.h>
+#include "c-client-header.h"
 
 #include "options.h"
 #include "types.h"

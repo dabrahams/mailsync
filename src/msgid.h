@@ -1,7 +1,7 @@
 #ifndef __MAILSYNC_MSGID__
 
 #include <string>
-#include <c-client.h>
+#include "c-client-header.h"
 #include "options.h"
 
 using namespace std;

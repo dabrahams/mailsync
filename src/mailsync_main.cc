@@ -20,11 +20,7 @@ using std::map;
 using std::vector;
 using std::make_pair;
 
-#include "c-client.h"
-// C-Client defines these and it messes up STL, since the
-// use it as well
-#undef max
-#undef min
+#include "c-client-header.h"
 
 #include "configuration.h"     // configuration parsing and setup
 #include "options.h"           // options and default settings

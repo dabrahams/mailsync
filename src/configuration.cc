@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <string>
 #include <sys/stat.h>           // Stat()
-#include "c-client.h"           // for MAILTMPLEN
+#include "c-client-header.h"           // for MAILTMPLEN
 #include "configuration.h"
 #include "options.h"
 #include "store.h"

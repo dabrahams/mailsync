@@ -3,7 +3,7 @@
 /* changes by Tomas Pospisek */
 
 #include <stdio.h>      // required by c-client.h
-#include <c-client.h>
+#include "c-client-header.h"
 #include "msgstring.h"
 
 STRINGDRIVER msg_string = {
