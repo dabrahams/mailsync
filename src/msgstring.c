@@ -1,5 +1,6 @@
 /* Message string driver for message stringstructs */
 /* by Mark Crispin */
+/* changes by Tomas Pospisek */
 
 #include <stdio.h>      // required by c-client.h
 #include <c-client.h>
@@ -19,7 +20,9 @@ void msg_string_init (STRING *s,void *data,unsigned long size)
 #if 0
   s->size = size;		/* message size */
 #else	/* This kludge is necessary because of broken IMAP servers (sigh!) */
-  mail_fetchtext_full (md->stream,md->msgno,&s->size,NIL);
+  mail_fetchtext_full (md->stream,md->msgno,&s->size,FT_PEEK);
+                                /* FT_PEEK - we don't want to modify read
+                                 * messages in _any_ way */
   s->size += s->data1;		/* header + body size */
 #endif
   SETPOS (s,0);
@@ -41,7 +44,9 @@ void msg_string_setpos (STRING *s,unsigned long i)
     s->offset = 0;		/* offset is start of message */
   }
   else if (i < s->size) {	/* want body */
-    s->chunk = mail_fetchtext (md->stream,md->msgno);
+    s->chunk = mail_fetchtext_full (md->stream,md->msgno,NIL,FT_PEEK);
+                                /* FT_PEEK - see above */
+    //s->chunk = mail_fetchtext (md->stream,md->msgno);
     s->chunksize = s->size - s->data1;
     s->offset = s->data1;	/* offset is end of header */
   }
