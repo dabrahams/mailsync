@@ -56,6 +56,10 @@ to have synchronized.  A channel is a pair of stores which you want to
 get synchronized along with a file where mailsync can save
 synchronization info.
 
+Additionaly mailsync initializes and reads in c-client configuration to
+fine tune it's behaveour. You will very likely not need to bother about
+that. Before you tinker with it make sure to read the imaprc.txt
+documentation file from c-client.
 
 
 2.1 Mailbox specification
@@ -394,6 +398,9 @@ RFC 2076 - Common Internet Message Headers
 RFC 1176 - IMAP v2
 RFC 1203 - IMAP v3
 RFC 2060 - Internet Message Access Protocol - Version 4rev1
+         - being updated: http://www.imc.org/draft-crispin-imapv
+RFC 2342 - NAMESPACES (discovery of where my "*&/%* mailboxes are)
+http://www.iana.org/assignments/imap4-capabilities
 
 
 

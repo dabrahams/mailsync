@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 extern int errno;               // Just in case
 #include <sys/stat.h>           // Stat()
 
@@ -1002,7 +1003,7 @@ bool copy_message(MAILSTREAM*& mailboxa_stream, Passwd& passwda,
   md.stream = mailboxa_stream;
   md.msgno = msgno;
   if( channel.sizelimit && elt->rfc822_size > channel.sizelimit ) {
-    printf(lead_format, "skipped" , direction);
+    printf(lead_format, "too big" , direction);
     printf(from_format, summary(mailboxa_stream, msgno).c_str());
     if (show_message_id) printf(msgid_format, msgid.c_str());
     printf("\n");
@@ -1195,6 +1196,7 @@ void sanitize_message_id(string& msgid) {
 //
 // This function attempts to bring it back to a sane form following RFC822
 // that is "<blabla@somedomain>". Spaces inside the Message-ID are forbidden
+// and are replaced by dots: ' '->'.'.
 //
 // Iif our msgid starts with '<' we find the corresponding '>' and throw
 // everything after that away (let's hope there is no braindead sw that has
@@ -1470,8 +1472,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Open remote connections.
+  // initialize c-client environment (~/.imparc etc.)
+  env_init(getenv("USER"),getenv("HOME"));
 
+  // Open remote connections.
   if (storea.isremote) {
     current_context_passwd = &(storea.passwd);
     storea_stream = mail_open(NIL, nccs(storea.server), OP_HALFOPEN | OP_READONLY);
@@ -1930,6 +1934,9 @@ void mm_searched (MAILSTREAM *stream,unsigned long msgno) { }
 //
 void mm_exists (MAILSTREAM *stream,unsigned long number) { }
 //
+// c-client callback that notifies us, that the number of
+// messages has changed.
+//
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
@@ -1972,24 +1979,24 @@ void mm_log (char *string,long errflg)
 //////////////////////////////////////////////////////////////////////////
 {
   switch (errflg) {  
-  case BYE:
-  case NIL:                     // No error
-    if (log_chatter)
-      fprintf (stderr,"[%s]\n",string);
-    break;
-  case PARSE:                   // Parsing problem
-    if (log_parse) 
-      fprintf (stderr,"Parsing error: %%%s\n",string);
-    break;
-  case WARN:                    // Warning
-    if (log_warn) 
-      fprintf (stderr,"Warning: %%%s\n",string);
-    break;
-  case ERROR:                   // Error
-  default:
-    if (log_error)
-      fprintf (stderr,"Error: %s\n",string);
-    break;
+    case BYE:
+    case NIL:                     // No error
+      if (log_chatter)
+        fprintf (stderr,"[%s]\n",string);
+      break;
+    case PARSE:                   // Parsing problem
+      if (log_parse) 
+        fprintf (stderr,"Parsing error: %%%s\n",string);
+      break;
+    case WARN:                    // Warning
+      if (log_warn) 
+        fprintf (stderr,"Warning: %%%s\n",string);
+      break;
+    case ERROR:                   // Error
+    default:
+      if (log_error)
+        fprintf (stderr,"Error: %s\n",string);
+      break;
   }
 }
 
@@ -2043,8 +2050,11 @@ void mm_nocritical (MAILSTREAM *stream)
 //
 long mm_diskerror (MAILSTREAM *stream,long errcode,long serious)
 //
+// TODO: disk error occured - have a look what pine does
+// 
 //////////////////////////////////////////////////////////////////////////
 {
+  mm_log( strerror(errcode), ERROR);
   return T;
 }
 
@@ -2052,10 +2062,13 @@ long mm_diskerror (MAILSTREAM *stream,long errcode,long serious)
 //
 void mm_fatal (char *st)
 //
+// Called by c-client just before crash
+//
+// TODO: we should cleanly terminate here :-/
+//
 //////////////////////////////////////////////////////////////////////////
 {
-  char s[80];
-  strncpy(s, st, 79);
-  s[79]='\0';
-  fprintf (stderr,"Error: %s\n",s);
+  mm_log( st, ERROR);
+  fprintf (stderr,"A fatal error occured - terminating\n");
+  // exit(-1);
 }

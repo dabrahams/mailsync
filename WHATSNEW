@@ -3,6 +3,8 @@ New in 4.5:
  * Simulate option
  * fixed mapage
  * sizelimit option for channel contributed by Michael Krelin
+ * minimaly better error handling
+ * reads in and initializes c-client configuration
 
 New in 4.4.4:
 
