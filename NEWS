@@ -1,3 +1,8 @@
+New in 4.5.3:
+
+ * automatic detection whether -fno-operator-names is necessary
+   (bugreport Wolfgang, implementation *Michael*)
+
 New in 4.5.2:
 
  * added RH's c-client location (thanks Wolfgang Sailer)

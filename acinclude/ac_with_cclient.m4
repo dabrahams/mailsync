@@ -1,12 +1,13 @@
 dnl AC_WITH_CCLIENT([ACTION-IF-FOUND[,ACTION-IF-NOT-FOUND]])
 dnl Output:
-dnl AC_SUBST: @CCLIENT_INCLUDES@ @CCLIENT_LIBS@
+dnl AC_SUBST: @CCLIENT_INCLUDES@ @CCLIENT_LIBS@ @CCLIENT_CXXFLAGS@
 dnl AM_CONDITIONAL: HAVE_CCLIENT
 AC_DEFUN(AC_WITH_CCLIENT,[
  CCLIENTLOCATIONS="/usr,/usr/local"
  HAVE_CCLIENT="no"
  CCLIENT_LIBS=""
  CCLIENT_INCLUDES=""
+ CCLIENT_CXXFLAGS=""
  CCLIENT_LINKAGE_C=""
  CCLIENT_LINKAGE_H=""
  AC_ARG_WITH(c-client,
@@ -180,10 +181,49 @@ AC_DEFUN(AC_WITH_CCLIENT,[
       if test "${will_do_without_pam}" = "no" -a "${will_do_with_pam}" = "no" ; then
        ifelse([$2], , :, [$2])
       else
-       HAVE_CCLIENT=yes
-       AC_SUBST(CCLIENT_INCLUDES)
-       AC_SUBST(CCLIENT_LIBS)
-       ifelse([$1], , :, [$1])
+       AC_LANG_PUSH(C++)
+	xCPPFLAGS="${CPPFLAGS}"
+	xCXXFLAGS="${CXXFLAGS}"
+	CPPFLAGS="${CPPFLAGS} ${CCLIENT_INCLUDES}"
+	opernames_resolved="no"
+	AC_MSG_CHECKING([if c-client works without -fno-operator-names in c++])
+	AC_COMPILE_IFELSE(
+	 AC_LANG_SOURCE([
+	  #include <stdio.h>
+	  #include "c-client.h"
+	 ]),[
+	  AC_MSG_RESULT([yes])
+	  opernames_resolved="yes"
+	 ],[
+	  AC_MSG_RESULT([no])
+	  AC_MSG_CHECKING([if adding -fno-operator-names helps])
+	  CXXFLAGS="${CXXFLAGS} -fno-operator-names"
+	  AC_COMPILE_IFELSE(
+	   AC_LANG_SOURCE([
+	    #include <stdio.h>
+	    #include "c-client.h"
+	   ]),[
+	    AC_MSG_RESULT([yes])
+	    CCLIENT_CXXFLAGS=-fno-operator-names
+	    opernames_resolved="yes"
+	   ],[
+	    AC_MSG_RESULT([no])
+	   ]
+	  )
+	 ]
+	)
+	CXXFLAGS="${xCXXFLAGS}"
+	CPPFLAGS="${xCPPFLAGS}"
+       AC_LANG_POP(C++)
+       if test "${opernames_resolved}" = "no" ; then
+        ifelse([$2], , :, [$2])
+       else
+	HAVE_CCLIENT=yes
+	AC_SUBST(CCLIENT_CXXFLAGS)
+	AC_SUBST(CCLIENT_INCLUDES)
+	AC_SUBST(CCLIENT_LIBS)
+	ifelse([$1], , :, [$1])
+       fi
       fi
      fi
     fi
