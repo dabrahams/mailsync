@@ -1,0 +1,89 @@
+mailsync (4.3.1-3) unstable; urgency=high
+
+  * censored myself to get this package past the ftpmasters
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Mon, 17 Jun 2002 13:30:52 +0200
+
+mailsync (4.3.1-1) unstable; urgency=high
+
+  * Debian License Zealotry Addendum (Debian Trade Mark): Linking with OpenSSL
+    is fine (confirmed by both upstream authors Tim and myself)
+  * changed VERSION in source
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Thu, 18 Apr 2002 16:36:30 +0200
+
+mailsync (4.3-1) unstable; urgency=high
+
+  * moving to main from non-us
+  * fixed segfault (thanks for bugreport Alain Tesio!)		closes: #141238
+  * added RH build docu (thanks Aly Dharshi!)
+  * the _only_ code change is the segfault fix -> please include in woody
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Mon, 15 Apr 2002 20:12:20 +0200
+
+mailsync (4.2.2-1) unstable; urgency=high
+
+  * new upstream
+
+  * password can be set in store/channel
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 29 Jan 2002 15:03:43 +0100
+
+mailsync (4.2-1) unstable; urgency=high
+
+  * fixed typo in README.Debian
+  
+  * added possibility to have comments in config file
+
+  * added debug flag
+
+  * added commented example mailsync config file. This should make it
+    easier to configure mailsync: closes: #110367
+
+  * fixed some warnings
+  
+  * fixed bug in mode_diff, better output too
+
+  * more explicit output and cosmetics
+
+  * another bug fixed which had to do with delimiters being messed up
+    between 2 sites that use different ones (cyrus & pine-style-mbox folders)
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Mon, 21 Jan 2002 01:44:55 +0100
+
+mailsync (4.1-4) unstable; urgency=high
+
+  * Added pointer to c-client library for configuration.
+
+  * new libc-client should fix the connection problems. Gee it even
+    works here ;-), closes: #104253, #96264, #98669
+
+  * I tested it with g++-3 and it worked. I only had to add an include path. I
+    guess on a correctly set up g++-3 machine the path should be correctly set by default. closes: #104964
+  
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Tue, 21 Aug 2001 11:34:40 +0200
+
+mailsync (4.1-3) unstable; urgency=low
+
+  * fixed my own email address :-/
+  
+  * made rm use -f(orce) to remove maybe unexisting core files
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Fri,  4 May 2001 16:44:38 -0400
+
+mailsync (4.1-2) unstable; urgency=low
+
+  * fixed dependency: closes: #94075
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Sun, 15 Apr 2001 21:29:09 -0400
+
+mailsync (4.1-1) unstable; urgency=low
+
+  * Initial Release.
+  * Sponsored by Jaldhar H. Vyas <jaldhar@debian.org>
+
+ -- Tomas Pospisek <tpo_deb@sourcepole.ch>  Mon,  2 Apr 2001 18:28:09 -0400
+
+Local variables:
+mode: debian-changelog
+End:

@@ -1,0 +1,5 @@
+Please see the README for a short introduction to the configuration of
+mailsync and the libc-client documentation for an in depth discussion of
+the format of a mailbox specification.
+
+Tomas Pospisek <tpo_deb@sourcepole.ch>, Tue, 21 Aug 2001 11:37:37 +0200

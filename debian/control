@@ -1,0 +1,14 @@
+Source: mailsync
+Section: mail
+Priority: optional
+Maintainer: Tomas Pospisek <tpo_deb@sourcepole.ch>
+Build-Depends: debhelper (>> 3.0.0), libc-client-ssl2001-dev, libssl-dev
+Standards-Version: 3.5.2
+
+Package: mailsync
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Synchronize IMAP mailboxes
+ Mailsync is a way of keeping a collection of mailboxes synchronized. The
+ mailboxes may be on the local filesystem or on an IMAP server.
+
