@@ -21,8 +21,6 @@
 # Get all mail from the "example.org" IMAPS (IMAP over SSL)
 # server for the user "tpo" (IMAP is the default transport).
 #
-# Do not validate the SSL certificate.
-#
 # WARNING: I STONGLY advice against not validating the SSL
 #          certificate. Depending on your setup, a
 #          man-in-the-middle attack can be very easy to
@@ -46,6 +44,30 @@
 # (Can anybody lighten me up on what "ref" is?)
 #
 store cyrus-store {
+	server	{example.org/user=tpo/ssl}
+	ref	{example.org}
+	pat	INBOX.%
+	prefix  INBOX.
+	passwd secret
+}
+
+#
+# Same as above, but do not validate the SSL certificate.
+#
+# WARNING: I STONGLY advice against not validating the SSL
+#          certificate. Depending on your setup, a
+#          man-in-the-middle attack can be very easy to
+#          produce and YOU WILL NOT NOTICE.
+#
+#          Better get the SSL Certificate from the IMAP
+#          server you are connecting to and install it
+#          locally.
+#
+#          Here are some pointers on how to do it:
+#          http://www.madboa.com/geek/pine-ssl/
+#          http://tirian.magd.ox.ac.uk/~nick/openssl-certs/email.shtml
+# 
+store cyrus-store-enable-man-in-the-middle {
 	server	{example.org/user=tpo/ssl/novalidate-cert}
 	ref	{example.org}
 	pat	INBOX.%
@@ -81,11 +103,8 @@ store cyrus-inbox {
 #
 # do not verify any certs either
 #
-# PLEASE see the waring about novalidate-cert above!
-#
-#
 store courier-inbox {
-	server	{example.org/user=tpo/imap/novalidate-cert/norsh}
+	server	{example.org/user=tpo/imap/norsh}
 	ref	{example.org}
 	pat	INBOX
 }
