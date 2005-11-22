@@ -103,7 +103,8 @@ bool Channel::read_lasttime_seen( MsgIdsPerMailbox& mids_per_box,
     if ( ! ( envelope->from && envelope->from->mailbox && envelope->subject) ) {
       // Mail with missing headers
       fprintf( stderr, "Info: The msinfo box %s contains a message with"
-                       " missing \"From\" or \"Subject\" header information\n");
+                       " missing \"From\" or \"Subject\" header information\n",
+                       this->msinfo.c_str() );
       continue;
     }
     if ( strncmp( envelope->from->mailbox, "mailsync", 8) ) {
@@ -366,37 +367,37 @@ bool Channel::write_thistime_seen( const MailboxMap& deleted_mailboxes,
 //
 //////////////////////////////////////////////////////////////////////////
 {
-  MAILSTREAM* stream;
+  MAILSTREAM* msinfo_stream;
   ENVELOPE* envelope;
   unsigned long msgno;
 
   // open the msinfo box
   current_context_passwd = &this->passwd;
-  stream = mailbox_open(NIL, nccs(this->msinfo), 0);
-  if (!stream) {
+  msinfo_stream = mailbox_open(NIL, nccs(this->msinfo), 0);
+  if (!msinfo_stream) {
     return 0;
   }
 
   // first delete all the info for the channel we're reading
   // it will be replaced by a newly created set
-  for ( msgno=1; msgno <= stream->nmsgs; msgno++)
+  for ( msgno=1; msgno <= msinfo_stream->nmsgs; msgno++)
   {
-    envelope = mail_fetchenvelope( stream, msgno);
+    envelope = mail_fetchenvelope( msinfo_stream, msgno);
     if (! envelope)
     {
       fprintf( stderr,
                "Error: Couldn't fetch enveloppe #%lu from mailbox box %s\n",
-               msgno, stream->mailbox);
+               msgno, msinfo_stream->mailbox);
       return 0;
     }
     if ( envelope->subject == this->name )
     {
       char seq[30];
       sprintf(seq,"%lu",msgno);
-      mail_setflag(stream, seq, "\\Deleted");
+      mail_setflag(msinfo_stream, seq, "\\Deleted");
     }
   }
-  mail_expunge(stream);
+  mail_expunge(msinfo_stream);
   
   // Construct a temporary email that contains the new set msgid's that
   // are alive (not deleted) for each mailbox and then copy that email over
@@ -412,7 +413,7 @@ bool Channel::write_thistime_seen( const MailboxMap& deleted_mailboxes,
     if (! f) {
       fprintf( stderr, "Error: Can't create tmp file for new set of msgid's\n");
       if (errno) perror( strerror(errno) );
-      mail_close(stream);
+      mail_close(msinfo_stream);
       return 0;
     }
 
@@ -434,17 +435,17 @@ bool Channel::write_thistime_seen( const MailboxMap& deleted_mailboxes,
     flen = ftell(f);
     rewind(f);
     INIT(&CCstring, file_string, (void*) f, flen);
-    if (!mail_append(stream, nccs(this->msinfo), &CCstring))
+    if (!mail_append(msinfo_stream, nccs(this->msinfo), &CCstring))
     {
       fprintf( stderr, "Error: Can't append thistime to msinfo \"%s\"\n",
                        this->msinfo.c_str() );
       fclose(f);
-      mail_close(stream);
+      mail_close(msinfo_stream);
       return 0;
     }
     fclose(f);
   }
 
-  mail_close(stream);
+  mail_close(msinfo_stream);
   return 1;
 }

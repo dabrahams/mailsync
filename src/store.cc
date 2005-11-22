@@ -455,7 +455,7 @@ void Store::display_driver()
   if (the_driver_name)
     printf( "Using driver %s for store %s\n", the_driver_name, nccs( name));
   else
-    printf( "No driver for store %s found\n");
+    printf( "No driver for store %s found\n", nccs( name) );
 }
 
 //////////////////////////////////////////////////////////////////////////

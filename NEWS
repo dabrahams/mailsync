@@ -1,6 +1,9 @@
 New in 5.2.2:
 
- * patches for a smooth Gentoo ebuildi by Michael
+ * patches for a smooth Gentoo ebuild by Michael
+ * strongly advise AGAINST using novalidate-cert
+ * add missing parameters in printfs in error messages (thanks David Binderman)
+ * ATTENTION: currently we're not closing the box any more
  
 New in 5.2.1:
 

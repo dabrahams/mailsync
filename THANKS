@@ -21,6 +21,7 @@ Wolfgang Sailer         forgot to adapt README to autoconf build procedure,
 Kunal Chavan            don't delete duplicate messages with empty Message-IDs
 Akkana Peck             config.h quoted in configure.ac, automake dependency
 Eric S. Johansson       automake problem on Gentoo and testing
+David Binderman         missing parameters in printfs in error messages
 
 Current maintainer
 ------------------
