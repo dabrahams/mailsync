@@ -164,10 +164,10 @@ void MsgId::sanitize_message_id()
     *this = this->substr( 0, i+1);
 
   if (options.report_braindammaged_msgids)
-    if (removed_blanks)
+    if (added_brackets)
       fprintf( stderr, "Warning: added brackets <> around message id %s\n",
                        this->c_str());
-    else if (added_brackets)
+    else if (removed_blanks)
       fprintf( stderr, "Warning: replaced blanks with . in message id %s\n",
                        this->c_str());
 }
