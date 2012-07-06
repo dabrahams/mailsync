@@ -6,6 +6,7 @@
 #include "options.h"
 #include "c-client-header.h"
 #include <cassert>
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -118,6 +119,9 @@ MsgId::MsgId(ENVELOPE *envelope)
   }
 }
 
+static char const* const fixup_names[] = { 
+  "removed blanks", "added angle brackets", "added square brackets around ip address" };
+
 //////////////////////////////////////////////////////////////////////////
 //
 void MsgId::sanitize_message_id()
@@ -137,17 +141,18 @@ void MsgId::sanitize_message_id()
 //
 //////////////////////////////////////////////////////////////////////////
 {
-  int removed_blanks = 0;
-  int added_brackets = 0;
+  enum { 
+    removed_blanks, added_angle_brackets, added_square_brackets, num_fixups };
+  bool fixup[num_fixups] = {};
   unsigned i;
   if ((*this)[0] != '<') {
     *this = '<'+ *this;
-    added_brackets = 1;
+    fixup[added_angle_brackets] = true;
   }
   for (i=0; (i < this->length()) && ((*this)[i] != '>'); i++) {
     if (isspace((*this)[i]) || iscntrl((*this)[i])) {
       (*this)[i] = '.';
-      removed_blanks = 1;
+      fixup[removed_blanks] = true;
     }
   }
 
@@ -156,20 +161,45 @@ void MsgId::sanitize_message_id()
   // if there's no '>' we need to attach
     if((*this)[i-1] != '>') {
       *this = *this + '>';
-      added_brackets = 1;
+      fixup[added_angle_brackets] = true;
     }
   }
   // we've found a '>', so let's cut the rubbish that follows
   else
     *this = this->substr( 0, i+1);
 
-  if (options.report_braindammaged_msgids)
-    if (added_brackets)
-      fprintf( stderr, "Warning: added brackets <> around message id %s\n",
-                       this->c_str());
-    else if (removed_blanks)
-      fprintf( stderr, "Warning: replaced blanks with . in message id %s\n",
-                       this->c_str());
+  // Look for un-bracketed ip addresses
+  size_type atsign_pos = this->rfind('@');
+  if (atsign_pos != npos) {
+    size_type tail_pos = atsign_pos + 1;
+    size_type tail_end = this->size() - 1;
+    size_type tail_length = tail_end - tail_pos;
+    if (tail_length >= strlen("1.1.1.1") 
+        && tail_length <= strlen("255.255.255.255")
+        && this->find_first_not_of("0123456789.", tail_pos) == tail_end
+        && std::count(this->begin() + tail_pos, this->end(), '.') == 3
+        && this->find("..", tail_pos) == npos
+    ) {
+      *this = this->substr(0,tail_pos) + '[' + this->substr(tail_pos,tail_length) + "]>";
+      fixup[added_square_brackets] = true;
+    }
+  }
+
+  if (
+    options.report_braindammaged_msgids 
+    && std::find(fixup, fixup + num_fixups, true) != fixup+num_fixups
+  ) {
+    fprintf( stderr, "Warning: repaired brain-damaged message id %s (", this->c_str());
+    bool comma = false;
+    for (unsigned i = 0; i < num_fixups; ++i) {
+      if (fixup[i]) {
+        if (comma) fprintf( stderr, ", ");
+        fprintf( stderr, fixup_names[i] );
+        comma = true;
+      }
+    }
+    fprintf( stderr, ")\n");
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
